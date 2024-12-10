@@ -20,6 +20,7 @@ add_requires("libcurl", { configs = { shared = true }, system = false })
 add_requires(
 	"concurrentqueue",
 	"cppcodec",
+	"fast_float",
 	"frozen",
 	"libsodium",
 	"lz4",
@@ -88,7 +89,7 @@ target("CommonLib", function ()
 	add_options("commonlib_static")
 
 	add_packages("nazaraengine", { components = { "physics3d", "network" }, public = true })
-	add_packages("concurrentqueue", "cppcodec", "semver", "fmt", "hopscotch-map", "nlohmann_json", "sol2", { public = true })
+	add_packages("concurrentqueue", "cppcodec", "fast_float", "fmt", "hopscotch-map", "nlohmann_json", "semver", "sol2", { public = true })
 	add_packages("frozen", "libsodium", "lz4", "perlinnoise")
 
 	if is_plat("windows") then

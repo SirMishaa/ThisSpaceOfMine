@@ -31,6 +31,7 @@
 #include <Nazara/Widgets/ButtonWidget.hpp>
 #include <Nazara/Widgets/SimpleLabelWidget.hpp>
 #include <Nazara/Widgets/TextAreaWidget.hpp>
+#include <fast_float/fast_float.h>
 #include <charconv>
 
 namespace tsom
@@ -358,8 +359,13 @@ namespace tsom
 
 		auto AreaToValue = [](Nz::TextAreaWidget* textArea, auto& value)
 		{
+			using T = std::decay_t<decltype(value)>;
+
 			std::string_view str = textArea->GetText();
-			std::from_chars(str.data(), str.data() + str.size(), value);
+			if constexpr (std::is_floating_point_v<T>)
+				fast_float::from_chars(str.data(), str.data() + str.size(), value);
+			else
+				std::from_chars(str.data(), str.data() + str.size(), value);
 		};
 
 		AreaToValue(m_cornerRadiusArea, cornerRadius);
