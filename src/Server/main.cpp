@@ -44,9 +44,6 @@ int ServerMain(int argc, char* argv[])
 
 	auto& config = configAppComponent.GetConfig();
 
-	if (Nz::UInt32 maxStuckTime = config.GetIntegerValue<Nz::UInt32>("Server.MaxStuckSeconds"))
-		app.AddComponent<tsom::HealthCheckerAppComponent>(maxStuckTime);
-
 	Nz::UInt16 serverPort = config.GetIntegerValue<Nz::UInt16>("Server.Port");
 	std::filesystem::path saveDirectory = Nz::Utf8Path(config.GetStringValue("Save.Directory"));
 
@@ -63,6 +60,9 @@ int ServerMain(int argc, char* argv[])
 	instance.SetDefaultSpawnpoint(&planet, Nz::Vector3f::Up() * 100.f + Nz::Vector3f::Backward() * 5.f, Nz::Quaternionf::Identity());
 
 	fmt::print(fg(fmt::color::lime_green), "server ready.\n");
+
+	if (Nz::UInt32 maxStuckTime = config.GetIntegerValue<Nz::UInt32>("Server.MaxStuckSeconds"))
+		app.AddComponent<tsom::HealthCheckerAppComponent>(maxStuckTime);
 
 	return app.Run();
 }
