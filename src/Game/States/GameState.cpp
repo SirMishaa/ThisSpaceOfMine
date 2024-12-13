@@ -84,6 +84,7 @@ namespace tsom
 			cameraComponent.UpdateClearColor(Nz::Color::Gray());
 			cameraComponent.UpdateRenderMask(tsom::Constants::RenderMask3D & ~tsom::Constants::RenderMaskLocalPlayer);
 			cameraComponent.UpdateZNear(0.1f);
+			cameraComponent.UpdateZFar(5000.f);
 
 			m_targetCameraFOV = cameraComponent.GetFOV();
 		}
