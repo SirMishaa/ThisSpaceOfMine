@@ -56,14 +56,18 @@ namespace tsom
 		auto& taskScheduler = app.GetComponent<Nz::TaskSchedulerAppComponent>();
 
 		auto& planetComponent = m_planetEntity.get<PlanetComponent>();
+		planetComponent.planet->AddChunks(blockLibrary, chunkCount);
+
+		if (!m_savePath.empty())
+			LoadFromDirectory();
+
 		planetComponent.planet->GenerateChunks(blockLibrary, taskScheduler, seed, chunkCount, "alice");
+		taskScheduler.WaitForTasks();
+
 		planetComponent.planet->GeneratePlatform(blockLibrary, tsom::Direction::Right, { 65, -18, -39 });
 		planetComponent.planet->GeneratePlatform(blockLibrary, tsom::Direction::Back, { -34, 2, 53 });
 		planetComponent.planet->GeneratePlatform(blockLibrary, tsom::Direction::Front, { 22, -35, -59 });
 		planetComponent.planet->GeneratePlatform(blockLibrary, tsom::Direction::Down, { 23, -62, 26 });
-
-		if (!m_savePath.empty())
-			LoadFromDirectory();
 
 		planetComponent.planet->OnChunkUpdated.Connect([this](ChunkContainer* /*planet*/, Chunk* chunk, DirectionMask /*neighborMask*/)
 		{

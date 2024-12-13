@@ -92,6 +92,18 @@ namespace tsom
 		return *it->second.chunk;
 	}
 
+	void Planet::AddChunks(const BlockLibrary& blockLibrary, const Nz::Vector3ui& chunkCount)
+	{
+		for (int chunkZ = 0; chunkZ < chunkCount.z; ++chunkZ)
+		{
+			for (int chunkY = 0; chunkY < chunkCount.y; ++chunkY)
+			{
+				for (int chunkX = 0; chunkX < chunkCount.x; ++chunkX)
+					AddChunk(blockLibrary, { chunkX - int(chunkCount.x / 2), chunkY - int(chunkCount.y / 2), chunkZ - int(chunkCount.z / 2) });
+			}
+		}
+	}
+
 	auto Planet::ComputeGravity(const Nz::Vector3f& position) const -> GravityForce
 	{
 		constexpr float PlanetGravityCenterStartDecrease = 16.f;
@@ -488,62 +500,61 @@ namespace tsom
 			sol::protected_function generationFunction;
 		};
 
-		std::mutex threadMutex;
-		std::unordered_map<std::thread::id, std::unique_ptr<ThreadState>> threadStates;
-
-		for (int chunkZ = 0; chunkZ < chunkCount.z; ++chunkZ)
+		struct GenerationContext
 		{
-			for (int chunkY = 0; chunkY < chunkCount.y; ++chunkY)
+			std::mutex threadMutex;
+			std::unordered_map<std::thread::id, std::unique_ptr<ThreadState>> threadStates;
+		};
+
+		auto context = std::make_shared<GenerationContext>();
+
+		ForEachChunk([=, &taskScheduler](const ChunkIndices& chunkIndices, Chunk& chunk)
+		{
+			if (chunk.HasContent())
+				return;
+
+			taskScheduler.AddTask([=, &chunk]
 			{
-				for (int chunkX = 0; chunkX < chunkCount.x; ++chunkX)
+				ThreadState* currentThreadState = nullptr;
 				{
-					auto& chunk = AddChunk(blockLibrary, { chunkX - int(chunkCount.x / 2), chunkY - int(chunkCount.y / 2), chunkZ - int(chunkCount.z / 2) });
-					taskScheduler.AddTask([&]
+					std::unique_lock lock(context->threadMutex);
+					auto id = std::this_thread::get_id();
+					auto it = context->threadStates.find(id);
+					if (it == context->threadStates.end())
 					{
-						ThreadState* currentThreadState = nullptr;
-						{
-							std::unique_lock lock(threadMutex);
-							auto id = std::this_thread::get_id();
-							auto it = threadStates.find(id);
-							if (it == threadStates.end())
-							{
-								lock.unlock();
+						lock.unlock();
 
-								std::unique_ptr<ThreadState> threadState = std::make_unique<ThreadState>(m_app);
-								threadState->scriptingContext.RegisterLibrary<MathScriptingLibrary>();
-								threadState->scriptingContext.RegisterLibrary<ChunkScriptingLibrary>();
+						std::unique_ptr<ThreadState> threadState = std::make_unique<ThreadState>(m_app);
+						threadState->scriptingContext.RegisterLibrary<MathScriptingLibrary>();
+						threadState->scriptingContext.RegisterLibrary<ChunkScriptingLibrary>();
 
-								Nz::Result execResult = threadState->scriptingContext.LoadFile(fmt::format("scripts/planets/{}.lua", scriptName));
-								if (!execResult)
-									return;
-
-								threadState->generationFunction = execResult.GetValue();
-
-								currentThreadState = threadState.get();
-
-								lock.lock();
-								threadStates.emplace(id, std::move(threadState));
-							}
-							else
-								currentThreadState = it->second.get();
-						}
-
-						chunk.LockWrite();
-						NAZARA_DEFER({ chunk.UnlockWrite(); });
-
-						auto result = currentThreadState->generationFunction(chunk, seed, chunkCount);
-						if (!result.valid())
-						{
-							sol::error err = result;
-							fmt::print("chunk {};{};{} failed to generate: {}", chunkX, chunkY, chunkZ, err.what());
+						Nz::Result execResult = threadState->scriptingContext.LoadFile(fmt::format("scripts/planets/{}.lua", scriptName));
+						if (!execResult)
 							return;
-						}
-					});
-				}
-			}
-		}
 
-		taskScheduler.WaitForTasks();
+						threadState->generationFunction = execResult.GetValue();
+
+						currentThreadState = threadState.get();
+
+						lock.lock();
+						context->threadStates.emplace(id, std::move(threadState));
+					}
+					else
+						currentThreadState = it->second.get();
+				}
+
+				chunk.LockWrite();
+				NAZARA_DEFER({ chunk.UnlockWrite(); });
+
+				auto result = currentThreadState->generationFunction(chunk, seed, chunkCount);
+				if (!result.valid())
+				{
+					sol::error err = result;
+					fmt::print("chunk {};{};{} failed to generate: {}", chunkIndices.x, chunkIndices.y, chunkIndices.z, err.what());
+					return;
+				}
+			});
+		});
 	}
 
 	void Planet::GeneratePlatform(const BlockLibrary& blockLibrary, Direction upDirection, const BlockIndices& platformCenter)

@@ -34,6 +34,7 @@ namespace tsom
 			~Planet() = default;
 
 			Chunk& AddChunk(const BlockLibrary& blockLibrary, const ChunkIndices& indices, const Nz::FunctionRef<void(BlockIndex* blocks)>& initCallback = nullptr);
+			void AddChunks(const BlockLibrary& blockLibrary, const Nz::Vector3ui& chunkCount);
 
 			GravityForce ComputeGravity(const Nz::Vector3f& position) const override;
 			Nz::Vector3f ComputeUpDirection(const Nz::Vector3f& position) const;
