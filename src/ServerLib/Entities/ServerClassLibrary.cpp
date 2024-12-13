@@ -152,6 +152,8 @@ namespace tsom
 
 					newEntity.get<ClassInstanceComponent>().GetClass()->ActivateEntity(newEntity);
 
+					shipEnvironment->UpdateExterior(newEnvironment, newEntity);
+
 					// Change the root environment of players in the ship as well
 					if (newEnvironment->IsRoot())
 					{
