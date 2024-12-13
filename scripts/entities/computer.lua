@@ -13,7 +13,7 @@ end
 
 classData:On("init", function (self)
 	local physSettings = {
-		kind = "dynamic",
+		kind = "static",
 		mass = 0.0,
 		collider = BoxCollider3D.new(Vec3f(0.5)),
 		objectLayer = Constants.ObjectLayerStatic
