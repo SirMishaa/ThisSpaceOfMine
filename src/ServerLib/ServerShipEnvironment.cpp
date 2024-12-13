@@ -344,9 +344,13 @@ namespace tsom
 				// No longer colliding with the interior
 				auto& outsideNode = m_exteriorEntity.get<Nz::NodeComponent>();
 				EnvironmentTransform outsideTransform(outsideNode.GetPosition(), outsideNode.GetRotation());
-				Nz::Vector3f outsideVelocity = m_exteriorEntity.get<Nz::RigidBody3DComponent>().GetLinearVelocity();
+				Nz::Vector3f shipLinearVelocity = m_exteriorEntity.get<Nz::RigidBody3DComponent>().GetLinearVelocity();
 
-				controlledEntity.get<ServerEnvironmentSwitchComponent>().Switch(controlledEntity, this, m_exteriorEnvironment, outsideTransform);
+				controlledEntity = controlledEntity.get<ServerEnvironmentSwitchComponent>().Switch(controlledEntity, this, m_exteriorEnvironment, outsideTransform);
+				if (Nz::PhysCharacter3DComponent* controlledCharacter = controlledEntity.try_get<Nz::PhysCharacter3DComponent>())
+					controlledCharacter->AddLinearVelocity(shipLinearVelocity);
+				else if (Nz::RigidBody3DComponent* controlledRigidbody = controlledEntity.try_get<Nz::RigidBody3DComponent>())
+					controlledRigidbody->AddLinearVelocity(shipLinearVelocity);
 			});
 		}
 

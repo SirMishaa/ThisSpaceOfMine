@@ -14,7 +14,7 @@
 
 namespace tsom
 {
-	void ServerEnvironmentSwitchComponent::Switch(entt::handle oldEntity, ServerEnvironment* previousEnvironment, ServerEnvironment* newEnvironment, const EnvironmentTransform& relativeTransform)
+	entt::handle ServerEnvironmentSwitchComponent::Switch(entt::handle oldEntity, ServerEnvironment* previousEnvironment, ServerEnvironment* newEnvironment, const EnvironmentTransform& relativeTransform)
 	{
 		// Disable old entity to not take it into account in the callbacks (for example when changing root environment)
 		oldEntity.emplace<Nz::DisabledComponent>();
@@ -53,5 +53,7 @@ namespace tsom
 		handleEnvironmentSwitch(oldEntity, newEntity, relativeTransform);
 		OnEntitySwitchedEnvironment(oldEntity, newEntity, newEnvironment, relativeTransform);
 		oldEntity.destroy();
+
+		return newEntity;
 	}
 }

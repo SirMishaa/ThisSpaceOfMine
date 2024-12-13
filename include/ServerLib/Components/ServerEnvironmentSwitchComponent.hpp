@@ -18,7 +18,7 @@ namespace tsom
 
 	struct ServerEnvironmentSwitchComponent
 	{
-		void Switch(entt::handle entity, ServerEnvironment* previousEnvironment, ServerEnvironment* newEnvironment, const EnvironmentTransform& relativeTransform);
+		entt::handle Switch(entt::handle entity, ServerEnvironment* previousEnvironment, ServerEnvironment* newEnvironment, const EnvironmentTransform& relativeTransform);
 
 		std::function<void(entt::handle previousEntity, entt::handle newEntity, const EnvironmentTransform& /*relativeTransform*/)> handleEnvironmentSwitch;
 
