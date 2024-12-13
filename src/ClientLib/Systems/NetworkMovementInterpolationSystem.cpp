@@ -17,6 +17,11 @@ namespace tsom
 	{
 	}
 
+	NetworkMovementInterpolationSystem::~NetworkMovementInterpolationSystem()
+	{
+		m_interpolatedObserver.disconnect();
+	}
+
 	void NetworkMovementInterpolationSystem::Update(Nz::Time elapsedTime)
 	{
 		// Setup new entities

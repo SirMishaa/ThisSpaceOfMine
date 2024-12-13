@@ -17,6 +17,11 @@ namespace tsom
 	{
 	}
 
+	EnvironmentProxySystem::~EnvironmentProxySystem()
+	{
+		m_observer.clear();
+	}
+
 	void EnvironmentProxySystem::AddEnvironmentRecursively(ServerPlayer* player)
 	{
 		auto& visibilityHandler = player->GetVisibilityHandler();

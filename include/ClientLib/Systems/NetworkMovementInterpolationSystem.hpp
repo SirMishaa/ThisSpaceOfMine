@@ -29,7 +29,7 @@ namespace tsom
 			NetworkMovementInterpolationSystem(entt::registry& registry, Nz::Time movementTickDuration, std::size_t targetMovementPoints = 4);
 			NetworkMovementInterpolationSystem(const NetworkMovementInterpolationSystem&) = delete;
 			NetworkMovementInterpolationSystem(NetworkMovementInterpolationSystem&&) = delete;
-			~NetworkMovementInterpolationSystem() = default;
+			~NetworkMovementInterpolationSystem();
 
 			void Update(Nz::Time elapsedTime);
 

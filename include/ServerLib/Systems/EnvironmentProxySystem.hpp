@@ -32,7 +32,7 @@ namespace tsom
 			EnvironmentProxySystem(entt::registry& registry);
 			EnvironmentProxySystem(const EnvironmentProxySystem&) = delete;
 			EnvironmentProxySystem(EnvironmentProxySystem&&) = delete;
-			~EnvironmentProxySystem() = default;
+			~EnvironmentProxySystem();
 
 			void AddEnvironmentRecursively(ServerPlayer* player);
 
