@@ -16,7 +16,7 @@ end)
 add_repositories("nazara-repo https://github.com/NazaraEngine/xmake-repo.git")
 add_requires("nazaraengine >=2023.08.15", { configs = { debug = is_mode("debug"), symbols = true }})
 add_requires("fmt", { configs = { header_only = false }})
-add_requires("libcurl", { configs = { shared = true }, system = false })
+add_requires("libcurl", { configs = { shared = true, openssl = is_plat("linux", "android", "cross") }, system = false })
 add_requires(
 	"concurrentqueue",
 	"cppcodec",
