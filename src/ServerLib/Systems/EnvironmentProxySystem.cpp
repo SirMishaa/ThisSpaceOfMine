@@ -19,7 +19,7 @@ namespace tsom
 
 	EnvironmentProxySystem::~EnvironmentProxySystem()
 	{
-		m_observer.clear();
+		m_observer.disconnect();
 	}
 
 	void EnvironmentProxySystem::AddEnvironmentRecursively(ServerPlayer* player)
