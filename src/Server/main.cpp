@@ -85,8 +85,6 @@ int ServerMain(int argc, char* argv[])
 	enterPlanet1Trigger.targetEnvironment = &planet;
 	enterPlanet1Trigger.updateRoot = true;
 
-	instance.SetDefaultSpawnpoint(&planet2, Nz::Vector3f::Up() * 120.f + Nz::Vector3f::Backward() * 5.f, Nz::Quaternionf::Identity());
-
 	fmt::print(fg(fmt::color::lime_green), "server ready.\n");
 
 	if (Nz::UInt32 maxStuckTime = config.GetIntegerValue<Nz::UInt32>("Server.MaxStuckSeconds"))
