@@ -5,6 +5,7 @@ includes("xmake/rules/*.lua")
 option("commonlib_static", { default = false, defines = "TSOM_COMMONLIB_STATIC"})
 option("clientlib_static", { default = false, defines = "TSOM_CLIENTLIB_STATIC"})
 option("serverlib_static", { default = false, defines = "TSOM_SERVERLIB_STATIC"})
+option("serveronly", { default = false })
 
 -- Simple rule to make targets inherit their version from CommonLib version (which is extracted from git in on_config callback)
 rule("inherit_version", function ()
@@ -14,9 +15,9 @@ rule("inherit_version", function ()
 end)
 
 add_repositories("nazara-repo https://github.com/NazaraEngine/xmake-repo.git")
-add_requires("nazaraengine >=2023.08.15", { configs = { debug = is_mode("debug"), symbols = true }})
-add_requires("fmt", { configs = { header_only = false }})
-add_requires("libcurl", { configs = { shared = true, openssl = is_plat("linux", "android", "cross") }, system = false })
+add_requires("fmt[header_only:n]")
+add_requires("libcurl[shared]", { system = false })
+add_requires("nazaraengine[symbols] >=2024.12.30")
 add_requires(
 	"concurrentqueue",
 	"cppcodec",
@@ -32,13 +33,17 @@ add_requires(
 	"sol2"
 )
 
+if has_config("serveronly") then
+	add_requireconfs("nazaraengine", { configs = { audio = false, graphics = false, physics2d = false, renderer = false, textrenderer = false, widgets = false }})
+end
+
 if is_plat("windows") then
 	add_requires("stackwalker 5b0df7a4db8896f6b6dc45d36e383c52577e3c6b")
 elseif is_plat("macosx") then
-	add_requires("moltenvk", { configs = { shared = true }})
+	add_requires("moltenvk[shared]")
 end
 
-add_requireconfs("fmt", "stackwalker", { debug = is_mode("debug") })
+add_requireconfs("fmt", "nazaraengine", "stackwalker", { debug = is_mode("debug") })
 
 -- Don't link with system-installed libs on CI
 if os.getenv("CI") then
@@ -210,26 +215,6 @@ target("ServerLib", function ()
 	add_options("serverlib_static")
 end)
 
-target("ClientLib", function ()
-	set_group("Common")
-	set_basename("TSOMClient")
-	add_headerfiles("include/(ClientLib/**.hpp)", "include/(ClientLib/**.inl)")
-	add_headerfiles("src/ClientLib/**.hpp", "src/ClientLib/**.inl", { install = false })
-	add_files("src/ClientLib/**.cpp")
-	add_deps("CommonLib", { public = true })
-	add_packages("frozen")
-	add_rules("inherit_version")
-
-	after_load(function (target)
-		target:set("kind", target:dep("clientlib_static") and "static" or "shared")
-	end)
-
-	add_defines("TSOM_CLIENTLIB_BUILD")
-	add_options("clientlib_static")
-
-	add_packages("nazaraengine", { components = { "audio", "graphics", "widgets" }, public = true })
-end)
-
 target("Main", function ()
 	set_group("Common")
 	set_basename("TSOMMain")
@@ -244,44 +229,6 @@ target("Main", function ()
 	add_headerfiles("src/Main/**.hpp", "src/Main/**.inl")
 	add_files("src/Main/**.cpp")
 	add_packages("nazaraengine", { components = { "core" }, public = true })
-end)
-
-target("TSOMGame", function ()
-	set_group("Executable")
-	set_basename("ThisSpaceOfMine")
-	add_deps("ClientLib", "Main")
-	add_rules("inherit_version")
-
-	add_defines("TSOM_GAME_BUILD")
-
-	add_headerfiles("src/Game/**.hpp", "src/Game/**.inl")
-	add_files("src/Game/**.cpp")
-	add_installfiles("gameconfig.lua.default", { prefixdir = "bin" })
-	add_installfiles("(scripts/**.lua)", { prefixdir = "bin" })
-
-	if is_plat("windows", "mingw") then
-		add_files("src/Game/resources.rc")
-	end
-
-	add_rpathdirs("@executable_path")
-
-	add_packages("nazaraengine", { components = { "widgets" }, public = true })
-	add_packages("libcurl", { links = {} })
-	if is_plat("macosx") then
-		add_packages("moltenvk", { links = {} })
-	end
-
-	after_install(function (target)
-		local curl = target:pkg("libcurl")
-		if not curl then
-			return
-		end
-
-		local bin = path.join(curl:installdir(), "bin")
-		os.vcp(path.join(bin, "*.dll"), target:installdir("bin"))
-		os.vcp(path.join(bin, "*.so"), target:installdir("bin"))
-		os.vcp(path.join(bin, "*.dynlib"), target:installdir("bin"))
-	end)
 end)
 
 target("TSOMServer", function ()
@@ -299,5 +246,65 @@ target("TSOMServer", function ()
 
 	add_rpathdirs("@executable_path")
 end)
+
+if not has_config("serveronly") then
+	target("ClientLib", function ()
+		set_group("Common")
+		set_basename("TSOMClient")
+		add_headerfiles("include/(ClientLib/**.hpp)", "include/(ClientLib/**.inl)")
+		add_headerfiles("src/ClientLib/**.hpp", "src/ClientLib/**.inl", { install = false })
+		add_files("src/ClientLib/**.cpp")
+		add_deps("CommonLib", { public = true })
+		add_packages("frozen")
+		add_rules("inherit_version")
+
+		after_load(function (target)
+			target:set("kind", target:dep("clientlib_static") and "static" or "shared")
+		end)
+
+		add_defines("TSOM_CLIENTLIB_BUILD")
+		add_options("clientlib_static")
+
+		add_packages("nazaraengine", { components = { "audio", "graphics", "widgets" }, public = true })
+	end)
+
+	target("TSOMGame", function ()
+		set_group("Executable")
+		set_basename("ThisSpaceOfMine")
+		add_deps("ClientLib", "Main")
+		add_rules("inherit_version")
+
+		add_defines("TSOM_GAME_BUILD")
+
+		add_headerfiles("src/Game/**.hpp", "src/Game/**.inl")
+		add_files("src/Game/**.cpp")
+		add_installfiles("gameconfig.lua.default", { prefixdir = "bin" })
+		add_installfiles("(scripts/**.lua)", { prefixdir = "bin" })
+
+		if is_plat("windows", "mingw") then
+			add_files("src/Game/resources.rc")
+		end
+
+		add_rpathdirs("@executable_path")
+
+		add_packages("nazaraengine", { components = { "widgets" }, public = true })
+		add_packages("libcurl", { links = {} })
+		if is_plat("macosx") then
+			add_packages("moltenvk", { links = {} })
+		end
+
+		after_install(function (target)
+			local curl = target:pkg("libcurl")
+			if not curl then
+				return
+			end
+
+			local bin = path.join(curl:installdir(), "bin")
+			os.vcp(path.join(bin, "*.dll"), target:installdir("bin"))
+			os.vcp(path.join(bin, "*.so"), target:installdir("bin"))
+			os.vcp(path.join(bin, "*.dynlib"), target:installdir("bin"))
+		end)
+	end)
+end
 
 includes("tests/xmake.lua")
