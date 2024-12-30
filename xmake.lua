@@ -1,3 +1,5 @@
+set_xmakever("2.9.7")
+
 includes("xmake/actions/*.lua")
 includes("xmake/rules/*.lua")
 
@@ -34,7 +36,7 @@ add_requires(
 )
 
 if has_config("serveronly") then
-	add_requireconfs("nazaraengine", { configs = { audio = false, graphics = false, physics2d = false, renderer = false, textrenderer = false, widgets = false }})
+	add_requireconfs("nazaraengine", { debug = is_mode("debug"), configs = { audio = false, graphics = false, platform = false, physics2d = false, renderer = false, textrenderer = false, widgets = false }})
 end
 
 if is_plat("windows") then
@@ -43,7 +45,7 @@ elseif is_plat("macosx") then
 	add_requires("moltenvk[shared]")
 end
 
-add_requireconfs("fmt", "nazaraengine", "stackwalker", { debug = is_mode("debug") })
+add_requireconfs("fmt", "stackwalker", { debug = is_mode("debug") })
 
 -- Don't link with system-installed libs on CI
 if os.getenv("CI") then
