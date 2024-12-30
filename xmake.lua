@@ -18,7 +18,7 @@ end)
 
 add_repositories("nazara-repo https://github.com/NazaraEngine/xmake-repo.git")
 add_requires("fmt[header_only:n]")
-add_requires("libcurl[shared]", { system = false })
+add_requires("libcurl[shared]", { system = false, configs = { openssl = is_plat("linux", "android", "cross") } })
 add_requires("nazaraengine[symbols] >=2024.12.30")
 add_requires(
 	"concurrentqueue",
