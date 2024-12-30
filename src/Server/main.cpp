@@ -8,6 +8,8 @@
 #include <ServerLib/PlayerTokenAppComponent.hpp>
 #include <ServerLib/ServerInstanceAppComponent.hpp>
 #include <ServerLib/ServerPlanetEnvironment.hpp>
+#include <ServerLib/Components/EnvironmentProxyComponent.hpp>
+#include <ServerLib/Components/NetworkedComponent.hpp>
 #include <ServerLib/Session/InitialSessionHandler.hpp>
 #include <Nazara/Core/Application.hpp>
 #include <Nazara/Core/Core.hpp>
@@ -20,6 +22,9 @@
 #include <NazaraUtils/PathUtils.hpp>
 #include <Main/Main.hpp>
 #include <fmt/color.h>
+
+#include <ServerLib/Components/EnvironmentEnterTriggerComponent.hpp>
+#include <Nazara/Core/Components/NodeComponent.hpp>
 
 int ServerMain(int argc, char* argv[])
 {
@@ -56,8 +61,31 @@ int ServerMain(int argc, char* argv[])
 	auto& sessionManager = instance.AddSessionManager(serverPort);
 	sessionManager.SetDefaultHandler<tsom::InitialSessionHandler>(std::ref(instance));
 
-	tsom::ServerPlanetEnvironment planet(instance, saveDirectory, 42, Nz::Vector3ui(5), 1.f);
+	tsom::ServerPlanetEnvironment planet(instance, "alice", saveDirectory / Nz::Utf8Path("alice"), 42, Nz::Vector3ui(5), 1.f);
 	instance.SetDefaultSpawnpoint(&planet, Nz::Vector3f::Up() * 100.f + Nz::Vector3f::Backward() * 5.f, Nz::Quaternionf::Identity());
+
+	tsom::ServerPlanetEnvironment planet2(instance, "bob", saveDirectory / Nz::Utf8Path("bob"), 41, Nz::Vector3ui(5), 1.f, 40.f);
+
+	entt::handle switchToPlanet2Entity = planet.CreateEntity();
+	auto& enterPlanet2Trigger = switchToPlanet2Entity.emplace<tsom::EnvironmentEnterTriggerComponent>();
+	enterPlanet2Trigger.aabb = Nz::Boxf(-300.f, -300.f, -300.f, 600.f, 600.f, 600.f);
+	enterPlanet2Trigger.targetEnvironment = &planet2;
+	enterPlanet2Trigger.updateRoot = true;
+
+	switchToPlanet2Entity.emplace<Nz::NodeComponent>(Nz::Vector3f(-10000.f, 0.f, 0.f));
+	switchToPlanet2Entity.emplace<tsom::EnvironmentProxyComponent>().targetEnvironment = &planet2;
+	switchToPlanet2Entity.emplace<tsom::NetworkedComponent>();
+
+	entt::handle switchToPlanet1Entity = planet2.CreateEntity();
+	auto& enterPlanet1Trigger = switchToPlanet1Entity.emplace<tsom::EnvironmentEnterTriggerComponent>();
+	enterPlanet1Trigger.aabb = Nz::Boxf(-300.f, -300.f, -300.f, 600.f, 600.f, 600.f);
+	switchToPlanet1Entity.emplace<Nz::NodeComponent>(Nz::Vector3f(10000.f, 0.f, 0.f));
+	switchToPlanet1Entity.emplace<tsom::EnvironmentProxyComponent>().targetEnvironment = &planet;
+	switchToPlanet1Entity.emplace<tsom::NetworkedComponent>();
+	enterPlanet1Trigger.targetEnvironment = &planet;
+	enterPlanet1Trigger.updateRoot = true;
+
+	instance.SetDefaultSpawnpoint(&planet2, Nz::Vector3f::Up() * 120.f + Nz::Vector3f::Backward() * 5.f, Nz::Quaternionf::Identity());
 
 	fmt::print(fg(fmt::color::lime_green), "server ready.\n");
 

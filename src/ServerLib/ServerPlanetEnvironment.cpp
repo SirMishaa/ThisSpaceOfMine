@@ -30,7 +30,7 @@ namespace tsom
 {
 	constexpr unsigned int chunkSaveVersion = 1;
 
-	ServerPlanetEnvironment::ServerPlanetEnvironment(ServerInstance& serverInstance, std::filesystem::path savePath, Nz::UInt32 seed, const Nz::Vector3ui& chunkCount, float cellSize, float cornerRadius) :
+	ServerPlanetEnvironment::ServerPlanetEnvironment(ServerInstance& serverInstance, std::string_view generatorName, std::filesystem::path savePath, Nz::UInt32 seed, const Nz::Vector3ui& chunkCount, float cellSize, float cornerRadius) :
 	ServerEnvironment(serverInstance, ServerEnvironmentType::Planet, true),
 	m_savePath(std::move(savePath))
 	{
@@ -61,7 +61,7 @@ namespace tsom
 		if (!m_savePath.empty())
 			LoadFromDirectory();
 
-		planetComponent.planet->GenerateChunks(blockLibrary, taskScheduler, seed, chunkCount, "alice");
+		planetComponent.planet->GenerateChunks(blockLibrary, taskScheduler, seed, chunkCount, generatorName);
 		taskScheduler.WaitForTasks();
 
 		planetComponent.planet->GeneratePlatform(blockLibrary, tsom::Direction::Right, { 65, -18, -39 });
