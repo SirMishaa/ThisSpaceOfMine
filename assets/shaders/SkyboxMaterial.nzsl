@@ -48,7 +48,7 @@ struct FragOut
 	[builtin(frag_depth)] depth: f32
 }
 
-[entry(frag), depth_write(greater)]
+[entry(frag), depth_write(less)]
 fn main(input: VertOut) -> FragOut
 {
 	let color = settings.BaseColor;
@@ -61,7 +61,7 @@ fn main(input: VertOut) -> FragOut
 
 	let output: FragOut;
 	output.color = color;
-	output.depth = 1.0;
+	output.depth = 0.0;
 
 	return output;
 }

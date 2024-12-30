@@ -76,6 +76,7 @@ namespace tsom
 
 		Nz::MaterialPass forwardPass;
 		forwardPass.states.depthBuffer = true;
+		forwardPass.states.depthCompare = Nz::RendererComparison::GreaterOrEqual;
 		forwardPass.shaders.push_back(std::make_shared<Nz::UberShader>(nzsl::ShaderStageType::Fragment | nzsl::ShaderStageType::Vertex, "TSOM.BlockPBR"));
 		settings.AddPass(forwardPassIndex, forwardPass);
 
@@ -85,6 +86,7 @@ namespace tsom
 
 		Nz::MaterialPass shadowPass = depthPass;
 		shadowPass.options[nzsl::Ast::HashOption("ShadowPass")] = true;
+		shadowPass.states.depthCompare = Nz::RendererComparison::LessOrEqual; //< TODO: Reverse depth for shadow pass?
 		shadowPass.states.frontFace = Nz::FrontFace::Clockwise;
 		shadowPass.states.depthClamp = Nz::Graphics::Instance()->GetRenderDevice()->GetEnabledFeatures().depthClamping;
 		settings.AddPass(shadowPassIndex, shadowPass);

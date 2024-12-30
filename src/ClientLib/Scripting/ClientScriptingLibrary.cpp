@@ -18,6 +18,17 @@
 SOL_BASE_CLASSES(Nz::Model, Nz::InstancedRenderable);
 SOL_DERIVED_CLASSES(Nz::InstancedRenderable, Nz::Model);
 
+namespace sol
+{
+	// Don't treat Nz::Flags as containers (despite having begin() and end())
+	template<typename E>
+	struct is_container<Nz::Flags<E>> : std::false_type {};
+
+	// Not sure why it's required for sol::var_wrapper as well
+	template<typename E>
+	struct is_container<sol::var_wrapper<Nz::Flags<E>>> : std::false_type {};
+}
+
 namespace tsom
 {
 	void ClientScriptingLibrary::Register(sol::state& state)
@@ -70,12 +81,15 @@ namespace tsom
 			{ "PhysicallyBased", Nz::MaterialType::PhysicallyBased }
 		});
 
-		state.new_enum<Nz::MaterialInstancePreset>("MaterialInstancePreset",
-		{
-			{ "Default", Nz::MaterialInstancePreset::Default },
-			{ "NoDepth", Nz::MaterialInstancePreset::NoDepth },
-			{ "Transparent", Nz::MaterialInstancePreset::Transparent }
-		});
+		state.new_usertype<Nz::MaterialInstancePresetFlags>("MaterialInstancePresetFlags",
+			sol::no_constructor,
+
+			"Default",     sol::var(Nz::MaterialInstancePresetFlags{}),
+			"NoDepth",     sol::var(Nz::MaterialInstancePresetFlags(Nz::MaterialInstancePreset::NoDepth)),
+			"Transparent", sol::var(Nz::MaterialInstancePresetFlags(Nz::MaterialInstancePreset::Transparent)),
+
+			sol::meta_function::bitwise_or, &Nz::MaterialInstancePresetFlags::operator|
+		);
 
 		state.new_usertype<Nz::MaterialInstance>(
 			"MaterialInstance", sol::no_constructor,
@@ -112,9 +126,9 @@ namespace tsom
 				});
 			}),
 
-			"Instantiate", LuaFunction([this](Nz::MaterialType matType, std::optional<Nz::MaterialInstancePreset> preset)
+			"Instantiate", LuaFunction([this](Nz::MaterialType matType, std::optional<Nz::MaterialInstancePresetFlags> presetFlags)
 			{
-				return Nz::MaterialInstance::Instantiate(matType, preset.value_or(Nz::MaterialInstancePreset::Default));
+				return Nz::MaterialInstance::Instantiate(matType, presetFlags.value_or(Nz::MaterialInstancePresetFlags{}) | Nz::MaterialInstancePreset::ReverseZ);
 			})
 		);
 	}

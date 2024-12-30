@@ -81,10 +81,13 @@ namespace tsom
 			auto passList = filesystem.Load<Nz::PipelinePassList>("assets/3d.passlist");
 
 			auto& cameraComponent = m_cameraEntity.emplace<Nz::CameraComponent>(stateData.renderTarget, std::move(passList));
-			cameraComponent.UpdateClearColor(Nz::Color::Gray());
+			cameraComponent.EnableInfiniteZFar(true);
+			cameraComponent.EnableReversedZ(true);
+			cameraComponent.UpdateClearColor(Nz::Color::Black());
+			cameraComponent.UpdateClearDepth(0.f);
 			cameraComponent.UpdateRenderMask(tsom::Constants::RenderMask3D & ~tsom::Constants::RenderMaskLocalPlayer);
 			cameraComponent.UpdateZNear(0.1f);
-			cameraComponent.UpdateZFar(5000.f);
+			cameraComponent.UpdateZFar(10000.f); //< when infinite zfar is enabled, zfar is used as a limit for directional lights
 
 			m_targetCameraFOV = cameraComponent.GetFOV();
 		}
@@ -108,8 +111,12 @@ namespace tsom
 			auto& dirLight = lightComponent.AddLight<Nz::DirectionalLight>(tsom::Constants::RenderMask3D);
 			dirLight.UpdateAmbientFactor(0.05f);
 			dirLight.EnableShadowCasting(true);
-			dirLight.UpdateShadowMapSize(4096);
+			dirLight.UpdateShadowMapSize(2048);
 			dirLight.UpdateEnergy(5.f);
+			dirLight.EnableFixedShadowCascadSplit(true);
+
+			float splitFactors[] = { 0.002f, 0.006f, 0.02f };
+			dirLight.UpdateShadowCascadeFixedSplitFactors(splitFactors);
 		}
 
 		m_skyboxEntity = CreateEntity();
@@ -124,6 +131,7 @@ namespace tsom
 			// Setup only a forward pass (using the SkyboxMaterial module)
 			Nz::MaterialPass forwardPass;
 			forwardPass.states.depthBuffer = true;
+			forwardPass.states.depthCompare = Nz::RendererComparison::GreaterOrEqual;
 			forwardPass.shaders.push_back(std::make_shared<Nz::UberShader>(nzsl::ShaderStageType::Fragment | nzsl::ShaderStageType::Vertex, "SkyboxMaterial"));
 			skyboxSettings.AddPass("ForwardPass", forwardPass);
 

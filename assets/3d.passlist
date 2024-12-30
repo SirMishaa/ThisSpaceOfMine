@@ -2,16 +2,17 @@ passlist "Forward Passlist"
 {
     attachment "DepthBuffer"
     {
-        format "PreferredDepthStencil"
+        format "Depth32F"
     }
 
     pass "DepthPrepass"
     {
-        impl "Depth"
+        impl "Raster"
         {
             MatPass "DepthPass"
         }
 
+        cleardepth "Viewer"
         depthstenciloutput "DepthBuffer"
     }
 
@@ -24,6 +25,10 @@ passlist "Forward Passlist"
     {
         impl "Forward"
         output "Output" "ForwardOutput"
+        {
+            clearcolor "Viewer"
+        }
+
         depthstencilinput "DepthBuffer"
         depthstenciloutput "DepthBuffer"
         flag "LightShadowing"

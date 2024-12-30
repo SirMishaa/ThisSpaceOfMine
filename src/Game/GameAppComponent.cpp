@@ -49,6 +49,27 @@ namespace tsom
 
 	void GameAppComponent::Start()
 	{
+		// Check if GPU has minimum required specs
+		const Nz::RenderDevice& renderDevice = *Nz::Graphics::Instance()->GetRenderDevice();
+		if (!renderDevice.IsTextureFormatSupported(Nz::PixelFormat::Depth32F, Nz::TextureUsage::DepthStencilAttachment))
+		{
+			const Nz::RenderDeviceInfo& deviceInfo = renderDevice.GetDeviceInfo();
+			Nz::MessageBox requestBox(Nz::MessageBoxType::Error, "Missing GPU feature",
+				Nz::Format(
+					"Your GPU ({}) doesn't seem to support floating-point depth buffer (missing Depth32F support).\n"
+					"This is required for the game, try to update your drivers.{}",
+					deviceInfo.name,
+					(deviceInfo.type == Nz::RenderDeviceType::Integrated) ? "\nThe detected GPU seems to be integrated, try to use a dedicated GPU if possible.": ""
+				)
+			);
+
+			requestBox.AddButton(0, Nz::MessageBoxStandardButton::Close);
+
+			requestBox.Show();
+			GetApp().Quit();
+			return;
+		}
+
 		if (CheckAssets())
 		{
 			auto& window = SetupWindow();
