@@ -704,7 +704,7 @@ namespace tsom
 		visualEntity.emplace<AnimationComponent>(skeleton, std::make_shared<PlayerAnimationController>(visualEntity, m_playerAnimAssets));
 
 		// Floating name
-		std::shared_ptr<Nz::TextSprite> textSprite = std::make_shared<Nz::TextSprite>(Nz::MaterialInstance::Instantiate(MaterialType::Basic, MaterialInstancePreset::ReverseZ | MaterialInstancePreset::Transparent));
+		std::shared_ptr<Nz::TextSprite> textSprite = std::make_shared<Nz::TextSprite>(Nz::MaterialInstance::Instantiate(Nz::MaterialType::Basic, Nz::MaterialInstancePreset::ReverseZ | Nz::MaterialInstancePreset::Transparent));
 
 		PlayerInfo* playerInfo = FetchPlayerInfo(entityData.controllingPlayerId);
 		if (playerInfo)
