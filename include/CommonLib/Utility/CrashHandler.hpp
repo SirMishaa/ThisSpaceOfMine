@@ -8,6 +8,7 @@
 #define TSOM_COMMONLIB_UTILITY_CRASHHANDLER_HPP
 
 #include <CommonLib/Export.hpp>
+#include <iosfwd>
 #include <memory>
 
 namespace tsom
@@ -19,9 +20,15 @@ namespace tsom
 			virtual ~CrashHandler();
 
 			virtual bool Install() = 0;
+
+			virtual void HandleUnhandledException(const std::exception* e) = 0;
+
 			virtual void Uninstall() = 0;
 
 			static std::unique_ptr<CrashHandler> PlatformCrashHandler();
+
+		protected:
+			virtual void WriteHeader(std::ostream& filestream);
 	};
 }
 

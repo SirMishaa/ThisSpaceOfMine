@@ -48,12 +48,14 @@ int TSOMEntry(int argc, char* argv[], int(*mainFunc)(int argc, char* argv[]))
 	catch (const std::exception& e)
 	{
 		fmt::print(stderr, "unhandled exception: {0}\n", e.what());
-		throw;
+		crashHandler->HandleUnhandledException(&e);
+		return EXIT_FAILURE;
 	}
 	catch (...)
 	{
 		fmt::print(stderr, "unhandled non-standard exception\n");
-		throw;
+		crashHandler->HandleUnhandledException(nullptr);
+		return EXIT_FAILURE;
 	}
 }
 

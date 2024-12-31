@@ -443,6 +443,15 @@ namespace tsom
 			planetComponent.planetEntities->SetParentEntity(newPlanetEntity);
 			return;
 		}
+		else if (message == "/crashserver" && m_player->HasPermission(PlayerPermission::Admin))
+		{
+			int* ptr = (int*) 0x01;
+			*ptr = 42;
+		}
+		else if (message == "/crashserver 1" && m_player->HasPermission(PlayerPermission::Admin))
+		{
+			throw std::runtime_error("test exception");
+		}
 
 		m_player->GetServerInstance().BroadcastChatMessage(std::move(playerChat.message), m_player->GetPlayerIndex());
 	}

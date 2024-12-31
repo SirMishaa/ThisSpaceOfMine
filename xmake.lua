@@ -40,7 +40,7 @@ if has_config("serveronly") then
 end
 
 if is_plat("windows") then
-	add_requires("stackwalker 5b0df7a4db8896f6b6dc45d36e383c52577e3c6b")
+	add_requires("stackwalker a5b5c2b6b542d50060f627c0a9276947e541629d")
 elseif is_plat("macosx") then
 	add_requires("moltenvk[shared]")
 end

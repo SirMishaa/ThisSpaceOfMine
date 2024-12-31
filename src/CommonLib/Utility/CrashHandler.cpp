@@ -4,6 +4,10 @@
 
 #include <CommonLib/Utility/CrashHandler.hpp>
 #include <NazaraUtils/Prerequisites.hpp>
+#include <Nazara/Core/HardwareInfo.hpp>
+#include <CommonLib/Utils.hpp>
+#include <CommonLib/Version.hpp>
+#include <ostream>
 
 #ifdef NAZARA_PLATFORM_WINDOWS
 #include <CommonLib/Utility/CrashHandlerWin32.hpp>
@@ -22,5 +26,19 @@ namespace tsom
 #else
 		return std::make_unique<CrashHandlerFallback>();
 #endif
+	}
+
+	void CrashHandler::WriteHeader(std::ostream& filestream)
+	{
+		filestream << std::fixed;
+
+		filestream << "Game version: " << GetVersionInfo() << '\n';
+		filestream << "Build info: " << GetBuildInfo() << '\n';
+
+		Nz::HardwareInfo hardwareInfo;
+		filestream << "CPU: " << hardwareInfo.GetCpuBrandString() << " (" << hardwareInfo.GetCpuThreadCount() << " threads)\n";
+		filestream << "CPU Vendor: " << hardwareInfo.GetCpuVendorName() << '\n';
+		filestream << "System memory: " << ByteToString(hardwareInfo.GetSystemTotalMemory()) << '\n';
+		filestream << '\n';
 	}
 }

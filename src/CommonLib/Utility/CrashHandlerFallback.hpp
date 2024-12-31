@@ -19,6 +19,9 @@ namespace tsom
 			~CrashHandlerFallback() = default;
 
 			bool Install() override;
+
+			void HandleUnhandledException(const std::exception* e) override;
+
 			void Uninstall() override;
 	};
 }
