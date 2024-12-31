@@ -487,7 +487,7 @@ namespace tsom
 		});
 	}
 
-	void Planet::GenerateChunks(const BlockLibrary& blockLibrary, Nz::TaskScheduler& taskScheduler, Nz::UInt32 seed, const Nz::Vector3ui& chunkCount, std::string_view scriptName)
+	void Planet::GenerateChunks(const BlockLibrary& blockLibrary, Nz::TaskScheduler& taskScheduler, Nz::UInt32 seed, const Nz::Vector3ui& chunkCount, std::string scriptName)
 	{
 		struct ThreadState
 		{
@@ -508,12 +508,12 @@ namespace tsom
 
 		auto context = std::make_shared<GenerationContext>();
 
-		ForEachChunk([=, &taskScheduler](const ChunkIndices& chunkIndices, Chunk& chunk)
+		ForEachChunk([=, this, &taskScheduler](const ChunkIndices& chunkIndices, Chunk& chunk)
 		{
 			if (chunk.HasContent())
 				return;
 
-			taskScheduler.AddTask([=, &chunk]
+			taskScheduler.AddTask([=, this, &chunk]
 			{
 				ThreadState* currentThreadState = nullptr;
 				{
