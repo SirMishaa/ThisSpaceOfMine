@@ -174,13 +174,19 @@ namespace tsom
 
 			entt::handle playerEntity = m_player->GetControlledEntityReference();
 			if (!playerEntity)
+			{
+				fmt::print(stderr, "player {} tried to spawn ship but has no entity", m_player->GetNickname());
 				return;
+			}
 
 			ServerInstance& serverInstance = m_player->GetServerInstance();
 
 			ServerEnvironment* currentEnvironment = m_player->GetControlledEntityEnvironment();
 			if (currentEnvironment != m_player->GetRootEnvironment())
+			{
+				fmt::print(stderr, "player {} tried to spawn ship but their entity is not part of their root environment", m_player->GetNickname());
 				return;
+			}
 
 			Nz::NodeComponent& playerNode = playerEntity.get<Nz::NodeComponent>();
 			Nz::Vector3f spawnPos = playerNode.GetPosition();
@@ -206,7 +212,10 @@ namespace tsom
 			playerToken.QueueRequest(*m_player->GetUuid(), Nz::WebRequestMethod::Get, fmt::format("/v1/player_ship/{}", slot), {}, [&serverInstance, slot, spawnPos, spawnRot, player = m_player->CreateHandle(), playerEntity](Nz::UInt32 resultCode, const std::string& body)
 			{
 				if (!player || !playerEntity)
-					return; //< player disconnected
+				{
+					fmt::print(stderr, "player tried to spawn ship disconnected before the database answer", player->GetNickname());
+					return;
+				}
 
 				if (resultCode == 200 || resultCode == 404)
 				{
@@ -243,7 +252,10 @@ namespace tsom
 
 					ServerEnvironment* currentEnvironment = player->GetControlledEntityEnvironment();
 					if (currentEnvironment != player->GetRootEnvironment())
+					{
+						fmt::print(stderr, "player {} tried to spawn ship but their entity is not part of their root environment (after database request)", player->GetNickname());
 						return;
+					}
 
 					EnvironmentTransform planetToShip(spawnPos, spawnRot);
 					shipEnv->LinkOutsideEnvironment(currentEnvironment, planetToShip);
