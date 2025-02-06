@@ -49,8 +49,11 @@ namespace tsom
 
 			m_inputArea->SetText(std::string(CommandPrefix));
 
-			m_historyPosition = m_commandHistory.size();
-			m_commandHistory.push_back(std::string(inputCmd));
+			if (m_commandHistory.empty() || m_commandHistory.back() != inputCmd)
+			{
+				m_commandHistory.push_back(std::string(inputCmd));
+				m_historyPosition = m_commandHistory.size();
+			}
 
 			PrintMessage(std::move(input)); //< With the input prefix
 
