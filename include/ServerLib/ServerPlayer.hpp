@@ -15,6 +15,7 @@
 #include <Nazara/Core/HandledObject.hpp>
 #include <Nazara/Core/ObjectHandle.hpp>
 #include <Nazara/Core/Uuid.hpp>
+#include <NazaraUtils/FixedVector.hpp>
 #include <entt/entt.hpp>
 #include <string>
 #include <vector>
@@ -93,8 +94,9 @@ namespace tsom
 			std::shared_ptr<CharacterController> m_controller;
 			std::string m_nickname;
 			std::unique_ptr<ServerShipEnvironment> m_ship;
-			std::vector<PlayerInputs> m_inputQueue;
 			std::vector<ServerEnvironment*> m_registeredEnvironments;
+			Nz::FixedVector<PlayerInputs, 10> m_inputBuffer;
+			Nz::UInt32 m_inputQueueAdvancement;
 			NetworkSession* m_session;
 			ServerEnvironment* m_rootEnvironment;
 			SessionVisibilityHandler m_visibilityHandler;

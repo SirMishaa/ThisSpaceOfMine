@@ -19,6 +19,7 @@ namespace tsom
 	ServerPlayer::ServerPlayer(ServerInstance& instance, PlayerIndex playerIndex, NetworkSession* session, const std::optional<Nz::Uuid>& uuid, std::string nickname, PlayerPermissionFlags permissions) :
 	m_uuid(uuid),
 	m_nickname(std::move(nickname)),
+	m_inputQueueAdvancement(0),
 	m_session(session),
 	m_rootEnvironment(nullptr),
 	m_visibilityHandler(m_session),
@@ -84,7 +85,10 @@ namespace tsom
 
 	void ServerPlayer::PushInputs(const PlayerInputs& inputs)
 	{
-		m_inputQueue.push_back(inputs);
+		if (m_inputBuffer.size() == m_inputBuffer.capacity())
+			m_inputBuffer.erase(m_inputBuffer.begin());
+
+		m_inputBuffer.push_back(inputs);
 	}
 
 	void ServerPlayer::RemoveFromEnvironment(ServerEnvironment* environment)
@@ -137,16 +141,37 @@ namespace tsom
 
 	void ServerPlayer::Tick()
 	{
-		if (!m_inputQueue.empty())
+		if (m_inputBuffer.empty())
+			return;
+
+		// Downstream throttle jitter buffer (TODO: Convert to downstream throttle)
+		// Adjust input consumption depending on how many inputs are sitting in the input queue
+		Nz::UInt32 advancement = 1000;
+		if (m_inputBuffer.size() > Constants::TargetInputBufferSize)
+			advancement += std::min<std::size_t>((m_inputBuffer.size() - Constants::TargetInputBufferSize) * 100, 500);
+		else if (m_inputBuffer.size() < Constants::TargetInputBufferSize)
+			advancement -= std::min<std::size_t>((Constants::TargetInputBufferSize - m_inputBuffer.size()) * 100, 500);
+
+		m_inputQueueAdvancement += advancement;
+		if (m_inputQueueAdvancement >= 1000)
 		{
-			const PlayerInputs& inputs = m_inputQueue.front();
+			m_inputQueueAdvancement -= 1000;
+
+			PlayerInputs inputs = m_inputBuffer.front();
+			m_inputBuffer.erase(m_inputBuffer.begin());
+
+			// Combine inputs
+			while (!m_inputBuffer.empty() && m_inputQueueAdvancement >= 1000)
+			{
+				inputs.Merge(m_inputBuffer.front());
+				m_inputBuffer.erase(m_inputBuffer.begin());
+				m_inputQueueAdvancement -= 1000;
+			}
 
 			m_visibilityHandler.UpdateLastInputIndex(inputs.index);
 
 			if (m_controller)
 				m_controller->SetInputs(inputs);
-
-			m_inputQueue.erase(m_inputQueue.begin());
 		}
 	}
 

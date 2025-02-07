@@ -46,7 +46,11 @@ namespace tsom
 		};
 
 		std::variant<std::monostate, Character, Ship> data;
+
+		inline void Merge(const PlayerInputs& other);
 	};
 }
+
+#include <CommonLib/PlayerInputs.inl>
 
 #endif // TSOM_COMMONLIB_PLAYERINPUTS_HPP

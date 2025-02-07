@@ -18,6 +18,7 @@ namespace tsom::Constants
 	constexpr Nz::UInt32 NetworkChannelCount = 3;
 	constexpr Nz::UInt32 ProtocolRequiredClientVersion = BuildVersion(0, 7, 0);
 	constexpr Nz::Time TickDuration = Nz::Time::TickDuration(60);
+	constexpr std::size_t TargetInputBufferSize = 3;
 
 	// Serialization constants
 	constexpr Nz::UInt32 ChunkBinaryVersion = 1;
