@@ -21,16 +21,29 @@ namespace tsom
 		assert(!m_chunks.contains(indices));
 		ChunkData chunkData;
 		chunkData.chunk = std::make_shared<FlatChunk>(blockLibrary, *this, indices, Nz::Vector3ui{ ChunkSize }, m_tileSize);
-
-		if (initCallback)
-			chunkData.chunk->Reset(initCallback);
+		
+		chunkData.onLayerRegistered.Connect(chunkData.chunk->OnLayerRegistered, [this](Chunk* chunk, std::size_t layerIndex)
+		{
+			// FIXME: Nz::Signal operator() is not thread-safe!
+			std::lock_guard lock(m_chunkLayerAddedSignalMutex);
+			OnChunkLayerAdded(this, chunk, layerIndex);
+		});
+		
+		chunkData.onLayerUnregistered.Connect(chunkData.chunk->OnLayerUnregistered, [this](Chunk* chunk, std::size_t layerIndex)
+		{
+			// FIXME: Nz::Signal operator() is not thread-safe!
+			std::lock_guard lock(m_chunkLayerRemovedSignalMutex);
+			OnChunkLayerRemove(this, chunk, layerIndex);
+		});
 
 		chunkData.onReset.Connect(chunkData.chunk->OnReset, [this](Chunk* chunk)
 		{
-			OnChunkUpdated(this, chunk, DirectionMask_All);
+			// FIXME: Nz::Signal operator() is not thread-safe!
+			std::lock_guard lock(m_chunkUpdatedSignalMutex);
+			OnChunkUpdated(this, chunk, DirectionMask_All, chunk->GetActiveLayerMask());
 		});
 
-		chunkData.onUpdated.Connect(chunkData.chunk->OnBlockUpdated, [this](Chunk* chunk, const Nz::Vector3ui& indices, BlockIndex /*newBlock*/)
+		chunkData.onUpdated.Connect(chunkData.chunk->OnBlockUpdated, [this](Chunk* chunk, const Nz::Vector3ui& indices, BlockIndex newBlock, std::size_t prevLayerIndex, std::size_t newLayerIndex)
 		{
 			DirectionMask neighborMask;
 			if (indices.x == 0)
@@ -48,12 +61,24 @@ namespace tsom
 			else if (indices.z == chunk->GetSize().z - 1)
 				neighborMask |= Direction::Down;
 
-			OnChunkUpdated(this, chunk, neighborMask);
+			Nz::UInt32 layerMask = 0;
+			layerMask |= 1u << prevLayerIndex;
+			if (newBlock != EmptyBlockIndex)
+				layerMask |= 1u << newLayerIndex;
+
+			// FIXME: Nz::Signal operator() is not thread-safe!
+			std::lock_guard lock(m_chunkUpdatedSignalMutex);
+			OnChunkUpdated(this, chunk, neighborMask, layerMask);
 		});
 
 		auto it = m_chunks.insert_or_assign(indices, std::move(chunkData)).first;
 
-		OnChunkAdded(this, it->second.chunk.get());
+		if (initCallback)
+			chunkData.chunk->Reset(initCallback);
+
+		FlatChunk* chunk = it->second.chunk.get();
+		for (std::size_t layerIndex : chunk->GetActiveLayers())
+			OnChunkLayerAdded(this, chunk, layerIndex);
 
 		return *it->second.chunk;
 	}
@@ -65,12 +90,12 @@ namespace tsom
 			std::vector<Nz::CompoundCollider3D::ChildCollider> childColliders;
 			for (auto&& [ChunkIndices, chunkData] : m_chunks)
 			{
-				auto chunkCollider = chunkData.chunk->BuildCollider();
+				auto chunkCollider = chunkData.chunk->BuildCollider(0);
 				if (!chunkCollider)
 					continue;
 
 				auto& childCollider = childColliders.emplace_back();
-				childCollider.collider = chunkData.chunk->BuildCollider();
+				childCollider.collider = chunkData.chunk->BuildCollider(0);
 				childCollider.offset = GetChunkOffset(chunkData.chunk->GetIndices());
 			}
 
@@ -84,7 +109,7 @@ namespace tsom
 			if (m_chunks.empty())
 				return nullptr;
 
-			return m_chunks.begin().value().chunk->BuildCollider();
+			return m_chunks.begin().value().chunk->BuildCollider(0);
 		}
 	}
 
@@ -100,7 +125,11 @@ namespace tsom
 	void Ship::ClearChunks()
 	{
 		for (auto&& [chunkIndices, chunkData] : m_chunks)
-			OnChunkRemove(this, chunkData.chunk.get());
+		{
+			Chunk* chunk = chunkData.chunk.get();
+			for (std::size_t layerIndex : chunk->GetActiveLayers())
+				OnChunkLayerRemove(this, chunk, layerIndex);
+		}
 
 		m_chunks.clear();
 	}
@@ -161,7 +190,10 @@ namespace tsom
 		auto it = m_chunks.find(indices);
 		assert(it != m_chunks.end());
 
-		OnChunkRemove(this, it->second.chunk.get());
+		Chunk* chunk = it->second.chunk.get();
+		for (std::size_t layerIndex : chunk->GetActiveLayers())
+			OnChunkLayerRemove(this, chunk, layerIndex);
+
 		m_chunks.erase(it);
 	}
 }

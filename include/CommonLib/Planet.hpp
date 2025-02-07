@@ -70,9 +70,13 @@ namespace tsom
 				std::shared_ptr<Chunk> chunk;
 
 				NazaraSlot(Chunk, OnBlockUpdated, onUpdated);
+				NazaraSlot(Chunk, OnLayerRegistered, onLayerRegistered);
+				NazaraSlot(Chunk, OnLayerUnregistered, onLayerUnregistered);
 				NazaraSlot(Chunk, OnReset, onReset);
 			};
 
+			std::mutex m_chunkLayerAddedSignalMutex;
+			std::mutex m_chunkLayerRemovedSignalMutex;
 			std::mutex m_chunkUpdatedSignalMutex;
 			tsl::hopscotch_map<ChunkIndices, ChunkData> m_chunks;
 			Nz::ApplicationBase& m_app;

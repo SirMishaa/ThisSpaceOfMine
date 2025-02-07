@@ -69,7 +69,7 @@ namespace tsom
 		planetComponent.planet->GeneratePlatform(blockLibrary, tsom::Direction::Front, { 22, -35, -59 });
 		planetComponent.planet->GeneratePlatform(blockLibrary, tsom::Direction::Down, { 23, -62, 26 });
 
-		planetComponent.planet->OnChunkUpdated.Connect([this](ChunkContainer* /*planet*/, Chunk* chunk, DirectionMask /*neighborMask*/)
+		planetComponent.planet->OnChunkUpdated.Connect([this](ChunkContainer* /*planet*/, Chunk* chunk, DirectionMask /*neighborMask*/, Nz::UInt32 /*layerMask*/)
 		{
 			m_dirtyChunks.insert(chunk->GetIndices());
 		});

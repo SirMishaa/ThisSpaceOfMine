@@ -25,8 +25,8 @@
 
 namespace tsom
 {
-	ClientChunkEntities::ClientChunkEntities(Nz::ApplicationBase& app, Nz::EnttWorld& world, ChunkContainer& chunkContainer, const ClientBlockLibrary& blockLibrary) :
-	ChunkEntities(app, world, chunkContainer, blockLibrary, NoInit{}),
+	ClientChunkEntities::ClientChunkEntities(Nz::ApplicationBase& app, Nz::EnttWorld& world, ChunkContainer& chunkContainer, const ClientBlockLibrary& blockLibrary, std::size_t layerIndex) :
+	ChunkEntities(app, world, chunkContainer, blockLibrary, layerIndex, NoInit{}),
 	m_isCollisionGenerationEnabled(true)
 	{
 		auto& filesystem = app.GetComponent<Nz::FilesystemAppComponent>();
@@ -112,6 +112,9 @@ namespace tsom
 			return true;
 		});
 
+		if (blockLibrary.GetLayerData(layerIndex).isBlended)
+			m_chunkMaterial->ApplyPreset(Nz::MaterialInstancePreset::AdditiveBlended);
+
 		// VertexDeclaration
 		auto NewDeclaration = [](Nz::VertexInputRate inputRate, std::initializer_list<Nz::VertexDeclaration::ComponentEntry> components)
 		{
@@ -163,7 +166,7 @@ namespace tsom
 			return vertexAttributes;
 		};
 
-		chunk.BuildMesh(indices, m_chunkContainer.GetCenter() - m_chunkContainer.GetChunkOffset(chunk.GetIndices()), AddVertices);
+		chunk.BuildMesh(m_layerIndex, indices, m_chunkContainer.GetCenter() - m_chunkContainer.GetChunkOffset(chunk.GetIndices()), AddVertices);
 		if (indices.empty())
 			return nullptr;
 
@@ -183,7 +186,7 @@ namespace tsom
 
 	auto ClientChunkEntities::ProcessChunkUpdate(const Chunk& chunk, DirectionMask neighborMask) -> ColliderModelUpdateJob*
 	{
-		assert(chunk.HasContent());
+		NazaraAssert(chunk.HasContent());
 
 		// Try to cancel current update job to void useless work
 		if (auto it = m_updateJobs.find(chunk.GetIndices()); it != m_updateJobs.end())
@@ -241,6 +244,7 @@ namespace tsom
 
 				std::shared_ptr<Nz::Model> model = std::make_shared<Nz::Model>(std::move(gfxMesh));
 				model->SetMaterial(0, m_chunkMaterial);
+				model->UpdateRenderLayer(m_blockLibrary.GetLayerData(m_layerIndex).renderLayer);
 
 				gfxComponent.AttachRenderable(std::move(model), tsom::Constants::RenderMask3D);
 			}
@@ -257,7 +261,7 @@ namespace tsom
 					return;
 
 				chunkPtr->LockRead();
-				updateJob->collider = chunkPtr->BuildCollider();
+				updateJob->collider = chunkPtr->BuildCollider(m_layerIndex);
 				chunkPtr->UnlockRead();
 
 				updateJob->jobDone++;
@@ -281,7 +285,7 @@ namespace tsom
 		{
 			ChunkIndices neighborIndices = chunk.GetIndices() + s_chunkDirOffset[neighborDir];
 			const Chunk* neighborChunk = m_chunkContainer.GetChunk(neighborIndices);
-			if (!neighborChunk || !neighborChunk->HasContent())
+			if (!neighborChunk || !neighborChunk->HasContent() || !neighborChunk->IsLayerRegistered(m_layerIndex))
 				continue;
 
 			updateJob->chunkDependencies.push_back(neighborIndices);

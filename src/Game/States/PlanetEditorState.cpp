@@ -176,7 +176,7 @@ namespace tsom
 		m_planetParentEntity.emplace<VisualEntityComponent>().visualEntity = m_planetParentEntity;
 
 		m_planet = std::make_unique<Planet>(*stateData.app, 1.f, 16.f, 9.81f);
-		m_planetEntities = std::make_unique<ClientChunkEntities>(*stateData.app, *stateData.world, *m_planet, *stateData.blockLibrary);
+		m_planetEntities = std::make_unique<ClientChunkEntities>(*stateData.app, *stateData.world, *m_planet, *stateData.blockLibrary, 0);
 		m_planetEntities->SetParentEntity(m_planetParentEntity);
 		m_planetEntities->EnableCollisionGeneration(false);
 

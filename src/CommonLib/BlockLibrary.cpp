@@ -9,6 +9,20 @@ namespace tsom
 {
 	BlockLibrary::BlockLibrary()
 	{
+		/************************************************************************/
+		RegisterLayer("default", {
+			.isBlended = false
+		});
+
+		RegisterLayer("water", {
+			.physicsLayer = Constants::ObjectLayerStaticWater,
+			.isBlended = true,
+			.isFluid = true,
+			.isPhysicsTrigger = true,
+			.renderLayer = 100
+		});
+
+		/************************************************************************/
 		RegisterBlock("empty", {
 			.hasCollisions = false,
 			.isTransparent = true,
@@ -80,6 +94,13 @@ namespace tsom
 			.isDoubleSided = true,
 			.isTransparent = true
 		});
+
+		RegisterBlock("water", {
+			.layerName = "water",
+			.basePath = "blocks/water",
+			.isDoubleSided = true,
+			.isTransparent = true
+		});
 	}
 
 	BlockIndex BlockLibrary::RegisterBlock(std::string name, BlockInfo blockInfo)
@@ -92,6 +113,10 @@ namespace tsom
 		blockData.isTransparent = blockInfo.isTransparent;
 		blockData.permeability = blockInfo.permeability;
 		blockData.name = name;
+
+		auto it = m_layerIndices.find(blockInfo.layerName);
+		NazaraAssertMsg(it != m_layerIndices.end(), "Invalid layer %s", blockInfo.layerName.data());
+		blockData.layerIndex = Nz::SafeCaster(it->second);
 
 		unsigned int baseTexIndex;
 		if (!blockInfo.basePath.empty())
@@ -128,6 +153,24 @@ namespace tsom
 		m_blockIndices.emplace(std::move(name), blockIndex);
 
 		return blockIndex;
+	}
+
+	std::size_t BlockLibrary::RegisterLayer(std::string name, LayerInfo layerInfo)
+	{
+		std::size_t layerIndex = m_layers.size();
+
+		auto& layerData = m_layers.emplace_back();
+		layerData.isBlended = layerInfo.isBlended;
+		layerData.isFluid = layerInfo.isFluid;
+		layerData.isPhysicsTrigger = layerInfo.isPhysicsTrigger;
+		layerData.name = name;
+		layerData.physicsLayer = layerInfo.physicsLayer;
+		layerData.renderLayer = layerInfo.renderLayer;
+
+		assert(!m_layerIndices.contains(name));
+		m_layerIndices.emplace(std::move(name), layerIndex);
+
+		return layerIndex;
 	}
 
 	unsigned int BlockLibrary::RegisterTexture(std::string&& texturePath)

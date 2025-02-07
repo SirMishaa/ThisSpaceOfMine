@@ -15,7 +15,11 @@ namespace tsom
 		for (entt::entity entity : view)
 		{
 			PlanetComponent& planetComponent = view.get<PlanetComponent>(entity);
-			planetComponent.planetEntities->Update();
+			for (const auto& chunkEntitiesPtr : planetComponent.planetEntities)
+			{
+				if (chunkEntitiesPtr)
+					chunkEntitiesPtr->Update();
+			}
 		}
 	}
 }

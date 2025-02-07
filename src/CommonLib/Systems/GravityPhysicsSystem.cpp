@@ -4,7 +4,6 @@
 
 #include <CommonLib/Systems/GravityPhysicsSystem.hpp>
 #include <CommonLib/GravityController.hpp>
-#include <CommonLib/Components/PlanetComponent.hpp>
 #include <Nazara/Core/Components/DisabledComponent.hpp>
 #include <Nazara/Physics3D/PhysWorld3D.hpp>
 #include <Nazara/Physics3D/Components/RigidBody3DComponent.hpp>

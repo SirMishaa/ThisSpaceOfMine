@@ -10,6 +10,7 @@
 #include <CommonLib/Export.hpp>
 #include <CommonLib/BlockIndex.hpp>
 #include <CommonLib/Direction.hpp>
+#include <CommonLib/PhysicsConstants.hpp>
 #include <NazaraUtils/EnumArray.hpp>
 #include <tsl/hopscotch_map.h>
 #include <string>
@@ -22,6 +23,8 @@ namespace tsom
 		public:
 			struct BlockData;
 			struct BlockInfo;
+			struct LayerData;
+			struct LayerInfo;
 
 			BlockLibrary();
 			BlockLibrary(const BlockLibrary&) = delete;
@@ -29,13 +32,17 @@ namespace tsom
 			~BlockLibrary() = default;
 
 			inline const BlockData& GetBlockData(BlockIndex blockIndex) const;
+			inline const LayerData& GetLayerData(std::size_t layerIndex) const;
 			inline BlockIndex GetBlockIndex(std::string_view blockName) const;
 			inline bool IsValidBlock(BlockIndex blockIndex) const;
+			inline bool IsValidLayer(std::size_t layerIndex) const;
 
 			BlockIndex RegisterBlock(std::string name, BlockInfo blockInfo);
+			std::size_t RegisterLayer(std::string name, LayerInfo layerInfo);
 
 			struct BlockInfo
 			{
+				std::string_view layerName = "default";
 				std::string basePath;
 				std::string baseBackPath;
 				std::string baseDownPath;
@@ -52,12 +59,33 @@ namespace tsom
 
 			struct BlockData
 			{
+				std::size_t layerIndex;
 				std::string name;
 				Nz::EnumArray<Direction, unsigned int> texIndices;
 				bool hasCollisions;
 				bool isDoubleSided;
 				bool isTransparent;
 				float permeability;
+			};
+
+			struct LayerInfo
+			{
+				std::string name;
+				Nz::PhysObjectLayer3D physicsLayer = Constants::ObjectLayerStatic;
+				bool isBlended;
+				bool isFluid = false;
+				bool isPhysicsTrigger = false;
+				int renderLayer = 0;
+			};
+
+			struct LayerData
+			{
+				std::string name;
+				Nz::PhysObjectLayer3D physicsLayer;
+				bool isBlended;
+				bool isFluid;
+				bool isPhysicsTrigger;
+				int renderLayer;
 			};
 
 			BlockLibrary& operator=(const BlockLibrary&) = delete;
@@ -68,8 +96,10 @@ namespace tsom
 
 		protected:
 			tsl::hopscotch_map<std::string /*name*/, BlockIndex /*blockIndex*/, std::hash<std::string_view>, std::equal_to<>> m_blockIndices;
+			tsl::hopscotch_map<std::string /*name*/, std::size_t /*layerIndex*/, std::hash<std::string_view>, std::equal_to<>> m_layerIndices;
 			tsl::hopscotch_map<std::string /*texturePath*/, unsigned int /*textureIndex*/, std::hash<std::string_view>, std::equal_to<>> m_textureIndices;
 			std::vector<BlockData> m_blocks;
+			std::vector<LayerData> m_layers;
 	};
 }
 

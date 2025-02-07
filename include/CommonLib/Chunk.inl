@@ -16,10 +16,25 @@ namespace tsom
 	{
 	}
 
-	inline const Nz::Bitset<Nz::UInt64>& Chunk::GetCollisionCellMask() const
+	inline std::span<const std::size_t> Chunk::GetActiveLayers() const
+	{
+		return { m_activeLayers.data(), m_activeLayers.size() };
+	}
+
+	inline Nz::UInt32 Chunk::GetActiveLayerMask() const
+	{
+		Nz::UInt32 layerMask = 0u;
+		for (std::size_t layerIndex : m_activeLayers)
+			layerMask |= Nz::UInt32(1u << layerIndex);
+
+		return layerMask;
+	}
+
+	inline const Nz::Bitset<Nz::UInt64>& Chunk::GetCollisionCellMask(std::size_t layerIndex) const
 	{
 		NazaraAssertMsg(!m_blocks.empty(), "chunk has not been reset");
-		return m_collisionCellMask;
+		NazaraAssertMsg(m_layers[layerIndex].has_value(), "layer %zu is not active", layerIndex);
+		return m_layers[layerIndex]->collisionCellMasks;
 	}
 
 	inline const BlockLibrary& Chunk::GetBlockLibrary() const
@@ -103,16 +118,25 @@ namespace tsom
 		return m_hasPerFaceCollision;
 	}
 
+	inline bool Chunk::IsLayerRegistered(std::size_t layerIndex) const
+	{
+		return std::find(m_activeLayers.begin(), m_activeLayers.end(), layerIndex) != m_activeLayers.end();
+	}
+
 	inline void Chunk::Reset()
 	{
 		m_blocks.clear();
 		m_blocks.resize(m_size.x * m_size.y * m_size.z, EmptyBlockIndex);
 
-		m_collisionCellMask.Clear();
-		m_collisionCellMask.Resize(m_blocks.size(), false);
+		for (auto& layerOpt : m_layers)
+			layerOpt.reset();
+
+		// Create first layer (for empty block)
+		RegisterLayer(0);
 
 		m_blockTypeCount.resize(EmptyBlockIndex + 1);
 		m_blockTypeCount[EmptyBlockIndex] = m_blocks.size();
+		m_layers[0]->blockCount = m_blocks.size();
 	}
 
 	template<typename F>
@@ -122,9 +146,15 @@ namespace tsom
 		if (!HasContent())
 		{
 			m_blocks.resize(m_size.x * m_size.y * m_size.z, EmptyBlockIndex);
-			m_collisionCellMask.Resize(m_blocks.size(), false),
 			m_blockTypeCount.resize(EmptyBlockIndex + 1);
 			m_blockTypeCount[EmptyBlockIndex] = m_blocks.size();
+
+			for (auto& layerOpt : m_layers)
+				layerOpt.reset();
+
+			// Create first layer (empty block)
+			RegisterLayer(0);
+			m_layers[0]->blockCount = m_blocks.size();
 		}
 
 		func(m_blocks.data());
@@ -151,8 +181,32 @@ namespace tsom
 		m_mutex.unlock();
 	}
 
+	inline void Chunk::RegisterLayer(std::size_t layerIndex)
+	{
+		NazaraAssertMsg(!IsLayerRegistered(layerIndex), "layer %zu is already registered", layerIndex);
+
+		auto& layer = m_layers[layerIndex].emplace();
+		layer.collisionCellMasks.Resize(m_blocks.size(), false);
+		m_activeLayers.push_back(layerIndex);
+		std::sort(m_activeLayers.begin(), m_activeLayers.end());
+
+		OnLayerRegistered(this, layerIndex);
+	}
+
 	inline void Chunk::SetPerFaceCollision()
 	{
 		m_hasPerFaceCollision = true;
+	}
+
+	inline void Chunk::UnregisterLayer(std::size_t layerIndex)
+	{
+		auto it = std::find(m_activeLayers.begin(), m_activeLayers.end(), layerIndex);
+		NazaraAssertMsg(it != m_activeLayers.end(), "layer %zu is not registered", layerIndex);
+
+		m_layers[layerIndex].reset();
+		m_activeLayers.erase(it);
+		// Already sorted
+
+		OnLayerUnregistered(this, layerIndex);
 	}
 }

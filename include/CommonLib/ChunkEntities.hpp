@@ -29,7 +29,7 @@ namespace tsom
 	class TSOM_COMMONLIB_API ChunkEntities
 	{
 		public:
-			ChunkEntities(Nz::ApplicationBase& app, Nz::EnttWorld& world, ChunkContainer& chunkContainer, const BlockLibrary& blockLibrary);
+			ChunkEntities(Nz::ApplicationBase& app, Nz::EnttWorld& world, ChunkContainer& chunkContainer, const BlockLibrary& blockLibrary, std::size_t layerIndex);
 			ChunkEntities(const ChunkEntities&) = delete;
 			ChunkEntities(ChunkEntities&&) = delete;
 			~ChunkEntities();
@@ -45,7 +45,7 @@ namespace tsom
 			struct NoInit {};
 			struct UpdateJob;
 
-			ChunkEntities(Nz::ApplicationBase& app, Nz::EnttWorld& world, ChunkContainer& chunkContainer, const BlockLibrary& blockLibrary, NoInit);
+			ChunkEntities(Nz::ApplicationBase& app, Nz::EnttWorld& world, ChunkContainer& chunkContainer, const BlockLibrary& blockLibrary, std::size_t layerIndex, NoInit);
 
 			void CreateChunkEntity(const ChunkIndices& chunkIndices, Chunk& chunk);
 			void DestroyChunkEntity(const ChunkIndices& chunkIndices);
@@ -73,17 +73,18 @@ namespace tsom
 				std::shared_ptr<Nz::Collider3D> collider;
 			};
 
-			NazaraSlot(ChunkContainer, OnChunkAdded, m_onChunkAdded);
-			NazaraSlot(ChunkContainer, OnChunkRemove, m_onChunkRemove);
+			NazaraSlot(ChunkContainer, OnChunkLayerAdded, m_onChunkAdded);
+			NazaraSlot(ChunkContainer, OnChunkLayerRemove, m_onChunkRemove);
 			NazaraSlot(ChunkContainer, OnChunkUpdated, m_onChunkUpdated);
 			NazaraSlot(Nz::Node, OnNodeInvalidation, m_onParentNodeInvalidated);
 
 			std::mutex m_invalidatedChunkMutex;
+			std::size_t m_layerIndex;
+			std::vector<ChunkIndices> m_finishedJobs;
 			entt::handle m_parentEntity;
 			tsl::hopscotch_map<ChunkIndices, DirectionMask> m_invalidatedChunks;
 			tsl::hopscotch_map<ChunkIndices, std::shared_ptr<UpdateJob>> m_updateJobs;
 			tsl::hopscotch_map<ChunkIndices, entt::handle> m_chunkEntities;
-			std::vector<ChunkIndices> m_finishedJobs;
 			Nz::ApplicationBase& m_application;
 			Nz::EnttWorld& m_world;
 			const BlockLibrary& m_blockLibrary;

@@ -55,14 +55,14 @@ namespace tsom
 		shipClass->InitAndActivateEntity(m_shipEntity);
 
 		auto& shipComponent = m_shipEntity.get<ShipComponent>();
-		shipComponent.ship->OnChunkAdded.Connect([this](ChunkContainer*, Chunk* chunk)
+		shipComponent.ship->OnChunkLayerAdded.Connect([this](ChunkContainer*, Chunk* chunk, std::size_t /*layerIndex*/)
 		{
 			auto& chunkData = m_chunkData[chunk->GetIndices()];
 			chunkData.blockSize = chunk->GetBlockSize();
 			m_invalidatedChunks.emplace(chunk);
 		});
 
-		shipComponent.ship->OnChunkRemove.Connect([this](ChunkContainer*, Chunk* chunk)
+		shipComponent.ship->OnChunkLayerRemove.Connect([this](ChunkContainer*, Chunk* chunk, std::size_t /*layerIndex*/)
 		{
 			const ChunkIndices& indices = chunk->GetIndices();
 			m_chunkData.erase(indices);
@@ -81,7 +81,7 @@ namespace tsom
 			}
 		});
 
-		shipComponent.ship->OnChunkUpdated.Connect([this](ChunkContainer*, Chunk* chunk, DirectionMask)
+		shipComponent.ship->OnChunkUpdated.Connect([this](ChunkContainer*, Chunk* chunk, DirectionMask /*directionMask*/, Nz::UInt32 /*layerMask*/)
 		{
 			m_invalidatedChunks.emplace(chunk);
 			*m_shouldSave = true;
@@ -488,7 +488,7 @@ namespace tsom
 		std::size_t fullBlockCount = 0;
 		ship.ForEachChunk([&](const ChunkIndices& chunkIndices, const Chunk& chunk)
 		{
-			fullBlockCount += chunk.GetCollisionCellMask().Count();
+			fullBlockCount += chunk.GetCollisionCellMask(0).Count();
 		});
 
 		auto& rigidBody = m_exteriorEntity.get<Nz::RigidBody3DComponent>();
@@ -593,7 +593,7 @@ namespace tsom
 		// Find first candidate (= a random empty block)
 		auto FindFirstCandidate = [&]
 		{
-			const Nz::Bitset<Nz::UInt64>& collisionCellMask = chunk.GetCollisionCellMask();
+			const Nz::Bitset<Nz::UInt64>& collisionCellMask = chunk.GetCollisionCellMask(0);
 			for (std::size_t i = 0; i < collisionCellMask.GetBlockCount(); ++i)
 			{
 				Nz::UInt64 mask = collisionCellMask.GetBlock(i);

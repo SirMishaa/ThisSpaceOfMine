@@ -19,7 +19,7 @@ namespace tsom
 		return { std::make_shared<Nz::ConvexHullCollider3D>(corners.data(), corners.size()), blockCenter };
 	}
 
-	std::shared_ptr<Nz::Collider3D> DeformedChunk::BuildCollider() const
+	std::shared_ptr<Nz::Collider3D> DeformedChunk::BuildCollider(std::size_t layerIndex) const
 	{
 		std::vector<Nz::UInt32> indices;
 		std::vector<Nz::Vector3f> positions;
@@ -40,7 +40,7 @@ namespace tsom
 			return vertexAttributes;
 		};
 
-		BuildMesh(indices, m_deformationCenter, AddVertices);
+		BuildMesh(layerIndex, indices, m_deformationCenter, AddVertices);
 		if (indices.empty())
 			return nullptr;
 

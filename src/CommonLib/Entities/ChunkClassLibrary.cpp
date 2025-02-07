@@ -3,6 +3,7 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <CommonLib/Entities/ChunkClassLibrary.hpp>
+#include <CommonLib/BlockLibrary.hpp>
 #include <CommonLib/EntityClass.hpp>
 #include <CommonLib/EntityProperties.hpp>
 #include <CommonLib/EntityRegistry.hpp>
@@ -35,8 +36,14 @@ namespace tsom
 
 				auto& planetComponent = entity.emplace<PlanetComponent>();
 				planetComponent.planet = std::make_unique<Planet>(m_app, cellSize, cornerRadius, gravity);
-				planetComponent.planetEntities = SetupChunkEntities(*world, *planetComponent.planet);
-				planetComponent.planetEntities->SetParentEntity(entity);
+				for (std::size_t layerIndex = 0; layerIndex < planetComponent.planetEntities.size(); ++layerIndex)
+				{
+					if (!m_blockLibrary.IsValidLayer(layerIndex))
+						continue;
+
+					planetComponent.planetEntities[layerIndex] = SetupChunkEntities(*world, *planetComponent.planet, layerIndex);
+					planetComponent.planetEntities[layerIndex]->SetParentEntity(entity);
+				}
 
 				InitializeChunkEntity(entity);
 			}
@@ -59,8 +66,14 @@ namespace tsom
 
 				auto& shipComponent = entity.emplace<ShipComponent>();
 				shipComponent.ship = std::make_unique<Ship>(cellSize);
-				shipComponent.shipEntities = SetupChunkEntities(*world, *shipComponent.ship);
-				shipComponent.shipEntities->SetParentEntity(entity);
+				for (std::size_t layerIndex = 0; layerIndex < shipComponent.shipEntities.size(); ++layerIndex)
+				{
+					if (!m_blockLibrary.IsValidLayer(layerIndex))
+						continue;
+
+					shipComponent.shipEntities[layerIndex] = SetupChunkEntities(*world, *shipComponent.ship, layerIndex);
+					shipComponent.shipEntities[layerIndex]->SetParentEntity(entity);
+				}
 
 				InitializeChunkEntity(entity);
 			}
@@ -72,8 +85,8 @@ namespace tsom
 	{
 	}
 
-	std::unique_ptr<ChunkEntities> ChunkClassLibrary::SetupChunkEntities(Nz::EnttWorld& world, ChunkContainer& chunkContainer)
+	std::unique_ptr<ChunkEntities> ChunkClassLibrary::SetupChunkEntities(Nz::EnttWorld& world, ChunkContainer& chunkContainer, std::size_t layerIndex)
 	{
-		return std::make_unique<ChunkEntities>(m_app, world, chunkContainer, m_blockLibrary);
+		return std::make_unique<ChunkEntities>(m_app, world, chunkContainer, m_blockLibrary, layerIndex);
 	}
 }

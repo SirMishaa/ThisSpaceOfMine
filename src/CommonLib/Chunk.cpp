@@ -17,7 +17,7 @@ namespace tsom
 {
 	Chunk::~Chunk() = default;
 
-	void Chunk::BuildMesh(std::vector<Nz::UInt32>& indices, const Nz::Vector3f& gravityCenter, const Nz::FunctionRef<VertexAttributes(const Nz::Vector3ui& blockIndices, Direction direction)>& addFace) const
+	void Chunk::BuildMesh(std::size_t layerIndex, std::vector<Nz::UInt32>& indices, const Nz::Vector3f& gravityCenter, const Nz::FunctionRef<VertexAttributes(const Nz::Vector3ui& blockIndices, Direction direction)>& addFace) const
 	{
 		auto DrawFace = [&](BlockIndex blockContent, const Nz::Vector3ui& blockIndices, Direction direction, const Nz::Vector3f& blockCenter, const std::array<Nz::Vector3f, 4>& pos)
 		{
@@ -201,6 +201,8 @@ namespace tsom
 						continue;
 
 					const auto& blockData = m_blockLibrary.GetBlockData(blockIndex);
+					if (blockData.layerIndex != layerIndex)
+						continue;
 
 					// Get unaltered voxel corners and deform them next
 					Nz::EnumArray<Nz::BoxCorner, Nz::Vector3f> corners = Chunk::ComputeVoxelCorners(blockIndices);
@@ -388,16 +390,27 @@ namespace tsom
 		}
 	}
 
-	void Chunk::UpdateBlock(const Nz::Vector3ui& indices, BlockIndex newBlock)
+	void Chunk::UpdateBlock(const Nz::Vector3ui& indices, BlockIndex newBlock, bool ensureContent)
 	{
-		NazaraAssertMsg(!m_blocks.empty(), "chunk has not been reset");
+		if (ensureContent && !HasContent())
+			Reset();
 
-		const auto& blockData = m_blockLibrary.GetBlockData(newBlock);
+		NazaraAssertMsg(HasContent(), "chunk has not been reset");
+
+		const auto& newBlockData = m_blockLibrary.GetBlockData(newBlock);
 
 		unsigned int blockIndex = GetBlockLocalIndex(indices);
 		BlockIndex oldContent = m_blocks[blockIndex];
+		const auto& oldBlockData = m_blockLibrary.GetBlockData(oldContent);
+		assert(IsLayerRegistered(oldBlockData.layerIndex));
 		m_blocks[blockIndex] = newBlock;
-		m_collisionCellMask[blockIndex] = blockData.hasCollisions;
+
+		if (!IsLayerRegistered(newBlockData.layerIndex))
+			RegisterLayer(newBlockData.layerIndex);
+
+		m_layers[oldBlockData.layerIndex]->collisionCellMasks[blockIndex] = false;
+		m_layers[newBlockData.layerIndex]->collisionCellMasks[blockIndex] = newBlockData.hasCollisions;
+		m_layers[newBlockData.layerIndex]->blockCount++;
 
 		m_blockTypeCount[oldContent]--;
 		if (newBlock >= m_blockTypeCount.size())
@@ -405,17 +418,31 @@ namespace tsom
 
 		m_blockTypeCount[newBlock]++;
 
-		OnBlockUpdated(this, indices, newBlock);
+		OnBlockUpdated(this, indices, newBlock, oldBlockData.layerIndex, newBlockData.layerIndex);
+
+		// Unregister layer only after update to avoid triggering chunk update (OnBlockUpodated)
+		assert(m_layers[oldBlockData.layerIndex]->blockCount > 0);
+		if (--m_layers[oldBlockData.layerIndex]->blockCount == 0)
+			UnregisterLayer(oldBlockData.layerIndex);
 	}
 
 	void Chunk::OnChunkReset()
 	{
 		std::fill(m_blockTypeCount.begin(), m_blockTypeCount.end(), 0);
+
 		for (std::size_t blockIndex = 0; blockIndex < m_blocks.size(); ++blockIndex)
 		{
 			BlockIndex blockContent = m_blocks[blockIndex];
 			const auto& blockData = m_blockLibrary.GetBlockData(blockContent);
-			m_collisionCellMask[blockIndex] = blockData.hasCollisions;
+
+			if NAZARA_UNLIKELY(!IsLayerRegistered(blockData.layerIndex))
+			{
+				// First block on this layer, register it
+				RegisterLayer(blockData.layerIndex);
+			}
+
+			m_layers[blockData.layerIndex]->blockCount++;
+			m_layers[blockData.layerIndex]->collisionCellMasks[blockIndex] = blockData.hasCollisions;
 
 			if (blockContent >= m_blockTypeCount.size())
 				m_blockTypeCount.resize(blockContent + 1);

@@ -10,10 +10,13 @@
 #include <CommonLib/Version.hpp>
 #include <Nazara/Core/Time.hpp>
 #include <NazaraUtils/Prerequisites.hpp>
-#include <string_view>
+#include <cstddef>
 
 namespace tsom::Constants
 {
+	// Chunk constants
+	constexpr std::size_t MaxChunkLayerCount = 4;
+
 	// Network constants
 	constexpr Nz::UInt32 NetworkChannelCount = 3;
 	constexpr Nz::UInt32 ProtocolRequiredClientVersion = BuildVersion(0, 7, 0);

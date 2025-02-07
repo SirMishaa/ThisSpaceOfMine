@@ -19,8 +19,8 @@ namespace tsom
 		entity.emplace<ChunkNetworkMapComponent>();
 	}
 
-	std::unique_ptr<ChunkEntities> ClientChunkClassLibrary::SetupChunkEntities(Nz::EnttWorld& world, ChunkContainer& chunkContainer)
+	std::unique_ptr<ChunkEntities> ClientChunkClassLibrary::SetupChunkEntities(Nz::EnttWorld& world, ChunkContainer& chunkContainer, std::size_t layerIndex)
 	{
-		return std::make_unique<ClientChunkEntities>(m_app, world, chunkContainer, Nz::SafeCast<const ClientBlockLibrary&>(m_blockLibrary));
+		return std::make_unique<ClientChunkEntities>(m_app, world, chunkContainer, Nz::SafeCast<const ClientBlockLibrary&>(m_blockLibrary), layerIndex);
 	}
 }

@@ -9,6 +9,7 @@
 
 #include <CommonLib/Export.hpp>
 #include <CommonLib/ChunkEntities.hpp>
+#include <CommonLib/InternalConstants.hpp>
 #include <CommonLib/Ship.hpp>
 #include <memory>
 
@@ -17,7 +18,7 @@ namespace tsom
 	struct ShipComponent
 	{
 		std::unique_ptr<Ship> ship;
-		std::unique_ptr<ChunkEntities> shipEntities;
+		std::array<std::unique_ptr<ChunkEntities>, Constants::MaxChunkLayerCount> shipEntities;
 	};
 }
 

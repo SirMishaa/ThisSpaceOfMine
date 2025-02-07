@@ -15,7 +15,7 @@
 #include <NazaraUtils/FunctionRef.hpp>
 #include <tsl/hopscotch_map.h>
 #include <memory>
-#include <vector>
+#include <mutex>
 
 namespace tsom
 {
@@ -62,9 +62,14 @@ namespace tsom
 				std::shared_ptr<FlatChunk> chunk;
 
 				NazaraSlot(FlatChunk, OnBlockUpdated, onUpdated);
+				NazaraSlot(FlatChunk, OnLayerRegistered, onLayerRegistered);
+				NazaraSlot(FlatChunk, OnLayerUnregistered, onLayerUnregistered);
 				NazaraSlot(FlatChunk, OnReset, onReset);
 			};
 
+			std::mutex m_chunkLayerAddedSignalMutex;
+			std::mutex m_chunkLayerRemovedSignalMutex;
+			std::mutex m_chunkUpdatedSignalMutex;
 			tsl::hopscotch_map<ChunkIndices, ChunkData> m_chunks;
 			Nz::Vector3f m_upDirection;
 	};

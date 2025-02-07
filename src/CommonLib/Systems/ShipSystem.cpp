@@ -15,7 +15,11 @@ namespace tsom
 		for (entt::entity entity : view)
 		{
 			ShipComponent& shipComponent = view.get<ShipComponent>(entity);
-			shipComponent.shipEntities->Update();
+			for (const auto& chunkEntitiesPtr : shipComponent.shipEntities)
+			{
+				if (chunkEntitiesPtr)
+					chunkEntitiesPtr->Update();
+			}
 		}
 	}
 }

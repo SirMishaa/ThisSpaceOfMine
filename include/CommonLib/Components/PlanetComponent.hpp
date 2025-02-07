@@ -9,6 +9,7 @@
 
 #include <CommonLib/Export.hpp>
 #include <CommonLib/ChunkEntities.hpp>
+#include <CommonLib/InternalConstants.hpp>
 #include <CommonLib/Planet.hpp>
 #include <memory>
 
@@ -17,7 +18,7 @@ namespace tsom
 	struct PlanetComponent
 	{
 		std::unique_ptr<Planet> planet;
-		std::unique_ptr<ChunkEntities> planetEntities;
+		std::array<std::unique_ptr<ChunkEntities>, Constants::MaxChunkLayerCount> planetEntities;
 	};
 }
 

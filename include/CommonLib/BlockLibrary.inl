@@ -9,6 +9,11 @@ namespace tsom
 		return m_blocks[blockIndex];
 	}
 
+	inline auto BlockLibrary::GetLayerData(std::size_t layerIndex) const -> const LayerData&
+	{
+		return m_layers[layerIndex];
+	}
+
 	inline BlockIndex BlockLibrary::GetBlockIndex(std::string_view blockName) const
 	{
 		auto it = m_blockIndices.find(blockName);
@@ -18,8 +23,13 @@ namespace tsom
 		return it->second;
 	}
 
-	inline bool tsom::BlockLibrary::IsValidBlock(BlockIndex blockIndex) const
+	inline bool BlockLibrary::IsValidBlock(BlockIndex blockIndex) const
 	{
 		return blockIndex < m_blocks.size();
+	}
+
+	inline bool BlockLibrary::IsValidLayer(std::size_t layerIndex) const
+	{
+		return layerIndex < m_layers.size();
 	}
 }

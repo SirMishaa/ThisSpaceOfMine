@@ -21,7 +21,7 @@ namespace tsom
 
 		private:
 			void InitializeChunkEntity(entt::handle entity) override;
-			std::unique_ptr<ChunkEntities> SetupChunkEntities(Nz::EnttWorld& world, ChunkContainer& chunkContainer) override;
+			std::unique_ptr<ChunkEntities> SetupChunkEntities(Nz::EnttWorld& world, ChunkContainer& chunkContainer, std::size_t layerIndex) override;
 	};
 }
 

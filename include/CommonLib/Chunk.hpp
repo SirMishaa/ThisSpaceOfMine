@@ -10,16 +10,19 @@
 #include <CommonLib/Export.hpp>
 #include <CommonLib/BlockIndex.hpp>
 #include <CommonLib/Direction.hpp>
+#include <CommonLib/InternalConstants.hpp>
 #include <Nazara/Core/Color.hpp>
-#include <Nazara/Math/Matrix4.hpp>
 #include <NazaraUtils/Bitset.hpp>
 #include <NazaraUtils/EnumArray.hpp>
+#include <NazaraUtils/FixedVector.hpp>
 #include <NazaraUtils/FunctionRef.hpp>
 #include <NazaraUtils/Signal.hpp>
 #include <NazaraUtils/SparsePtr.hpp>
+#include <array>
 #include <memory>
 #include <optional>
 #include <shared_mutex>
+#include <span>
 #include <vector>
 
 namespace Nz
@@ -40,6 +43,7 @@ namespace tsom
 	class TSOM_COMMONLIB_API Chunk : public std::enable_shared_from_this<Chunk>
 	{
 		public:
+			struct Layer;
 			struct HitBlock;
 			struct VertexAttributes;
 
@@ -49,8 +53,8 @@ namespace tsom
 			virtual ~Chunk();
 
 			virtual std::pair<std::shared_ptr<Nz::Collider3D>, Nz::Vector3f> BuildBlockCollider(const Nz::Vector3ui& blockIndices, float scale = 1.f) const = 0;
-			virtual std::shared_ptr<Nz::Collider3D> BuildCollider() const = 0;
-			virtual void BuildMesh(std::vector<Nz::UInt32>& indices, const Nz::Vector3f& center, const Nz::FunctionRef<VertexAttributes(const Nz::Vector3ui& blockIndices, Direction direction)>& addFace) const;
+			virtual std::shared_ptr<Nz::Collider3D> BuildCollider(std::size_t layerIndex) const = 0;
+			virtual void BuildMesh(std::size_t layerIndex, std::vector<Nz::UInt32>& indices, const Nz::Vector3f& center, const Nz::FunctionRef<VertexAttributes(const Nz::Vector3ui& blockIndices, Direction direction)>& addFace) const;
 
 			virtual std::optional<HitBlock> ComputeHitCoordinates(const Nz::Vector3f& hitPos, const Nz::Vector3f& hitNormal, const Nz::Collider3D& collider, std::uint32_t hitSubshapeId) const = 0;
 			virtual Nz::EnumArray<Nz::BoxCorner, Nz::Vector3f> ComputeVoxelCorners(const Nz::Vector3ui& indices) const;
@@ -61,7 +65,9 @@ namespace tsom
 
 			virtual void Deserialize(Nz::ByteStream& byteStream);
 
-			inline const Nz::Bitset<Nz::UInt64>& GetCollisionCellMask() const;
+			inline std::span<const std::size_t> GetActiveLayers() const;
+			inline Nz::UInt32 GetActiveLayerMask() const;
+			inline const Nz::Bitset<Nz::UInt64>& GetCollisionCellMask(std::size_t layerIndex) const;
 			inline const BlockLibrary& GetBlockLibrary() const;
 			inline unsigned int GetBlockLocalIndex(const Nz::Vector3ui& indices) const;
 			inline Nz::Vector3ui GetBlockLocalIndices(unsigned int blockIndex) const;
@@ -78,6 +84,8 @@ namespace tsom
 			inline bool HasContent() const;
 			inline bool HasPerFaceCollisions() const;
 
+			inline bool IsLayerRegistered(std::size_t layerIndex) const;
+
 			inline void LockRead() const;
 			inline void LockWrite();
 
@@ -89,13 +97,21 @@ namespace tsom
 			inline void UnlockRead() const;
 			inline void UnlockWrite();
 
-			void UpdateBlock(const Nz::Vector3ui& indices, BlockIndex cellType);
+			void UpdateBlock(const Nz::Vector3ui& indices, BlockIndex cellType, bool ensureContent = false);
 
 			Chunk& operator=(const Chunk&) = delete;
 			Chunk& operator=(Chunk&&) = delete;
 
-			NazaraSignal(OnBlockUpdated, Chunk* /*emitter*/, const Nz::Vector3ui& /*indices*/, BlockIndex /*newBlock*/);
+			NazaraSignal(OnBlockUpdated, Chunk* /*emitter*/, const Nz::Vector3ui& /*indices*/, BlockIndex /*newBlock*/, std::size_t /*prevLayerIndex*/, std::size_t /*newLayerIndex*/);
+			NazaraSignal(OnLayerRegistered, Chunk* /*emitter*/, std::size_t /*layerIndex*/);
+			NazaraSignal(OnLayerUnregistered, Chunk* /*emitter*/, std::size_t /*layerIndex*/);
 			NazaraSignal(OnReset, Chunk* /*emitter*/);
+
+			struct Layer
+			{
+				Nz::Bitset<Nz::UInt64> collisionCellMasks;
+				std::size_t blockCount = 0; //< Number of blocks on this layer
+			};
 
 			struct HitBlock
 			{
@@ -115,12 +131,15 @@ namespace tsom
 
 		protected:
 			void OnChunkReset();
+			inline void RegisterLayer(std::size_t layerIndex);
 			inline void SetPerFaceCollision();
+			inline void UnregisterLayer(std::size_t layerIndex);
 
 			mutable std::shared_mutex m_mutex;
+			std::array<std::optional<Layer>, Constants::MaxChunkLayerCount> m_layers;
 			std::vector<BlockIndex> m_blocks;
 			std::vector<Nz::UInt16> m_blockTypeCount;
-			Nz::Bitset<Nz::UInt64> m_collisionCellMask;
+			Nz::FixedVector<std::size_t, Constants::MaxChunkLayerCount> m_activeLayers;
 			Nz::Vector3ui m_size;
 			ChunkIndices m_indices;
 			const BlockLibrary& m_blockLibrary;

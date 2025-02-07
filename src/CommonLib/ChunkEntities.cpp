@@ -7,6 +7,8 @@
 #include <CommonLib/PhysicsConstants.hpp>
 #include <CommonLib/Components/ChunkComponent.hpp>
 #include <CommonLib/Components/EntityOwnerComponent.hpp>
+#include <CommonLib/Physics/ContactCallbackComponents.hpp>
+#include <CommonLib/Systems/BuoyancySystem.hpp>
 #include <Nazara/Core/ApplicationBase.hpp>
 #include <Nazara/Core/EnttWorld.hpp>
 #include <Nazara/Core/TaskSchedulerAppComponent.hpp>
@@ -16,30 +18,40 @@
 
 namespace tsom
 {
-	ChunkEntities::ChunkEntities(Nz::ApplicationBase& application, Nz::EnttWorld& world, ChunkContainer& chunkContainer, const BlockLibrary& blockLibrary) :
-	ChunkEntities(application, world, chunkContainer, blockLibrary, NoInit{})
+	ChunkEntities::ChunkEntities(Nz::ApplicationBase& application, Nz::EnttWorld& world, ChunkContainer& chunkContainer, const BlockLibrary& blockLibrary, std::size_t layerIndex) :
+	ChunkEntities(application, world, chunkContainer, blockLibrary, layerIndex, NoInit{})
 	{
 		FillChunks();
 	}
 
-	ChunkEntities::ChunkEntities(Nz::ApplicationBase& application, Nz::EnttWorld& world, ChunkContainer& chunkContainer, const BlockLibrary& blockLibrary, NoInit) :
+	ChunkEntities::ChunkEntities(Nz::ApplicationBase& application, Nz::EnttWorld& world, ChunkContainer& chunkContainer, const BlockLibrary& blockLibrary, std::size_t layerIndex, NoInit) :
+	m_layerIndex(layerIndex),
 	m_application(application),
 	m_world(world),
 	m_blockLibrary(blockLibrary),
 	m_chunkContainer(chunkContainer)
 	{
-		m_onChunkAdded.Connect(chunkContainer.OnChunkAdded, [this](ChunkContainer* /*emitter*/, Chunk* chunk)
+		m_onChunkAdded.Connect(chunkContainer.OnChunkLayerAdded, [this](ChunkContainer* /*emitter*/, Chunk* chunk, std::size_t layerIndex)
 		{
+			if (m_layerIndex != layerIndex)
+				return;
+
 			CreateChunkEntity(chunk->GetIndices(), *chunk);
 		});
 
-		m_onChunkRemove.Connect(chunkContainer.OnChunkRemove, [this](ChunkContainer* /*emitter*/, Chunk* chunk)
+		m_onChunkRemove.Connect(chunkContainer.OnChunkLayerRemove, [this](ChunkContainer* /*emitter*/, Chunk* chunk, std::size_t layerIndex)
 		{
+			if (m_layerIndex != layerIndex)
+				return;
+
 			DestroyChunkEntity(chunk->GetIndices());
 		});
 
-		m_onChunkUpdated.Connect(chunkContainer.OnChunkUpdated, [this](ChunkContainer* /*emitter*/, Chunk* chunk, DirectionMask neighborMask)
+		m_onChunkUpdated.Connect(chunkContainer.OnChunkUpdated, [this](ChunkContainer* /*emitter*/, Chunk* chunk, DirectionMask neighborMask, Nz::UInt32 layerMask)
 		{
+			if ((layerMask & (1u << m_layerIndex)) == 0)
+				return;
+
 			// Chunks can be updated in parallel (e.g. planet generation)
 			std::lock_guard lock(m_invalidatedChunkMutex);
 			m_invalidatedChunks[chunk->GetIndices()] |= neighborMask;
@@ -124,8 +136,11 @@ namespace tsom
 		chunkComponent.chunk = &chunk;
 		chunkComponent.parentEntity = m_parentEntity;
 
+		auto& layerData = m_blockLibrary.GetLayerData(m_layerIndex);
+
 		Nz::RigidBody3D::StaticSettings physicsSettings(nullptr);
-		physicsSettings.objectLayer = Constants::ObjectLayerStatic;
+		physicsSettings.objectLayer = layerData.physicsLayer;
+		physicsSettings.isTrigger = layerData.isPhysicsTrigger;
 
 		chunkEntity.emplace<Nz::RigidBody3DComponent>(physicsSettings);
 
@@ -159,13 +174,14 @@ namespace tsom
 	{
 		m_chunkContainer.ForEachChunk([this](const ChunkIndices& chunkIndices, Chunk& chunk)
 		{
-			CreateChunkEntity(chunkIndices, chunk);
+			if (chunk.IsLayerRegistered(m_layerIndex))
+				CreateChunkEntity(chunkIndices, chunk);
 		});
 	}
 
 	auto ChunkEntities::ProcessChunkUpdate(const Chunk& chunk, DirectionMask neighborMask) -> UpdateJob*
 	{
-		assert(chunk.HasContent());
+		NazaraAssert(chunk.HasContent());
 
 		// Try to cancel current update job to avoid useless work
 		if (auto it = m_updateJobs.find(chunk.GetIndices()); it != m_updateJobs.end())
@@ -193,7 +209,7 @@ namespace tsom
 				return;
 
 			chunkPtr->LockRead();
-			updateJob->collider = chunkPtr->BuildCollider();
+			updateJob->collider = chunkPtr->BuildCollider(m_layerIndex);
 			chunkPtr->UnlockRead();
 
 			updateJob->jobDone++;
@@ -206,7 +222,7 @@ namespace tsom
 			const Chunk* neighborChunk = m_chunkContainer.GetChunk(neighborIndices);
 
 			// We only need to regenerate collisions for neighbor chunks having per-face collisions (like deformed chunks)
-			if (!neighborChunk || !neighborChunk->HasContent() || !neighborChunk->HasPerFaceCollisions())
+			if (!neighborChunk || !neighborChunk->HasContent() || !neighborChunk->HasPerFaceCollisions() || !neighborChunk->IsLayerRegistered(m_layerIndex))
 				continue;
 
 			updateJob->chunkDependencies.push_back(neighborIndices);
