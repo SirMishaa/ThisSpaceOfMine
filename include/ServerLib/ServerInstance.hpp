@@ -64,7 +64,7 @@ namespace tsom
 
 			inline Nz::ApplicationBase& GetApplication();
 			inline const BlockLibrary& GetBlockLibrary() const;
-			inline const std::array<std::uint8_t, 32>& GetConnectionTokenEncryptionKey() const;
+			inline const Config& GetConfig() const;
 			inline const Spawnpoint& GetDefaultSpawnpoint() const;
 			inline EntityRegistry& GetEntityRegistry();
 			inline const EntityRegistry& GetEntityRegistry() const;
@@ -87,6 +87,7 @@ namespace tsom
 			{
 				std::array<std::uint8_t, 32> connectionTokenEncryptionKey;
 				Nz::Time saveInterval = Nz::Time::Seconds(30);
+				bool enableDebugDrawer = false;
 				bool pauseWhenEmpty = true;
 			};
 
@@ -118,16 +119,15 @@ namespace tsom
 			Nz::Bitset<> m_newPlayers;
 			Nz::MemoryPool<ServerPlayer> m_players;
 			Nz::MillisecondClock m_saveClock;
-			Nz::Time m_saveInterval;
 			Nz::Time m_tickAccumulator;
 			Nz::Time m_tickDuration;
 			Nz::UInt16 m_tickIndex;
 			Nz::ApplicationBase& m_application;
 			BlockLibrary m_blockLibrary;
+			Config m_config;
 			ScriptingContext m_scriptingContext;
 			EntityRegistry m_entityRegistry;
 			Spawnpoint m_defaultSpawnpoint;
-			bool m_pauseWhenEmpty;
 	};
 }
 

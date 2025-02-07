@@ -56,6 +56,7 @@ int ServerMain(int argc, char* argv[])
 	instanceConfig.pauseWhenEmpty = config.GetBoolValue("Server.SleepWhenEmpty");
 	instanceConfig.saveInterval = Nz::Time::Seconds(config.GetIntegerValue<long long>("Save.Interval"));
 	instanceConfig.connectionTokenEncryptionKey = config.GetConnectionTokenEncryptionKey();
+	instanceConfig.enableDebugDrawer = config.GetBoolValue("Debug.EnableDrawer");
 
 	auto& instance = serverInstanceAppComponent.AddInstance(instanceConfig);
 	auto& sessionManager = instance.AddSessionManager(serverPort);

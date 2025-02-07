@@ -76,9 +76,9 @@ namespace tsom
 		return m_blockLibrary;
 	}
 
-	inline const std::array<std::uint8_t, 32>& ServerInstance::GetConnectionTokenEncryptionKey() const
+	inline auto ServerInstance::GetConfig() const -> const Config&
 	{
-		return m_connectionTokenEncryptionKey;
+		return m_config;
 	}
 
 	inline auto ServerInstance::GetDefaultSpawnpoint() const -> const Spawnpoint&

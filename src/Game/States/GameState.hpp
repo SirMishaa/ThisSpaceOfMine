@@ -73,6 +73,7 @@ namespace tsom
 			NazaraSlot(ClientSessionHandler, OnChatMessage, m_onChatMessage);
 			NazaraSlot(ClientSessionHandler, OnControlledEntityChanged, m_onControlledEntityChanged);
 			NazaraSlot(ClientSessionHandler, OnControlledEntityStateUpdate, m_onControlledEntityStateUpdate);
+			NazaraSlot(ClientSessionHandler, OnDebugDrawLineList, m_onDebugDrawLineList);
 			NazaraSlot(ClientSessionHandler, OnPlayerChatMessage, m_onPlayerChatMessage);
 			NazaraSlot(ClientSessionHandler, OnPlayerJoined, m_onPlayerJoined);
 			NazaraSlot(ClientSessionHandler, OnPlayerLeave, m_onPlayerLeave);
@@ -83,6 +84,15 @@ namespace tsom
 			NazaraSlot(Nz::Canvas, OnUnhandledMouseButtonPressed, m_mouseButtonReleasedSlot);
 			NazaraSlot(Nz::Canvas, OnUnhandledMouseMoved, m_mouseMovedSlot);
 			NazaraSlot(Nz::Canvas, OnUnhandledMouseWheelMoved, m_mouseWheelMovedSlot);
+
+			struct DebugDrawLines
+			{
+				std::size_t environmentId;
+				std::vector<Nz::Vector3f> vertices;
+				Nz::Color color;
+				Nz::Quaternionf rotation;
+				Nz::Time duration;
+			};
 
 			struct DebugOverlay
 			{
@@ -101,6 +111,7 @@ namespace tsom
 			std::optional<ConsoleExecutor> m_consoleExecutor;
 			std::shared_ptr<DebugOverlay> m_debugOverlay;
 			std::vector<InputRotation> m_predictedInputRotations;
+			tsl::hopscotch_map<Nz::UInt64, DebugDrawLines> m_debugDrawLines;
 			entt::handle m_cameraEntity;
 			entt::handle m_controlledEntity;
 			entt::handle m_crosshairEntity;

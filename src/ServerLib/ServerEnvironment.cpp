@@ -4,6 +4,7 @@
 
 #include <ServerLib/ServerEnvironment.hpp>
 #include <CommonLib/Physics/PhysicsSettings.hpp>
+#include <ServerLib/Debug/DebugDrawBroadcaster.hpp>
 #include <ServerLib/Systems/EnvironmentProxySystem.hpp>
 #include <ServerLib/Systems/NetworkedEntitiesSystem.hpp>
 #include <Nazara/Physics3D/Systems/Physics3DSystem.hpp>
@@ -16,6 +17,9 @@ namespace tsom
 	m_isRoot(isRoot)
 	{
 		m_world = m_serverInstance.RegisterEnvironment(this);
+
+		if (serverInstance.GetConfig().enableDebugDrawer)
+			m_debugDrawer = std::make_unique<DebugDrawBroadcaster>(this);
 
 		auto& registry = m_world->GetRegistry();
 		registry.ctx().insert_or_assign<ServerEnvironment*>(this);

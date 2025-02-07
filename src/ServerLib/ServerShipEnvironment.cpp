@@ -425,24 +425,14 @@ namespace tsom
 			if (!chunkData.areaCollider)
 				return;
 
-			Packets::DebugDrawLineList debugDrawLineList;
-			debugDrawLineList.color = Nz::Color::Blue();
-			debugDrawLineList.duration = 5.f;
-			debugDrawLineList.position = GetShip().GetChunkOffset(chunkIndices);
-			debugDrawLineList.rotation = Nz::Quaternionf::Identity();
-			chunkData.areaCollider->BuildDebugMesh(debugDrawLineList.vertices, debugDrawLineList.indices, Nz::Matrix4f::Identity());
-
-			m_serverInstance.ForEachPlayer([&](ServerPlayer& player)
+			if (m_debugDrawer)
 			{
-				auto* session = player.GetSession();
-				if (!session)
-					return;
+				std::vector<Nz::UInt16> indices;
+				std::vector<Nz::Vector3f> positions;
+				chunkData.areaCollider->BuildDebugMesh(positions, indices, Nz::Matrix4f::Translate(GetShip().GetChunkOffset(chunkIndices)));
 
-				auto& visibility = player.GetVisibilityHandler();
-
-				debugDrawLineList.environmentId = visibility.GetEnvironmentId(this);
-				session->SendPacket(debugDrawLineList);
-			});
+				m_debugDrawer->DrawLines(std::hash<void*>{}(this), 5.f, indices, positions, Nz::Color::Blue());
+			}
 		};
 
 		taskScheduler.AddTask([areaList, updateJob, chunkPtr = chunk.shared_from_this()]

@@ -24,6 +24,7 @@ namespace Nz
 	class ApplicationBase;
 	class EnttWorld;
 	class Model;
+	class Node;
 	class TextSprite;
 }
 
@@ -44,6 +45,7 @@ namespace tsom
 			void EnableShipControl(bool enable);
 
 			inline entt::handle GetControlledEntity() const;
+			inline const Nz::Node* GetEnvironmentNode(std::size_t environmentIndex) const;
 			inline const GravityController* GetGravityController(std::size_t environmentIndex) const;
 			inline ScriptingContext& GetScriptingContext();
 
@@ -75,6 +77,7 @@ namespace tsom
 			NazaraSignal(OnChatMessage, const std::string& /*message*/);
 			NazaraSignal(OnControlledEntityChanged, entt::handle /*newEntity*/);
 			NazaraSignal(OnControlledEntityStateUpdate, InputIndex /*lastInputIndex*/, const Packets::EntitiesStateUpdate::ControlledCharacter& /*characterData*/);
+			NazaraSignal(OnDebugDrawLineList, const Packets::DebugDrawLineList& /*debugDrawLineList*/);
 			NazaraSignal(OnPlayerChatMessage, const std::string& /*message*/, const PlayerInfo& /*playerInfo*/);
 			NazaraSignal(OnPlayerJoined, const PlayerInfo& /*playerInfo*/);
 			NazaraSignal(OnPlayerLeave, const PlayerInfo& /*playerInfo*/);
@@ -95,6 +98,18 @@ namespace tsom
 			inline const PlayerInfo* FetchPlayerInfo(PlayerIndex playerIndex) const;
 			void HandleEntityCreation(Packets::Helper::EntityData&& entityData);
 			void SetupEntity(entt::handle entity, Packets::Helper::PlayerControlledData&& entityData);
+
+			struct DebugDrawLines
+			{
+				Nz::UInt64 uniqueHash = 0;
+				std::size_t environmentId;
+				std::vector<Nz::UInt16> indices;
+				std::vector<Nz::Vector3f> vertices;
+				Nz::Color color;
+				Nz::Quaternionf rotation;
+				Nz::Vector3f position;
+				float duration;
+			};
 
 			struct EnvironmentData
 			{

@@ -20,15 +20,13 @@
 namespace tsom
 {
 	ServerInstance::ServerInstance(Nz::ApplicationBase& application, Config config) :
-	m_connectionTokenEncryptionKey(config.connectionTokenEncryptionKey),
 	m_players(256),
-	m_saveInterval(config.saveInterval),
 	m_tickAccumulator(Nz::Time::Zero()),
 	m_tickDuration(Constants::TickDuration),
 	m_tickIndex(0),
 	m_application(application),
-	m_scriptingContext(application),
-	m_pauseWhenEmpty(config.pauseWhenEmpty)
+	m_config(std::move(config)),
+	m_scriptingContext(application)
 	{
 		m_entityRegistry.RegisterClassLibrary<ChunkClassLibrary>(m_application, m_blockLibrary);
 		m_entityRegistry.RegisterClassLibrary<ServerClassLibrary>(m_application);
@@ -178,14 +176,14 @@ namespace tsom
 
 	Nz::Time ServerInstance::Update(Nz::Time elapsedTime)
 	{
-		if (m_saveClock.RestartIfOver(m_saveInterval))
+		if (m_saveClock.RestartIfOver(m_config.saveInterval))
 			OnSave();
 
 		for (auto&& sessionManagerPtr : m_sessionManagers)
 			sessionManagerPtr->Poll();
 
 		// No player? Pause instance for 100ms
-		if (m_pauseWhenEmpty && m_players.begin() == m_players.end())
+		if (m_config.pauseWhenEmpty && m_players.begin() == m_players.end())
 			return Nz::Time::Milliseconds(100);
 
 		m_tickAccumulator += elapsedTime;

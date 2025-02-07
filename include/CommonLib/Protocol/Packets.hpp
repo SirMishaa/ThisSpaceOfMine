@@ -175,12 +175,11 @@ namespace tsom
 
 		struct DebugDrawLineList
 		{
+			Nz::UInt64 uniqueHash = 0;
 			Helper::EnvironmentId environmentId;
 			std::vector<Nz::UInt16> indices;
 			std::vector<Nz::Vector3f> vertices;
 			Nz::Color color;
-			Nz::Quaternionf rotation;
-			Nz::Vector3f position;
 			float duration;
 		};
 

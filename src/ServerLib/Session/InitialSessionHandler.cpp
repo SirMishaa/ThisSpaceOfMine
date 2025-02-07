@@ -65,7 +65,7 @@ namespace tsom
 			},
 			[&](Packets::AuthRequest::AuthenticatedPlayerData& authenticatedData) -> bool
 			{
-				const std::array<Nz::UInt8, 32>& key = m_instance.GetConnectionTokenEncryptionKey();
+				const std::array<Nz::UInt8, 32>& key = m_instance.GetConfig().connectionTokenEncryptionKey;
 
 				ConnectionTokenPrivate tokenPrivate;
 				ConnectionTokenAuth errorCode = ConnectionTokenPrivate::AuthAndDecrypt(authenticatedData.connectionToken, key, &tokenPrivate);

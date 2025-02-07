@@ -9,6 +9,7 @@
 
 #include <ServerLib/Export.hpp>
 #include <ServerLib/ServerInstance.hpp>
+#include <CommonLib/Debug/DebugDrawInterface.hpp>
 #include <Nazara/Core/EnttWorld.hpp>
 #include <memory>
 
@@ -64,6 +65,7 @@ namespace tsom
 			ServerEnvironment(ServerInstance& serverInstance, ServerEnvironmentType type, bool isRoot);
 
 			std::unique_ptr<Nz::EnttWorld> m_world;
+			std::unique_ptr<DebugDrawInterface> m_debugDrawer;
 			Nz::Bitset<Nz::UInt64> m_registeredPlayers;
 			ServerEnvironmentType m_type;
 			ServerInstance& m_serverInstance;

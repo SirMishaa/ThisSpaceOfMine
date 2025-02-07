@@ -465,6 +465,23 @@ namespace tsom
 			fmt::print("{0}\n", message);
 		});
 
+		m_onDebugDrawLineList.Connect(stateData.sessionHandler->OnDebugDrawLineList, [this](const Packets::DebugDrawLineList& debugDrawLinePacket)
+		{
+			auto& debugDrawLines = m_debugDrawLines[debugDrawLinePacket.uniqueHash];
+			debugDrawLines.color = debugDrawLinePacket.color;
+			debugDrawLines.duration = Nz::Time::Seconds(debugDrawLinePacket.duration);
+			debugDrawLines.environmentId = debugDrawLinePacket.environmentId;
+			debugDrawLines.vertices.clear();
+
+			if (!debugDrawLinePacket.indices.empty())
+			{
+				for (Nz::UInt16 index : debugDrawLinePacket.indices)
+					debugDrawLines.vertices.push_back(debugDrawLinePacket.vertices[index]);
+			}
+			else
+				debugDrawLines.vertices = debugDrawLinePacket.vertices;
+		});
+
 		m_onPlayerChatMessage.Connect(stateData.sessionHandler->OnPlayerChatMessage, [this](const std::string& message, const ClientSessionHandler::PlayerInfo& playerInfo)
 		{
 			m_chatBox->PrintMessage({
@@ -681,6 +698,31 @@ namespace tsom
 		}
 
 		Nz::DebugDrawer* debugDrawer = m_cameraEntity.get<Nz::CameraComponent>().AccessDebugDrawer();
+		for (auto it = m_debugDrawLines.begin(); it != m_debugDrawLines.end();)
+		{
+			DebugDrawLines& debugDrawLines = it.value();
+			debugDrawLines.duration -= elapsedTime;
+			if (debugDrawLines.duration < Nz::Time::Zero())
+			{
+				it = m_debugDrawLines.erase(it);
+				continue;
+			}
+
+			const Nz::Node* rootNode = stateData.sessionHandler->GetEnvironmentNode(debugDrawLines.environmentId);
+			if (rootNode->GetPosition().ApproxEqual(Nz::Vector3f::Zero()) && rootNode->GetRotation().ApproxEqual(Nz::Quaternionf::Identity()) && rootNode->GetScale().ApproxEqual(Nz::Vector3f::Unit()))
+			{
+				// Fast path, environment node has no transformation (root environment)
+				debugDrawer->DrawLines(debugDrawLines.vertices, debugDrawLines.color);
+			}
+			else
+			{
+				// Slow path, transform lines
+				for (std::size_t i = 0; i < debugDrawLines.vertices.size(); i += 2)
+					debugDrawer->DrawLine(rootNode->ToGlobalPosition(debugDrawLines.vertices[i]), rootNode->ToGlobalPosition(debugDrawLines.vertices[i + 1]), debugDrawLines.color);
+			}
+
+			++it;
+		}
 		//debugDrawer->DrawLine(Nz::Vector3f::Zero(), Nz::Vector3f::Forward() * 20.f, Nz::Color::Green());
 		//debugDrawer->DrawLine(Nz::Vector3f::Zero(), Nz::Vector3f::Left() * 20.f, Nz::Color::Green());
 		//debugDrawer->DrawLine(Nz::Vector3f::Left() * 20.f, Nz::Vector3f::Left() * 20.f + Nz::Vector3f::Forward() * 10.f, Nz::Color::Green());
