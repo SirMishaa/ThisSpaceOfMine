@@ -12,11 +12,11 @@
 
 namespace tsom::Constants
 {
-	// Broadphase layers
+	// Broadphase layers (next free id: 2)
 	static constexpr Nz::PhysBroadphase3D BroadphaseStatic = 0;
 	static constexpr Nz::PhysBroadphase3D BroadphaseDynamic = 1;
 
-	// Object layers
+	// Object layers (next free id: 8)
 	static constexpr Nz::PhysObjectLayer3D ObjectLayerDynamic = 2;
 	static constexpr Nz::PhysObjectLayer3D ObjectLayerDynamicNoPlayer = 4;
 	static constexpr Nz::PhysObjectLayer3D ObjectLayerDynamicTrigger = 6;
@@ -24,6 +24,7 @@ namespace tsom::Constants
 	static constexpr Nz::PhysObjectLayer3D ObjectLayerStatic = 0;
 	static constexpr Nz::PhysObjectLayer3D ObjectLayerStaticNoPlayer = 1;
 	static constexpr Nz::PhysObjectLayer3D ObjectLayerStaticTrigger = 5;
+	static constexpr Nz::PhysObjectLayer3D ObjectLayerStaticWater = 7;
 }
 
 #endif // TSOM_COMMONLIB_PHYSICSCONSTANTS_HPP

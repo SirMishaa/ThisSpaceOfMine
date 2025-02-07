@@ -144,6 +144,13 @@ namespace tsom
 
 		chunkEntity.emplace<Nz::RigidBody3DComponent>(physicsSettings);
 
+		if (layerData.isFluid)
+		{
+			chunkEntity.emplace<Physics::ContactAddedCallbackComponent>().callback = &BuoyancySystem::HandleContactAdded;
+			chunkEntity.emplace<Physics::ContactPersistedCallbackComponent>().callback = &BuoyancySystem::HandleContactPersisted;
+			chunkEntity.emplace<Physics::ContactRemovedCallbackComponent>().callback = &BuoyancySystem::HandleContactRemoved;
+		}
+
 		assert(!m_chunkEntities.contains(chunkIndices));
 		m_chunkEntities.insert_or_assign(chunkIndices, chunkEntity);
 

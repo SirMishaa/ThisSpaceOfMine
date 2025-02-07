@@ -3,6 +3,8 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <CommonLib/Physics/PhysicsSettings.hpp>
+#include <Nazara/Physics3D/PhysContact3D.hpp>
+#include <Nazara/Physics3D/PhysContactResponse3D.hpp>
 #include <CommonLib/PhysicsConstants.hpp>
 #include <CommonLib/Physics/ContactCallbackComponents.hpp>
 
@@ -19,6 +21,7 @@ namespace tsom::Physics
 					case Constants::ObjectLayerStatic:
 					case Constants::ObjectLayerStaticNoPlayer:
 					case Constants::ObjectLayerStaticTrigger:
+					case Constants::ObjectLayerStaticWater:
 						return Constants::BroadphaseStatic;
 
 					case Constants::ObjectLayerDynamic:
@@ -84,26 +87,39 @@ namespace tsom::Physics
 				return Nz::PhysContactValidateResult3D::AcceptAllContactsForThisBodyPair;
 			}
 
-			void OnContactAdded(entt::handle entity1, const Nz::PhysBody3D* body1, entt::handle entity2, const Nz::PhysBody3D* body2) override
+			void OnContactAdded(entt::handle entity1, const Nz::PhysBody3D* body1, entt::handle entity2, const Nz::PhysBody3D* body2, const Nz::PhysContact3D& physContact, Nz::PhysContactResponse3D& physContactResponse) override
 			{
 				if (ContactAddedCallbackComponent* callbackComponent = entity1.try_get<ContactAddedCallbackComponent>())
-					callbackComponent->callback(entity1, body1, entity2, body2);
+					callbackComponent->callback(entity1, body1, entity2, body2, physContact, physContactResponse);
 
 				if (ContactAddedCallbackComponent* callbackComponent = entity2.try_get<ContactAddedCallbackComponent>())
-					callbackComponent->callback(entity2, body2, entity1, body1);
+				{
+					physContactResponse.SwapBodies();
+					callbackComponent->callback(entity2, body2, entity1, body1, physContact.SwapBodies(), physContactResponse);
+					physContactResponse.SwapBodies();
+				}
 			}
 
-			void OnContactPersisted(entt::handle entity1, const Nz::PhysBody3D* body1, entt::handle entity2, const Nz::PhysBody3D* body2) override
+			void OnContactPersisted(entt::handle entity1, const Nz::PhysBody3D* body1, entt::handle entity2, const Nz::PhysBody3D* body2, const Nz::PhysContact3D& physContact, Nz::PhysContactResponse3D& physContactResponse) override
 			{
+				if (ContactPersistedCallbackComponent* callbackComponent = entity1.try_get<ContactPersistedCallbackComponent>())
+					callbackComponent->callback(entity1, body1, entity2, body2, physContact, physContactResponse);
+
+				if (ContactPersistedCallbackComponent* callbackComponent = entity2.try_get<ContactPersistedCallbackComponent>())
+				{
+					physContactResponse.SwapBodies();
+					callbackComponent->callback(entity2, body2, entity1, body1, physContact.SwapBodies(), physContactResponse);
+					physContactResponse.SwapBodies();
+				}
 			}
 
-			void OnContactRemoved(entt::handle entity1, const Nz::PhysBody3D* body1, entt::handle entity2, const Nz::PhysBody3D* body2) override
+			void OnContactRemoved(entt::handle entity1, Nz::UInt32 body1Index, const Nz::PhysBody3D* body1, Nz::UInt32 subShapeID1, entt::handle entity2, Nz::UInt32 body2Index, const Nz::PhysBody3D* body2, Nz::UInt32 subShapeID2) override
 			{
 				if (ContactRemovedCallbackComponent* callbackComponent = entity1.try_get<ContactRemovedCallbackComponent>())
-					callbackComponent->callback(entity1, body1, entity2, body2);
+					callbackComponent->callback(entity1, body1Index, body1, subShapeID1, entity2, body2Index, body2, subShapeID2);
 
 				if (ContactRemovedCallbackComponent* callbackComponent = entity2.try_get<ContactRemovedCallbackComponent>())
-					callbackComponent->callback(entity2, body2, entity1, body1);
+					callbackComponent->callback(entity2, body2Index, body2, subShapeID2, entity1, body1Index, body1, subShapeID1);
 			}
 		};
 	}

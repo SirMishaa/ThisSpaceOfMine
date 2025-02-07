@@ -14,18 +14,25 @@
 namespace Nz
 {
 	class PhysBody3D;
+	struct PhysContact3D;
+	struct PhysContactResponse3D;
 }
 
 namespace tsom::Physics
 {
 	struct ContactAddedCallbackComponent
 	{
-		std::function<void(entt::handle /*entity*/, const Nz::PhysBody3D* /*body*/, entt::handle /*otherEntity*/, const Nz::PhysBody3D* /*otherBody*/)> callback;
+		std::function<void(entt::handle /*entity*/, const Nz::PhysBody3D* /*body*/, entt::handle /*otherEntity*/, const Nz::PhysBody3D* /*otherBody*/, const Nz::PhysContact3D& /*physContact*/, Nz::PhysContactResponse3D& /*physContactResponse*/)> callback;
+	};
+
+	struct ContactPersistedCallbackComponent
+	{
+		std::function<void(entt::handle /*entity*/, const Nz::PhysBody3D* /*body*/, entt::handle /*otherEntity*/, const Nz::PhysBody3D* /*otherBody*/, const Nz::PhysContact3D& /*physContact*/, Nz::PhysContactResponse3D& /*physContactResponse*/)> callback;
 	};
 
 	struct ContactRemovedCallbackComponent
 	{
-		std::function<void(entt::handle /*entity*/, const Nz::PhysBody3D* /*body*/, entt::handle /*otherEntity*/, const Nz::PhysBody3D* /*otherBody*/)> callback;
+		std::function<void(entt::handle /*entity1*/, Nz::UInt32 /*body1Index*/, const Nz::PhysBody3D* /*body1*/, Nz::UInt32 /*subShapeID1*/, entt::handle /*entity2*/, Nz::UInt32 /*body2Index*/, const Nz::PhysBody3D* /*body2*/, Nz::UInt32 /*subShapeID2*/)> callback;
 	};
 }
 

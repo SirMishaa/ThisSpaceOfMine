@@ -9,6 +9,7 @@
 #include <CommonLib/PhysicsConstants.hpp>
 #include <CommonLib/Ship.hpp>
 #include <CommonLib/ShipController.hpp>
+#include <CommonLib/Components/BuoyancyComponent.hpp>
 #include <ServerLib/ServerPlayer.hpp>
 #include <ServerLib/ServerShipEnvironment.hpp>
 #include <ServerLib/Components/EnvironmentEnterTriggerComponent.hpp>
@@ -149,6 +150,7 @@ namespace tsom
 
 					newEntity.emplace<Nz::RigidBody3DComponent>(physicsSettings);
 					newEntity.emplace<ShipExteriorComponent>().ownerShip = shipEnvironment;
+					newEntity.emplace<BuoyancyComponent>();
 
 					newEntity.get<ClassInstanceComponent>().GetClass()->ActivateEntity(newEntity);
 
@@ -179,6 +181,7 @@ namespace tsom
 				physSettings.linearDamping = 0.f;
 
 				entity.emplace<Nz::RigidBody3DComponent>(physSettings);
+				entity.emplace<BuoyancyComponent>();
 			}
 		},
 		{

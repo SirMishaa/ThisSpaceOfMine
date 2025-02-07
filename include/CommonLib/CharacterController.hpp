@@ -43,6 +43,7 @@ namespace tsom
 			inline const std::shared_ptr<ShipController>& GetShipController() const;
 
 			inline bool IsFlying() const;
+			inline bool IsInWater() const;
 
 			void PostSimulate(Nz::PhysCharacter3D& character, float elapsedTime) override;
 			void PreSimulate(Nz::PhysCharacter3D& character, float elapsedTime) override;
@@ -52,6 +53,7 @@ namespace tsom
 			inline void SetGravityController(const GravityController* planet);
 
 			void SetInputs(const PlayerInputs& inputs);
+			void SetInWater(bool isInWater);
 			void SetShipController(std::shared_ptr<ShipController> shipController);
 
 			void UpdatePosition(Nz::PhysCharacter3D& character);
@@ -70,6 +72,7 @@ namespace tsom
 			const GravityController* m_gravityController;
 			bool m_allowInputRotation;
 			bool m_isFlying;
+			bool m_isInWater;
 	};
 }
 

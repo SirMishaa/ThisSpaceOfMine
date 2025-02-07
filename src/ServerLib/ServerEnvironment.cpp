@@ -31,7 +31,8 @@ namespace tsom
 		Nz::Physics3DSystem::Settings physSettings = Physics::BuildSettings();
 		physSettings.stepSize = m_serverInstance.GetTickDuration();
 
-		m_world->AddSystem<Nz::Physics3DSystem>(std::move(physSettings));
+		auto& physicsSystem = m_world->AddSystem<Nz::Physics3DSystem>(std::move(physSettings));
+		physicsSystem.SetContactListener(Physics::BuildContactListener());
 	}
 
 	ServerEnvironment::~ServerEnvironment()

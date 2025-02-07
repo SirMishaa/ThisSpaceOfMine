@@ -8,9 +8,7 @@
 #define TSOM_COMMONLIB_SYSTEMS_GRAVITYPHYSICSSYSTEM_HPP
 
 #include <CommonLib/Export.hpp>
-#include <Nazara/Core/Time.hpp>
 #include <Nazara/Physics3D/PhysWorld3DStepListener.hpp>
-#include <NazaraUtils/TypeList.hpp>
 #include <entt/fwd.hpp>
 
 namespace Nz

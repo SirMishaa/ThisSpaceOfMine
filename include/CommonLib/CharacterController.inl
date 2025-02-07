@@ -53,6 +53,11 @@ namespace tsom
 		return m_isFlying;
 	}
 
+	inline bool CharacterController::IsInWater() const
+	{
+		return m_isInWater;
+	}
+
 	inline void CharacterController::SetGravityController(const GravityController* gravityController)
 	{
 		m_gravityController = gravityController;
@@ -62,5 +67,10 @@ namespace tsom
 	{
 		m_lastInputs = inputs;
 		m_allowInputRotation = true;
+	}
+
+	inline void tsom::CharacterController::SetInWater(bool isInWater)
+	{
+		m_isInWater = isInWater;
 	}
 }

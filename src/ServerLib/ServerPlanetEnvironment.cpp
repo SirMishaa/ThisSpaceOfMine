@@ -7,6 +7,7 @@
 #include <CommonLib/ChunkEntities.hpp>
 #include <CommonLib/Components/ClassInstanceComponent.hpp>
 #include <CommonLib/Components/PlanetComponent.hpp>
+#include <CommonLib/Systems/BuoyancySystem.hpp>
 #include <CommonLib/Systems/GravityPhysicsSystem.hpp>
 #include <CommonLib/Systems/PlanetSystem.hpp>
 #include <ServerLib/ServerInstance.hpp>
@@ -52,14 +53,14 @@ namespace tsom
 
 		planetClass->InitAndActivateEntity(m_planetEntity);
 
-		auto& app = serverInstance.GetApplication();
-		auto& taskScheduler = app.GetComponent<Nz::TaskSchedulerAppComponent>();
-
 		auto& planetComponent = m_planetEntity.get<PlanetComponent>();
 		planetComponent.planet->AddChunks(blockLibrary, chunkCount);
 
 		if (!m_savePath.empty())
 			LoadFromDirectory();
+
+		auto& app = serverInstance.GetApplication();
+		auto& taskScheduler = app.GetComponent<Nz::TaskSchedulerAppComponent>();
 
 		planetComponent.planet->GenerateChunks(blockLibrary, taskScheduler, seed, chunkCount, std::move(generatorName));
 		taskScheduler.WaitForTasks();
@@ -75,6 +76,7 @@ namespace tsom
 		});
 
 		auto& physicsSystem = m_world->GetSystem<Nz::Physics3DSystem>();
+		m_world->AddSystem<BuoyancySystem>(*planetComponent.planet, physicsSystem.GetPhysWorld(), m_debugDrawer.get());
 		m_world->AddSystem<GravityPhysicsSystem>(*planetComponent.planet, physicsSystem.GetPhysWorld());
 		m_world->AddSystem<PlanetSystem>();
 	}

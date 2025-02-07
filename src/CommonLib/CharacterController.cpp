@@ -16,7 +16,8 @@ namespace tsom
 	m_referenceRotation(Nz::Quaternionf::Identity()),
 	m_gravityController(nullptr),
 	m_allowInputRotation(false),
-	m_isFlying(false)
+	m_isFlying(false),
+	m_isInWater(false)
 	{
 	}
 
@@ -122,12 +123,16 @@ namespace tsom
 				if (characterInputs.jump)
 				{
 					if (character.IsOnGround())
-						velocity += up * Constants::PlayerJumpPower;
+					{
+						Nz::PhysBody3D* groundBody = character.GetGroundBody();
+						if (groundBody && !groundBody->IsTrigger())
+							velocity += up * Constants::PlayerJumpPower;
+					}
 				}
 			}
 
 			// Handle up/down when flying before making movement rotation relative to pitch
-			if (m_isFlying || !hasGravity)
+			if (m_isFlying || !hasGravity || IsInWater())
 			{
 				if (characterInputs.jump)
 					desiredVelocity += movementRotation * Nz::Vector3f::Up();
