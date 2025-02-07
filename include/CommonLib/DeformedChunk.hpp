@@ -8,6 +8,7 @@
 #define TSOM_COMMONLIB_DEFORMEDCHUNK_HPP
 
 #include <CommonLib/Chunk.hpp>
+#include <Nazara/Math/Quaternion.hpp>
 
 namespace tsom
 {
