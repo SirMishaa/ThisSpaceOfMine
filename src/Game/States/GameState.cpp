@@ -267,24 +267,36 @@ namespace tsom
 		});
 		m_chatBox->SetRenderLayerOffset(1);
 
-		m_console = CreateWidget<Console>();
-		m_console->SetBackgroundColor(Nz::Color(0.f, 0.f, 0.33f, 0.5f));
-		m_console->SetRenderLayerOffset(1);
+		m_localConsole = CreateWidget<Console>();
+		m_localConsole->SetBackgroundColor(Nz::Color(0.f, 0.f, 0.33f, 0.5f));
+		m_localConsole->SetRenderLayerOffset(1);
 
 		m_consoleExecutor.emplace(stateData.sessionHandler->GetScriptingContext());
-		m_console->OnCommand.Connect([this](std::string_view command)
+		m_localConsole->OnCommand.Connect([this](std::string_view command)
 		{
 			m_consoleExecutor->Execute(command, "client console");
 		});
 
 		m_consoleExecutor->OnError.Connect([this](ConsoleExecutor* /*executor*/, std::string_view error)
 		{
-			m_console->PrintMessage(std::string(error), Nz::Color::Red());
+			m_localConsole->PrintMessage(std::string(error), Nz::Color::Red());
 		});
 
 		m_consoleExecutor->OnOutput.Connect([this](ConsoleExecutor* /*executor*/, std::string_view error)
 		{
-			m_console->PrintMessage(std::string(error));
+			m_localConsole->PrintMessage(std::string(error));
+		});
+		
+		m_remoteConsole = CreateWidget<Console>();
+		m_remoteConsole->SetBackgroundColor(Nz::Color(0.33f, 0.f, 0.f, 0.5f));
+		m_remoteConsole->SetRenderLayerOffset(1);
+
+		m_remoteConsole->OnCommand.Connect([this](std::string_view command)
+		{
+			Packets::SendConsoleCommand sendConsole;
+			sendConsole.command = command;
+
+			GetStateData().networkSession->SendPacket(sendConsole);
 		});
 
 		m_interactionLabel = CreateWidget<Nz::SimpleLabelWidget>();
@@ -297,17 +309,30 @@ namespace tsom
 			{
 				case Nz::Keyboard::Scancode::Tilde:
 				{
-					if (m_console->IsVisible())
-						m_console->Hide();
+					Console* targetConsole = (event.shift) ? m_remoteConsole : m_localConsole;
+
+					if (targetConsole == m_remoteConsole)
+					{
+						if (m_localConsole->IsVisible())
+							m_localConsole->Hide();
+					}
+					else if (targetConsole == m_localConsole)
+					{
+						if (m_remoteConsole->IsVisible())
+							m_remoteConsole->Hide();
+					}
+
+					if (targetConsole->IsVisible())
+						targetConsole->Hide();
 					else
 					{
-						m_console->Show();
+						targetConsole->Show();
 
 						// Execute next update to avoid the following TextEntered to be sent to the console
-						m_timerManager.AddImmediateTimer([this]
+						m_timerManager.AddImmediateTimer([this, targetConsole]
 						{
-							if (m_console->IsVisible())
-								m_console->SetFocus();
+							if (targetConsole->IsVisible())
+								targetConsole->SetFocus();
 						});
 					}
 					UpdateMouseLock();
@@ -319,8 +344,10 @@ namespace tsom
 				{
 					if (m_escapeMenu->IsVisible())
 						m_escapeMenu->Hide();
-					else if (m_console->IsVisible())
-						m_console->Hide();
+					else if (m_localConsole->IsVisible())
+						m_localConsole->Hide();
+					else if (m_remoteConsole->IsVisible())
+						m_remoteConsole->Hide();
 					else if (m_chatBox->IsOpen())
 						m_chatBox->Close();
 					else if (m_isPilotingShip)
@@ -465,6 +492,12 @@ namespace tsom
 			fmt::print("{0}\n", message);
 		});
 
+		m_onConsoleOutput.Connect(stateData.sessionHandler->OnConsoleOutput, [this](const Nz::Color& color, std::string_view message)
+		{
+			if (m_remoteConsole)
+				m_remoteConsole->PrintMessage(std::string(message), color);
+		});
+
 		m_onDebugDrawLineList.Connect(stateData.sessionHandler->OnDebugDrawLineList, [this](const Packets::DebugDrawLineList& debugDrawLinePacket)
 		{
 			auto& debugDrawLines = m_debugDrawLines[debugDrawLinePacket.uniqueHash];
@@ -568,7 +601,8 @@ namespace tsom
 
 		m_chatBox->Close();
 		m_escapeMenu->Hide();
-		m_console->Hide();
+		m_localConsole->Hide();
+		m_remoteConsole->Hide();
 
 		auto& stateData = GetStateData();
 		LayoutWidgets(Nz::Vector2f(stateData.renderTarget->GetSize()));
@@ -1004,8 +1038,11 @@ namespace tsom
 
 		m_chatBox->Resize(newSize);
 
-		m_console->Resize({ newSize.x, newSize.y / 3.f });
-		m_console->SetPosition({ 0.f, newSize.y - m_console->GetHeight() });
+		for (Console* console : { m_localConsole, m_remoteConsole })
+		{
+			console->Resize({ newSize.x, newSize.y / 3.f });
+			console->SetPosition({ 0.f, newSize.y - console->GetHeight() });
+		}
 
 		m_crosshairEntity.get<Nz::NodeComponent>().SetPosition({ newSize.x * 0.5f, newSize.y * 0.5f });
 
@@ -1148,9 +1185,10 @@ namespace tsom
 
 	void GameState::UpdateMouseLock()
 	{
-		m_isMouseLocked = !m_chatBox->IsTyping() && !m_escapeMenu->IsVisible() && !m_console->IsVisible();
+		m_isMouseLocked = !m_chatBox->IsTyping() && !m_escapeMenu->IsVisible() && !m_localConsole->IsVisible() && !m_remoteConsole->IsVisible();
 		m_chatBox->EnableMouseInput(!m_isMouseLocked);
-		m_console->EnableMouseInput(!m_isMouseLocked);
+		m_localConsole->EnableMouseInput(!m_isMouseLocked);
+		m_remoteConsole->EnableMouseInput(!m_isMouseLocked);
 
 		Nz::Mouse::SetRelativeMouseMode(m_isMouseLocked);
 	}

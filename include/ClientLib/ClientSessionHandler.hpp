@@ -55,6 +55,7 @@ namespace tsom
 			void HandlePacket(Packets::ChunkDestroy&& chunkDestroy);
 			void HandlePacket(Packets::ChunkReset&& chunkReset);
 			void HandlePacket(Packets::ChunkUpdate&& chunkUpdate);
+			void HandlePacket(Packets::ConsoleOutput&& consoleOutput);
 			void HandlePacket(Packets::DebugDrawLineList&& debugDrawLineList);
 			void HandlePacket(Packets::EntitiesCreation&& entitiesCreation);
 			void HandlePacket(Packets::EntitiesDelete&& entitiesDelete);
@@ -75,6 +76,7 @@ namespace tsom
 
 			NazaraSignal(OnAuthResponse, const Packets::AuthResponse& /*authResponse*/);
 			NazaraSignal(OnChatMessage, const std::string& /*message*/);
+			NazaraSignal(OnConsoleOutput, const Nz::Color& /*color*/, std::string_view /*message*/);
 			NazaraSignal(OnControlledEntityChanged, entt::handle /*newEntity*/);
 			NazaraSignal(OnControlledEntityStateUpdate, InputIndex /*lastInputIndex*/, const Packets::EntitiesStateUpdate::ControlledCharacter& /*characterData*/);
 			NazaraSignal(OnDebugDrawLineList, const Packets::DebugDrawLineList& /*debugDrawLineList*/);

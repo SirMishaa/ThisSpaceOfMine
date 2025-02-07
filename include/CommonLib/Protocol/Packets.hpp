@@ -129,6 +129,12 @@ namespace tsom
 			std::optional<PlayerIndex> playerIndex;
 			SecuredString<Constants::ChatMaxMessageLength> message;
 		};
+		
+		struct ConsoleOutput
+		{
+			Nz::Color color;
+			std::string output;
+		};
 
 		struct ChunkCreate
 		{
@@ -329,6 +335,11 @@ namespace tsom
 			SecuredString<Constants::ChatMaxPlayerMessageLength> message;
 		};
 
+		struct SendConsoleCommand
+		{
+			SecuredString<Constants::ConsoleMaxCommandLength> command;
+		};
+
 		struct UpdatePlayerInputs
 		{
 			PlayerInputs inputs;
@@ -341,6 +352,7 @@ namespace tsom
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, ChunkDestroy& data);
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, ChunkReset& data);
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, ChunkUpdate& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, ConsoleOutput& data);
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, DebugDrawLineList& data);
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, EntitiesCreation& data);
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, EntitiesDelete& data);
@@ -361,6 +373,7 @@ namespace tsom
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, PlayerJoin& data);
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, PlayerNameUpdate& data);
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, SendChatMessage& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, SendConsoleCommand& data);
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, UpdatePlayerInputs& data);
 	}
 }

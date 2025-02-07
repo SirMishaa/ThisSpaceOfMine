@@ -246,6 +246,12 @@ namespace tsom
 			}
 		}
 
+		void Serialize(PacketSerializer& serializer, ConsoleOutput& data)
+		{
+			serializer &= data.color;
+			serializer &= data.output;
+		}
+
 		void Serialize(PacketSerializer& serializer, DebugDrawLineList& data)
 		{
 			serializer &= data.uniqueHash;
@@ -412,6 +418,11 @@ namespace tsom
 		void Serialize(PacketSerializer& serializer, SendChatMessage& data)
 		{
 			serializer &= data.message;
+		}
+
+		void Serialize(PacketSerializer& serializer, SendConsoleCommand& data)
+		{
+			serializer &= data.command;
 		}
 
 		void Serialize(PacketSerializer& serializer, UpdatePlayerInputs& data)

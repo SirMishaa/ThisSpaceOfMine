@@ -25,6 +25,7 @@ namespace tsom
 			void HandlePacket(Packets::MineBlock&& mineBlock);
 			void HandlePacket(Packets::PlaceBlock&& placeBlock);
 			void HandlePacket(Packets::SendChatMessage&& chatMessage);
+			void HandlePacket(Packets::SendConsoleCommand&& consoleCommand);
 			void HandlePacket(Packets::UpdatePlayerInputs&& playerInputs);
 
 			void OnDeserializationError(std::size_t packetIndex) override;

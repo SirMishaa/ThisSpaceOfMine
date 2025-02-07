@@ -36,6 +36,7 @@ namespace tsom
 		{ PacketIndex<Packets::ChunkDestroy>,            { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
 		{ PacketIndex<Packets::ChunkReset>,              { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
 		{ PacketIndex<Packets::ChunkUpdate>,             { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::ConsoleOutput>,           { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
 		{ PacketIndex<Packets::DebugDrawLineList>,       { .channel = 0, .flags = Nz::ENetPacketFlag::Reliable } },
 		{ PacketIndex<Packets::EntitiesCreation>,        { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
 		{ PacketIndex<Packets::EntitiesDelete>,          { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
@@ -465,6 +466,14 @@ namespace tsom
 		}
 
 		m_player->GetServerInstance().BroadcastChatMessage(std::move(playerChat.message), m_player->GetPlayerIndex());
+	}
+
+	void PlayerSessionHandler::HandlePacket(Packets::SendConsoleCommand&& consoleCommand)
+	{
+		if (!m_player->HasPermission(PlayerPermission::Admin))
+			return;
+
+		m_player->ExecuteConsoleCommand(consoleCommand.command);
 	}
 
 	void PlayerSessionHandler::HandlePacket(Packets::UpdatePlayerInputs&& playerInputs)

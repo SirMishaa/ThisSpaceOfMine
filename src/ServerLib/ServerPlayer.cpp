@@ -4,6 +4,7 @@
 
 #include <ServerLib/ServerPlayer.hpp>
 #include <CommonLib/CharacterController.hpp>
+#include <CommonLib/ConsoleExecutor.hpp>
 #include <ServerLib/ServerInstance.hpp>
 #include <ServerLib/ServerPlanetEnvironment.hpp>
 #include <ServerLib/ServerShipEnvironment.hpp>
@@ -16,9 +17,23 @@
 
 namespace tsom
 {
+
+	struct ServerPlayer::Console
+	{
+		Console(Nz::ApplicationBase& app) :
+		scriptingContext(app),
+		executor(scriptingContext)
+		{
+		}
+
+		ScriptingContext scriptingContext;
+		ConsoleExecutor executor;
+	};
+
 	ServerPlayer::ServerPlayer(ServerInstance& instance, PlayerIndex playerIndex, NetworkSession* session, const std::optional<Nz::Uuid>& uuid, std::string nickname, PlayerPermissionFlags permissions) :
 	m_uuid(uuid),
 	m_nickname(std::move(nickname)),
+	m_console(nullptr),
 	m_inputQueueAdvancement(0),
 	m_session(session),
 	m_rootEnvironment(nullptr),
@@ -65,6 +80,44 @@ namespace tsom
 	void ServerPlayer::Destroy()
 	{
 		m_serverInstance.DestroyPlayer(m_playerIndex);
+	}
+
+	void ServerPlayer::ExecuteConsoleCommand(std::string_view command)
+	{
+		if (!m_console)
+		{
+			Nz::ApplicationBase& applicationBase = m_serverInstance.GetApplication();
+
+			m_console.Emplace(applicationBase);
+			m_console->scriptingContext.RegisterLibrary<MathScriptingLibrary>();
+			m_console->scriptingContext.RegisterLibrary<ChunkScriptingLibrary>();
+			ServerEntityScriptingLibrary& entityScriptingLibrary = m_console->scriptingContext.RegisterLibrary<ServerEntityScriptingLibrary>(m_serverInstance.GetEntityRegistry());
+			m_console->scriptingContext.RegisterLibrary<SharedScriptingLibrary>(entityScriptingLibrary);
+			m_console->scriptingContext.RegisterLibrary<ServerScriptingLibrary>(m_serverInstance, entityScriptingLibrary);
+
+			sol::state& state = m_console->scriptingContext.GetState();
+			state["CurrentPlayer"] = CreateHandle();
+
+			m_console->executor.OnError.Connect([this](ConsoleExecutor* /*executor*/, std::string_view error)
+			{
+				Packets::ConsoleOutput consoleOutputPacket;
+				consoleOutputPacket.color = Nz::Color::Red();
+				consoleOutputPacket.output = std::string(error);
+
+				GetSession()->SendPacket(std::move(consoleOutputPacket));
+			});
+
+			m_console->executor.OnOutput.Connect([this](ConsoleExecutor* /*executor*/, std::string_view error)
+			{
+				Packets::ConsoleOutput consoleOutputPacket;
+				consoleOutputPacket.color = Nz::Color::White();
+				consoleOutputPacket.output = std::string(error);
+
+				GetSession()->SendPacket(std::move(consoleOutputPacket));
+			});
+		}
+
+		m_console->executor.Execute(command, "remote client");
 	}
 
 	ServerEnvironment* ServerPlayer::GetControlledEntityEnvironment()

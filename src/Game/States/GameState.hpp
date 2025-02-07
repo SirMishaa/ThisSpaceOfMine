@@ -71,6 +71,7 @@ namespace tsom
 			void UpdateMouseLock();
 
 			NazaraSlot(ClientSessionHandler, OnChatMessage, m_onChatMessage);
+			NazaraSlot(ClientSessionHandler, OnConsoleOutput, m_onConsoleOutput);
 			NazaraSlot(ClientSessionHandler, OnControlledEntityChanged, m_onControlledEntityChanged);
 			NazaraSlot(ClientSessionHandler, OnControlledEntityStateUpdate, m_onControlledEntityStateUpdate);
 			NazaraSlot(ClientSessionHandler, OnDebugDrawLineList, m_onDebugDrawLineList);
@@ -132,7 +133,8 @@ namespace tsom
 			Nz::SimpleLabelWidget* m_interactionLabel;
 			BlockSelectionBar* m_blockSelectionBar;
 			Chatbox* m_chatBox;
-			Console* m_console;
+			Console* m_localConsole;
+			Console* m_remoteConsole;
 			EscapeMenu* m_escapeMenu;
 			bool m_isMouseLocked;
 			bool m_isPilotingShip;

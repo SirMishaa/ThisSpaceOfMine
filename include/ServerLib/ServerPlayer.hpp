@@ -16,6 +16,7 @@
 #include <Nazara/Core/ObjectHandle.hpp>
 #include <Nazara/Core/Uuid.hpp>
 #include <NazaraUtils/FixedVector.hpp>
+#include <NazaraUtils/PrivateImpl.hpp>
 #include <entt/entt.hpp>
 #include <string>
 #include <vector>
@@ -44,6 +45,8 @@ namespace tsom
 			void ClearEnvironments();
 
 			void Destroy();
+
+			void ExecuteConsoleCommand(std::string_view command);
 
 			inline const std::shared_ptr<CharacterController>& GetCharacterController();
 			inline EntityReference& GetControlledEntityReference();
@@ -90,12 +93,15 @@ namespace tsom
 			ServerPlayer& operator=(ServerPlayer&&) = delete;
 
 		private:
+			struct Console;
+
 			std::optional<Nz::Uuid> m_uuid;
 			std::shared_ptr<CharacterController> m_controller;
 			std::string m_nickname;
 			std::unique_ptr<ServerShipEnvironment> m_ship;
 			std::vector<ServerEnvironment*> m_registeredEnvironments;
 			Nz::FixedVector<PlayerInputs, 10> m_inputBuffer;
+			Nz::PrivateImpl<Console> m_console;
 			Nz::UInt32 m_inputQueueAdvancement;
 			NetworkSession* m_session;
 			ServerEnvironment* m_rootEnvironment;

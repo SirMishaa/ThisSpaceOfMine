@@ -21,6 +21,9 @@ namespace tsom::Constants
 	constexpr std::size_t ChatMaxPlayerMessageLength = 256;
 	constexpr Nz::Time ChatPlayerMessageDisplayTime = Nz::Time::Seconds(60);
 
+	// Console constants
+	constexpr std::size_t ConsoleMaxCommandLength = 1024;
+
 	// Player constants
 	constexpr std::size_t PlayerMaxNicknameLength = 16;
 	constexpr float PlayerColliderRadius = 0.3f;
