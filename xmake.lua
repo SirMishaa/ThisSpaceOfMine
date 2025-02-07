@@ -72,6 +72,8 @@ set_targetdir("./bin/$(plat)_$(arch)_$(mode)")
 if is_mode("debug") then
 	add_defines("NAZARA_DEBUG")
 	set_symbols("debug", "edit")
+elseif is_mode("releasedbg") then
+	add_defines("NAZARA_ENABLE_ASSERTS")
 end
 
 if is_plat("windows") then
