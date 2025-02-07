@@ -540,7 +540,7 @@ namespace tsom
 
 		if (m_controlledCharacter)
 		{
-			const Nz::EulerAnglesf& cameraRotation = m_controlledCharacter->GetCameraRotation();
+			const Nz::EulerAnglesf& cameraRotation = m_controlledCharacter->GetCameraAngles();
 
 			auto& controlledData = stateUpdate.controlledCharacter.emplace();
 			controlledData.cameraPitch = cameraRotation.pitch;

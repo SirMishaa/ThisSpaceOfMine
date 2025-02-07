@@ -9,9 +9,18 @@ namespace tsom
 		m_isFlying = enable;
 	}
 
-	inline const Nz::EulerAnglesf& CharacterController::GetCameraRotation() const
+	inline const Nz::EulerAnglesf& CharacterController::GetCameraAngles() const
 	{
-		return m_cameraRotation;
+		return m_cameraAngles;
+	}
+
+	inline Nz::Quaternionf CharacterController::GetCameraRotation() const
+	{
+		// TODO: Use quaternion to rotate pitch
+		Nz::Quaternionf camRot = m_characterRotation * Nz::EulerAnglesf(m_cameraAngles.pitch, 0.f, 0.f);
+		camRot.Normalize();
+
+		return camRot;
 	}
 
 	inline const Nz::Vector3f& CharacterController::GetCharacterPosition() const

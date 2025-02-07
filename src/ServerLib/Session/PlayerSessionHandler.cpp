@@ -330,8 +330,7 @@ namespace tsom
 			}
 
 			const auto& characterController = m_player->GetCharacterController();
-			Nz::Quaternionf cameraRot = characterController->GetCharacterRotation() * Nz::EulerAnglesf(characterController->GetCameraRotation().pitch, 0.f, 0.f);
-			cameraRot.Normalize();
+			Nz::Quaternionf cameraRot = characterController->GetCameraRotation();
 
 			Nz::Vector3f hitPos, hitNormal;
 			entt::handle hitEntity;
@@ -355,7 +354,7 @@ namespace tsom
 
 			auto& playerNode = playerEntity.get<Nz::NodeComponent>();
 
-			Nz::Vector3f cameraPos = characterController->GetCharacterPosition() + characterController->GetCharacterRotation() * (Nz::Vector3f::Up() * Constants::PlayerCameraHeight);
+			Nz::Vector3f cameraPos = characterController->GetEyePosition();
 
 			auto& physSystem = currentEnvironment->GetWorld().GetSystem<Nz::Physics3DSystem>();
 			if (physSystem.RaycastQueryFirst(cameraPos, cameraPos + cameraRot * Nz::Vector3f::Forward() * 10.f, callback, nullptr, &objectFilter))

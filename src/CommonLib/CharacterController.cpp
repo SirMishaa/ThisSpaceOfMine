@@ -3,27 +3,26 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <CommonLib/CharacterController.hpp>
-#include <CommonLib/Direction.hpp>
 #include <CommonLib/GameConstants.hpp>
 #include <CommonLib/GravityController.hpp>
 #include <CommonLib/ShipController.hpp>
-#include <Nazara/Physics3D/PhysWorld3D.hpp>
-#include <Nazara/Physics3D/RigidBody3D.hpp>
-#include <fmt/ostream.h>
-#include <fmt/std.h>
-#include <array>
 
 #define DEBUG_ROTATION 0
 
 namespace tsom
 {
 	CharacterController::CharacterController() :
-	m_cameraRotation(Nz::EulerAnglesf::Zero()),
+	m_cameraAngles(Nz::EulerAnglesf::Zero()),
 	m_referenceRotation(Nz::Quaternionf::Identity()),
 	m_gravityController(nullptr),
 	m_allowInputRotation(false),
 	m_isFlying(false)
 	{
+	}
+
+	Nz::Vector3f CharacterController::GetEyePosition() const
+	{
+		return m_characterPosition + m_characterRotation * (Nz::Vector3f::Up() * Constants::PlayerCameraHeight);
 	}
 
 	void CharacterController::PostSimulate(Nz::PhysCharacter3D& character, float elapsedTime)
@@ -56,21 +55,21 @@ namespace tsom
 		if (m_allowInputRotation && (!characterInputs.pitch.ApproxEqual(Nz::RadianAnglef::Zero()) || !characterInputs.yaw.ApproxEqual(Nz::RadianAnglef::Zero()))) //< Don't apply the same rotation twice
 		{
 #if DEBUG_ROTATION
-			fmt::print("Applying pitch:{0},yaw:{1} from input {2} to {3}", characterInputs.pitch.ToDegrees(), characterInputs.yaw.ToDegrees(), characterInputs.index, fmt::streamed(m_cameraRotation));
+			fmt::print("Applying pitch:{0},yaw:{1} from input {2} to {3}", characterInputs.pitch.ToDegrees(), characterInputs.yaw.ToDegrees(), characterInputs.index, fmt::streamed(m_cameraAngles));
 #endif
 
-			m_cameraRotation.pitch = Nz::Clamp(m_cameraRotation.pitch + characterInputs.pitch, -89.f, 89.f);
-			m_cameraRotation.yaw += characterInputs.yaw;
-			m_cameraRotation.Normalize();
+			m_cameraAngles.pitch = Nz::Clamp(m_cameraAngles.pitch + characterInputs.pitch, -89.f, 89.f);
+			m_cameraAngles.yaw += characterInputs.yaw;
+			m_cameraAngles.Normalize();
 
 #if DEBUG_ROTATION
-			fmt::print(" => {0}\n", fmt::streamed(m_cameraRotation));
+			fmt::print(" => {0}\n", fmt::streamed(m_cameraAngles));
 #endif
 
 			m_allowInputRotation = false;
 		}
 
-		newRotation = m_referenceRotation * Nz::Quaternionf(m_cameraRotation.yaw, Nz::Vector3f::Up());
+		newRotation = m_referenceRotation * Nz::Quaternionf(m_cameraAngles.yaw, Nz::Vector3f::Up());
 		newRotation.Normalize();
 
 		if (!Nz::Quaternionf::ApproxEqual(newRotation, m_characterRotation, 0.00001f))
@@ -136,7 +135,7 @@ namespace tsom
 				if (characterInputs.crouch)
 					desiredVelocity -= movementRotation * Nz::Vector3f::Up();
 
-				movementRotation *= Nz::Quaternionf(m_cameraRotation.pitch, Nz::Vector3f::UnitX());
+				movementRotation *= Nz::Quaternionf(m_cameraAngles.pitch, Nz::Vector3f::UnitX());
 				movementRotation.Normalize();
 			}
 
@@ -199,8 +198,8 @@ namespace tsom
 		if (shipController)
 		{
 			m_referenceRotation = shipController->GetReferenceRotation();
-			m_cameraRotation.pitch = 0.f;
-			m_cameraRotation.yaw = 0.f;
+			m_cameraAngles.pitch = 0.f;
+			m_cameraAngles.yaw = 0.f;
 		}
 
 		m_shipController = std::move(shipController);

@@ -33,9 +33,11 @@ namespace tsom
 
 			inline void EnableFlying(bool enable = true);
 
-			inline const Nz::EulerAnglesf& GetCameraRotation() const;
+			inline const Nz::EulerAnglesf& GetCameraAngles() const;
+			inline Nz::Quaternionf GetCameraRotation() const;
 			inline const Nz::Vector3f& GetCharacterPosition() const;
 			inline const Nz::Quaternionf& GetCharacterRotation() const;
+			Nz::Vector3f GetEyePosition() const;
 			inline const PlayerInputs& GetInputs() const;
 			inline const Nz::Quaternionf& GetReferenceRotation() const;
 			inline const std::shared_ptr<ShipController>& GetShipController() const;
@@ -59,7 +61,7 @@ namespace tsom
 
 		private:
 			std::shared_ptr<ShipController> m_shipController;
-			Nz::EulerAnglesf m_cameraRotation;
+			Nz::EulerAnglesf m_cameraAngles;
 			Nz::Quaternionf m_referenceRotation;
 			Nz::Quaternionf m_characterRotation;
 			Nz::Vector3f m_characterPosition;
