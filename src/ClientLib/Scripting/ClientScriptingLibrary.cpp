@@ -84,9 +84,9 @@ namespace tsom
 		state.new_usertype<Nz::MaterialInstancePresetFlags>("MaterialInstancePresetFlags",
 			sol::no_constructor,
 
-			"Default",     sol::var(Nz::MaterialInstancePresetFlags{}),
-			"NoDepth",     sol::var(Nz::MaterialInstancePresetFlags(Nz::MaterialInstancePreset::NoDepth)),
-			"Transparent", sol::var(Nz::MaterialInstancePresetFlags(Nz::MaterialInstancePreset::Transparent)),
+			"Default",      sol::var(Nz::MaterialInstancePresetFlags{}),
+			"NoDepth",      sol::var(Nz::MaterialInstancePresetFlags(Nz::MaterialInstancePreset::NoDepth)),
+			"AlphaBlended", sol::var(Nz::MaterialInstancePresetFlags(Nz::MaterialInstancePreset::AlphaBlended)),
 
 			sol::meta_function::bitwise_or, &Nz::MaterialInstancePresetFlags::operator|
 		);

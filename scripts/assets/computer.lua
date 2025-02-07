@@ -10,7 +10,7 @@ local params = {
 
 local computer = Model.Load("assets/ship/computer/scifi_computer_1_3.obj", params)
 
-local screenMat = MaterialInstance.Instantiate(MaterialType.Basic, MaterialInstancePresetFlags.Transparent)
+local screenMat = MaterialInstance.Instantiate(MaterialType.Basic, MaterialInstancePresetFlags.AlphaBlended)
 screenMat:SetTextureProperty("BaseColorMap", Texture.Load("assets/ship/computer/digital_displays.png"))
 
 screenMat:UpdatePassesStates(function (renderStates)
