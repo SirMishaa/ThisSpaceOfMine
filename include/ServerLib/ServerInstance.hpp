@@ -14,6 +14,7 @@
 #include <CommonLib/Scripting/ScriptingContext.hpp>
 #include <ServerLib/ServerPlayer.hpp>
 #include <Nazara/Core/Clock.hpp>
+#include <Nazara/Core/TimerManager.hpp>
 #include <NazaraUtils/Bitset.hpp>
 #include <NazaraUtils/MemoryPool.hpp>
 #include <NazaraUtils/PathUtils.hpp>
@@ -71,8 +72,11 @@ namespace tsom
 			inline ServerPlayer* GetPlayer(PlayerIndex playerIndex);
 			inline const ServerPlayer* GetPlayer(PlayerIndex playerIndex) const;
 			inline Nz::Time GetTickDuration() const;
+			inline Nz::TimerManager& GetTickedTimerManager();
 
 			std::unique_ptr<Nz::EnttWorld> RegisterEnvironment(ServerEnvironment* environment);
+
+			inline void ScheduleForNextTick(std::function<void()>&& callback);
 
 			inline void SetDefaultSpawnpoint(ServerEnvironment* environment, Nz::Vector3f position, Nz::Quaternionf rotation);
 
@@ -110,17 +114,19 @@ namespace tsom
 				std::string newNickname;
 			};
 
-			std::array<std::uint8_t, 32> m_connectionTokenEncryptionKey;
 			std::vector<std::unique_ptr<NetworkSessionManager>> m_sessionManagers;
 			std::vector<PlayerRename> m_pendingPlayerRename;
 			std::vector<ServerEnvironment*> m_environments;
 			std::vector<std::unique_ptr<Nz::EnttWorld>> m_envWorldPool;
+			std::vector<std::function<void()>> m_scheduledTickFunctions;
+			std::vector<std::function<void()>> m_nextScheduledTickFunctions;
 			Nz::Bitset<> m_disconnectedPlayers;
 			Nz::Bitset<> m_newPlayers;
 			Nz::MemoryPool<ServerPlayer> m_players;
 			Nz::MillisecondClock m_saveClock;
 			Nz::Time m_tickAccumulator;
 			Nz::Time m_tickDuration;
+			Nz::TimerManager m_tickedTimerManager;
 			Nz::UInt16 m_tickIndex;
 			Nz::ApplicationBase& m_application;
 			BlockLibrary m_blockLibrary;

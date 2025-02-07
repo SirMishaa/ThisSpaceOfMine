@@ -3,6 +3,7 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <CommonLib/Scripting/MathScriptingLibrary.hpp>
+#include <CommonLib/Direction.hpp>
 #include <CommonLib/Scripting/ScriptingUtils.hpp>
 #include <Nazara/Math/Box.hpp>
 #include <Nazara/Math/EulerAngles.hpp>
@@ -17,6 +18,8 @@ namespace tsom
 {
 	void MathScriptingLibrary::Register(sol::state& state)
 	{
+		state["DirectionFromNormal"] = &DirectionFromNormal;
+
 		RegisterBox<float>(state, "Boxf");
 		RegisterBox<int>(state, "Boxi");
 		RegisterBox<unsigned int>(state, "Boxui");
@@ -35,7 +38,7 @@ namespace tsom
 	void MathScriptingLibrary::RegisterBox(sol::state& state, const char* name)
 	{
 		state.new_usertype<Nz::Box<T>>(name,
-			sol::call_constructor, sol::constructors<Nz::Box<T>(), Nz::Box<T>(T, T, T), Nz::Box<T>(const Nz::Vector3<T>& pos, const Nz::Vector3<T>& lengths)>(),
+			sol::call_constructor, sol::constructors<Nz::Box<T>(), Nz::Box<T>(T, T, T), Nz::Box<T>(const Nz::Vector3<T>& pos, const Nz::Vector3<T>& lengths), Nz::Box<T>(const Nz::Box<T>&)>(),
 			"GetLengths", &Nz::Box<T>::GetLengths,
 			"x", &Nz::Box<T>::x,
 			"y", &Nz::Box<T>::y,
@@ -51,7 +54,7 @@ namespace tsom
 	void MathScriptingLibrary::RegisterEulerAngles(sol::state& state, const char* name)
 	{
 		state.new_usertype<Nz::EulerAngles<T>>(name,
-			sol::call_constructor, sol::constructors<Nz::EulerAngles<T>(), Nz::EulerAngles<T>(T, T, T)>(),
+			sol::call_constructor, sol::constructors<Nz::EulerAngles<T>(), Nz::EulerAngles<T>(T, T, T), Nz::EulerAngles<T>(const Nz::EulerAngles<T>&)>(),
 			"pitch", &Nz::EulerAngles<T>::pitch,
 			"yaw", &Nz::EulerAngles<T>::yaw,
 			"roll", &Nz::EulerAngles<T>::roll,
@@ -102,12 +105,13 @@ namespace tsom
 	void MathScriptingLibrary::RegisterQuaternion(sol::state& state, const char* name)
 	{
 		state.new_usertype<Nz::Quaternion<T>>(name,
-			sol::call_constructor, sol::constructors<Nz::Quaternion<T>(), Nz::Quaternion<T>(T, T, T, T)>(),
+			sol::call_constructor, sol::constructors<Nz::Quaternion<T>(), Nz::Quaternion<T>(T, T, T, T), Nz::Quaternion<T>(const Nz::Quaternion<T>&)>(),
 			"GetConjugate", &Nz::Quaternion<T>::GetConjugate,
 			"x", &Nz::Quaternion<T>::x,
 			"y", &Nz::Quaternion<T>::y,
 			"z", &Nz::Quaternion<T>::z,
 			"w", &Nz::Quaternion<T>::w,
+			sol::meta_function::multiplication, sol::overload(Nz::Overload<const Nz::Quaternion<T>&>(&Nz::Quaternion<T>::operator*), Nz::Overload<const Nz::Vector3<T>&>(&Nz::Quaternion<T>::operator*)),
 			sol::meta_function::to_string, &Nz::Quaternion<T>::ToString
 		);
 	}
@@ -116,10 +120,10 @@ namespace tsom
 	void MathScriptingLibrary::RegisterVector2(sol::state& state, const char* name)
 	{
 		state.new_usertype<Nz::Vector2<T>>(name,
-			sol::call_constructor, sol::constructors<Nz::Vector2<T>(), Nz::Vector2<T>(T), Nz::Vector2<T>(T, T)>(),
+			sol::call_constructor, sol::constructors<Nz::Vector2<T>(), Nz::Vector2<T>(T), Nz::Vector2<T>(T, T), Nz::Vector2<T>(const Nz::Vector2<T>&)>(),
 			"GetLength", [](const Nz::Vector2<T>& vec)
 			{
-				return vec.template GetLength<double>();
+				return vec.template GetLength<lua_Number>();
 			},
 			"GetNormal", [](const Nz::Vector2<T>& vec)
 			{
@@ -152,10 +156,10 @@ namespace tsom
 	void MathScriptingLibrary::RegisterVector3(sol::state& state, const char* name)
 	{
 		state.new_usertype<Nz::Vector3<T>>(name,
-			sol::call_constructor, sol::constructors<Nz::Vector3<T>(), Nz::Vector3<T>(T), Nz::Vector3<T>(T, T, T)>(),
+			sol::call_constructor, sol::constructors<Nz::Vector3<T>(), Nz::Vector3<T>(T), Nz::Vector3<T>(T, T, T), Nz::Vector3<T>(const Nz::Vector3<T>&)>(),
 			"GetLength", [](const Nz::Vector3<T>& vec)
 			{
-				return vec.template GetLength<double>();
+				return vec.template GetLength<lua_Number>();
 			},
 			"GetNormal", [](const Nz::Vector3<T>& vec)
 			{

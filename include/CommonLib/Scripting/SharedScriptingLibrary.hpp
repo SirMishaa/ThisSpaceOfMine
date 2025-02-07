@@ -12,14 +12,20 @@
 #include <entt/entt.hpp>
 #include <sol/state.hpp>
 
+namespace Nz
+{
+	class Physics3DSystem;
+}
+
 namespace tsom
 {
 	class EntityRegistry;
+	class SharedEntityScriptingLibrary;
 
 	class TSOM_COMMONLIB_API SharedScriptingLibrary : public ScriptingLibrary
 	{
 		public:
-			SharedScriptingLibrary() = default;
+			inline SharedScriptingLibrary(SharedEntityScriptingLibrary& entityScriptingLibrary);
 			SharedScriptingLibrary(const SharedScriptingLibrary&) = delete;
 			SharedScriptingLibrary(SharedScriptingLibrary&&) = delete;
 			~SharedScriptingLibrary() = default;
@@ -31,6 +37,9 @@ namespace tsom
 
 		private:
 			void RegisterMovementControllers(sol::state& state);
+			void RegisterPhysWorld(sol::state& state);
+
+			SharedEntityScriptingLibrary& m_entityScriptingLibrary;
 	};
 }
 

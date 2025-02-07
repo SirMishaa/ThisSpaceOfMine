@@ -6,9 +6,16 @@
 #include <CommonLib/CharacterController.hpp>
 #include <CommonLib/Scripting/ScriptingUtils.hpp>
 #include <ServerLib/ServerPlanetEnvironment.hpp>
+#include <ServerLib/ServerInstance.hpp>
 #include <ServerLib/ServerPlayer.hpp>
 #include <ServerLib/ServerShipEnvironment.hpp>
 #include <ServerLib/Scripting/ServerEntityScriptingLibrary.hpp>
+#include <Nazara/Core/ApplicationBase.hpp>
+#include <Nazara/Core/FilesystemAppComponent.hpp>
+#include <Nazara/Physics3D/Systems/Physics3DSystem.hpp>
+#include <NazaraUtils/FunctionTraits.hpp>
+#include <fmt/color.h>
+#include <fmt/format.h>
 #include <sol/state.hpp>
 
 SOL_BASE_CLASSES(tsom::ServerPlanetEnvironment, tsom::ServerEnvironment);
@@ -24,6 +31,7 @@ namespace tsom
 
 		RegisterEnvironment(state);
 		RegisterPlayer(state);
+		RegisterServer(state);
 	}
 
 	void ServerScriptingLibrary::RegisterEnvironment(sol::state& state)
@@ -35,6 +43,10 @@ namespace tsom
 
 		state.new_usertype<ServerEnvironment>("Environment",
 			sol::no_constructor,
+			"GetPhysWorld", LuaFunction([](ServerEnvironment* environment)
+			{
+				return &environment->GetWorld().GetSystem<Nz::Physics3DSystem>();
+			}),
 			"GetType", LuaFunction(&ServerEnvironment::GetType)
 		);
 
@@ -64,9 +76,90 @@ namespace tsom
 		state.new_usertype<ServerPlayerHandle>("Player",
 			sol::no_constructor,
 			"GetController", LuaFunction(&ServerPlayer::GetCharacterController),
+			"GetEnvironment", LuaFunction([](ServerPlayer& player)
+			{
+				return player.GetControlledEntityEnvironment();
+			}),
 			"GetName", LuaFunction(&ServerPlayer::GetNickname),
 			"GetPlayerIndex", LuaFunction(&ServerPlayer::GetPlayerIndex),
-			"GetUuid", LuaFunction(&ServerPlayer::GetUuid)
+			"GetUuid", LuaFunction([](ServerPlayer& player, sol::this_state L) -> sol::object
+			{
+				auto uuidOpt = player.GetUuid();
+				if (!uuidOpt)
+					return sol::nil;
+
+				return sol::make_object(L, uuidOpt->ToString());
+			})
+		);
+	}
+
+	void ServerScriptingLibrary::RegisterServer(sol::state& state)
+	{
+		state.create_named_table("server",
+			"Execute", LuaFunction([this](sol::this_state L, std::string_view command)
+			{
+				auto& fs = m_serverInstance.GetApplication().GetComponent<Nz::FilesystemAppComponent>();
+
+				Nz::Result<sol::object, std::string> commandResult;
+				std::string filepath = fmt::format("scripts/commands/{0}.lua", command);
+				bool found = fs.GetFileContent(filepath, [&](const void* data, Nz::UInt64 size)
+				{
+					std::string_view scriptContent(static_cast<const char*>(data), Nz::SafeCast<std::size_t>(size));
+					sol::state_view state(L);
+					auto result = state.do_string(scriptContent, filepath, sol::load_mode::text);
+					if (result.valid())
+						commandResult = Nz::Ok(result.get<sol::object>());
+					else
+					{
+						sol::error err = result;
+						commandResult = Nz::Err(err.what());
+					}
+				});
+
+				if (!found)
+					commandResult = Nz::Err(fmt::format("file {} not found", filepath));
+
+				if (!commandResult)
+					throw std::runtime_error(fmt::format("Failed to execute command {0}: {1}", command, commandResult.GetError()));
+			}),
+			"FindPlayerByName", LuaFunction([this](std::string_view name)
+			{
+				return ServerPlayerHandle(m_serverInstance.FindPlayerByNickname(name));
+			}),
+			"FindPlayerByUuid", LuaFunction([this](std::string_view uuidStr)
+			{
+				Nz::Uuid uuid = Nz::Uuid::FromString(uuidStr);
+				if (uuid.IsNull())
+					throw std::runtime_error("invalid uuid");
+
+				return ServerPlayerHandle(m_serverInstance.FindPlayerByUuid(uuid));
+			}),
+			"GetAllPlayers", LuaFunction([this]
+			{
+				std::vector<ServerPlayerHandle> players;
+				m_serverInstance.ForEachPlayer([&](ServerPlayer& player)
+				{
+					players.push_back(player.CreateHandle());
+				});
+
+				return players;
+			}),
+			"ScheduleForNextTick", LuaFunction([this](sol::protected_function callback)
+			{
+				// It's possible for a ScriptingContext to schedule a callback just before getting destroyed
+				m_serverInstance.ScheduleForNextTick([cb = std::move(callback), alive = m_aliveSignal]()
+				{
+					if (!*alive)
+						return;
+					
+					auto result = cb();
+					if (!result.valid())
+					{
+						sol::error err = result;
+						fmt::print(fg(fmt::color::red), "Function scheduled for tick failed: {0}\n", err.what());
+					}
+				});
+			})
 		);
 	}
 }

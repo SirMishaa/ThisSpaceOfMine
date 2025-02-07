@@ -32,9 +32,9 @@ namespace tsom
 		m_entityRegistry.RegisterClassLibrary<ServerClassLibrary>(m_application);
 
 		m_scriptingContext.RegisterLibrary<MathScriptingLibrary>();
-		m_scriptingContext.RegisterLibrary<SharedScriptingLibrary>();
 		ServerEntityScriptingLibrary& entityScriptingLibrary = m_scriptingContext.RegisterLibrary<ServerEntityScriptingLibrary>(m_entityRegistry);
-		m_scriptingContext.RegisterLibrary<ServerScriptingLibrary>(m_application, entityScriptingLibrary);
+		m_scriptingContext.RegisterLibrary<SharedScriptingLibrary>(entityScriptingLibrary);
+		m_scriptingContext.RegisterLibrary<ServerScriptingLibrary>(*this, entityScriptingLibrary);
 
 		LoadScripts();
 	}
@@ -308,6 +308,13 @@ namespace tsom
 	void ServerInstance::OnTick(Nz::Time elapsedTime)
 	{
 		m_tickIndex++;
+		m_tickedTimerManager.Update(elapsedTime);
+
+		// Use two lists to avoid reallocation issues if a callback were to call ScheduleForNextTick itself
+		std::swap(m_scheduledTickFunctions, m_nextScheduledTickFunctions);
+		for (auto& callback : m_nextScheduledTickFunctions)
+			callback();
+		m_nextScheduledTickFunctions.clear();
 
 		ForEachPlayer([&](ServerPlayer& serverPlayer)
 		{

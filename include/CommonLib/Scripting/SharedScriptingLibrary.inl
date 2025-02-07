@@ -4,4 +4,8 @@
 
 namespace tsom
 {
+	inline SharedScriptingLibrary::SharedScriptingLibrary(SharedEntityScriptingLibrary& entityScriptingLibrary) :
+	m_entityScriptingLibrary(entityScriptingLibrary)
+	{
+	}
 }

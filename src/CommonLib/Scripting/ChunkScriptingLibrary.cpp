@@ -9,9 +9,11 @@
 #include <CommonLib/DeformedChunk.hpp>
 #include <CommonLib/FlatChunk.hpp>
 #include <CommonLib/Scripting/ScriptingUtils.hpp>
+#include <Nazara/Physics3D/Collider3D.hpp>
 #include <NazaraUtils/FunctionTraits.hpp>
 #include <fmt/core.h>
 #include <sol/state.hpp>
+#include <numeric>
 
 SOL_BASE_CLASSES(tsom::DeformedChunk, tsom::Chunk);
 SOL_BASE_CLASSES(tsom::FlatChunk, tsom::Chunk);
@@ -45,6 +47,23 @@ namespace tsom
 	{
 		state.new_usertype<Chunk>("Chunk",
 			sol::no_constructor,
+			"ComputeHitCoordinates", LuaFunction([](const Chunk& chunk, const Nz::Vector3f& hitPos, const Nz::Vector3f& hitNormal, const Nz::Collider3D& collider, std::uint32_t hitSubshapeId, sol::this_state L) -> sol::optional<sol::table>
+			{
+				auto hitBlock = chunk.ComputeHitCoordinates(hitPos, hitNormal, collider, hitSubshapeId);
+				if (!hitBlock)
+					return {};
+
+				sol::state_view state(L);
+				return state.create_table_with(
+					"direction", hitBlock->direction,
+					"blockIndices", hitBlock->blockIndices
+				);
+			}),
+			"GetBlockCenterPosition", LuaFunction([](const Chunk& chunk, const Nz::Vector3ui& blockIndices)
+			{
+				Nz::EnumArray<Nz::BoxCorner, Nz::Vector3f> corners = chunk.ComputeVoxelCorners(blockIndices);
+				return std::accumulate(corners.begin(), corners.end(), Nz::Vector3f::Zero()) / corners.size();
+			}),
 			"GetBlockLibrary", LuaFunction([](const Chunk& chunk)
 			{
 				return &chunk.GetBlockLibrary();
@@ -69,7 +88,7 @@ namespace tsom
 				unsigned int blockCount = chunk.GetBlockCount();
 				sol::table contentTable = state.create_table(blockCount);
 				for (unsigned int i = 0; i < blockCount; ++i)
-					contentTable[i + 1] = blockLibrary.GetBlockData(chunk.GetBlockContent(i)).name;
+					contentTable[i + 1] = chunk.GetBlockContent(i);
 
 				return contentTable;
 			}),
@@ -103,6 +122,10 @@ namespace tsom
 					for (std::size_t i = maxEntries; i < blockCount; ++i)
 						*blockIndexPtr++ = EmptyBlockIndex;
 				});
+			}),
+			"UpdateBlock", LuaFunction([](Chunk& chunk, const Nz::Vector3ui& chunkIndices, BlockIndex blockIndex)
+			{
+				chunk.UpdateBlock(chunkIndices, blockIndex, true);
 			})
 		);
 	}
@@ -112,7 +135,18 @@ namespace tsom
 		state.new_usertype<ChunkContainer>("ChunkContainer",
 			sol::no_constructor,
 			"GetBlockIndices", LuaFunction(&ChunkContainer::GetBlockIndices),
+			"GetCenterPosition", LuaFunction(&ChunkContainer::GetCenter),
+			"GetChunk", LuaFunction([](ChunkContainer& container, const ChunkIndices& chunkIndices)
+			{
+				return container.GetChunk(chunkIndices);
+			}),
 			"GetChunkCount", LuaFunction(&ChunkContainer::GetChunkCount),
+			"GetChunkIndicesByBlockIndices", LuaFunction([](ChunkContainer& container, const BlockIndices& blockIndices)
+			{
+				Nz::Vector3ui localIndices;
+				ChunkIndices chunkIndices = container.GetChunkIndicesByBlockIndices(blockIndices, &localIndices);
+				return std::make_pair(chunkIndices, localIndices);
+			}),
 			"GetChunkOffset", LuaFunction(&ChunkContainer::GetChunkOffset),
 			"GetTileSize", LuaFunction(&ChunkContainer::GetTileSize)
 		);

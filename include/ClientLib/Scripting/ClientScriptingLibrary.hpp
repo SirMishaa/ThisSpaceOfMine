@@ -19,7 +19,7 @@ namespace tsom
 {
 	class ClientSessionHandler;
 
-	class TSOM_CLIENTLIB_API ClientScriptingLibrary : public ScriptingLibrary
+	class TSOM_CLIENTLIB_API ClientScriptingLibrary final : public ScriptingLibrary
 	{
 		public:
 			inline ClientScriptingLibrary(Nz::ApplicationBase& app, ClientSessionHandler& sessionHandler);

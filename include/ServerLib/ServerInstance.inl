@@ -111,6 +111,16 @@ namespace tsom
 		return m_tickDuration;
 	}
 
+	inline Nz::TimerManager& ServerInstance::GetTickedTimerManager()
+	{
+		return m_tickedTimerManager;
+	}
+
+	inline void ServerInstance::ScheduleForNextTick(std::function<void()>&& callback)
+	{
+		m_scheduledTickFunctions.push_back(std::move(callback));
+	}
+
 	inline void ServerInstance::SetDefaultSpawnpoint(ServerEnvironment* environment, Nz::Vector3f position, Nz::Quaternionf rotation)
 	{
 		m_defaultSpawnpoint = Spawnpoint{ environment, rotation, position };

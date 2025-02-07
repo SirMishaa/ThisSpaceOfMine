@@ -9,23 +9,20 @@
 
 #include <ServerLib/Export.hpp>
 #include <CommonLib/Scripting/ScriptingLibrary.hpp>
-
-namespace Nz
-{
-	class ApplicationBase;
-}
+#include <memory>
 
 namespace tsom
 {
 	class ServerEntityScriptingLibrary;
+	class ServerInstance;
 
 	class TSOM_SERVERLIB_API ServerScriptingLibrary : public ScriptingLibrary
 	{
 		public:
-			inline ServerScriptingLibrary(Nz::ApplicationBase& app, ServerEntityScriptingLibrary& entityScriptingLibrary);
+			inline ServerScriptingLibrary(ServerInstance& serverInstance, ServerEntityScriptingLibrary& entityScriptingLibrary);
 			ServerScriptingLibrary(const ServerScriptingLibrary&) = delete;
 			ServerScriptingLibrary(ServerScriptingLibrary&&) = delete;
-			~ServerScriptingLibrary() = default;
+			inline ~ServerScriptingLibrary();
 
 			void Register(sol::state& state) override;
 
@@ -35,9 +32,11 @@ namespace tsom
 		private:
 			void RegisterEnvironment(sol::state& state);
 			void RegisterPlayer(sol::state& state);
+			void RegisterServer(sol::state& state);
 
-			Nz::ApplicationBase& m_app;
+			std::shared_ptr<bool> m_aliveSignal;
 			ServerEntityScriptingLibrary& m_entityScriptingLibrary;
+			ServerInstance& m_serverInstance;
 	};
 }
 

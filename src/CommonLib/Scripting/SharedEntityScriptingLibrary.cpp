@@ -22,8 +22,10 @@
 #include <frozen/unordered_map.h>
 
 SOL_BASE_CLASSES(Nz::BoxCollider3D, Nz::Collider3D);
+SOL_BASE_CLASSES(Nz::NodeComponent, Nz::Node);
 SOL_BASE_CLASSES(Nz::RigidBody3DComponent, Nz::RigidBody3D);
 SOL_DERIVED_CLASSES(Nz::Collider3D, Nz::BoxCollider3D);
+SOL_DERIVED_CLASSES(Nz::Node, Nz::NodeComponent);
 SOL_DERIVED_CLASSES(Nz::RigidBody3D, Nz::RigidBody3DComponent);
 
 namespace tsom
@@ -246,7 +248,11 @@ namespace tsom
 			"Scale", LuaFunction([](Nz::NodeComponent& nodeComponent, const Nz::Vector3f& scale)
 			{
 				return nodeComponent.Scale(scale);
-			})
+			}),
+			"ToLocalDirection", LuaFunction(&Nz::NodeComponent::ToLocalDirection),
+			"ToLocalPosition", LuaFunction(&Nz::NodeComponent::ToLocalPosition),
+			"ToLocalRotation", LuaFunction(&Nz::NodeComponent::ToLocalRotation),
+			"ToLocalScale", LuaFunction(&Nz::NodeComponent::ToLocalScale)
 		);
 
 		state.new_usertype<Nz::RigidBody3DComponent>("Rigidbody3DComponent",

@@ -37,6 +37,9 @@ namespace tsom
 			void LoadDirectory(std::string_view directoryPath);
 			Nz::Result<sol::object, std::string> LoadFile(const std::string& filePath);
 
+			inline sol::state& GetState();
+			inline const sol::state& GetState() const;
+
 			PrintCallback OverridePrintCallback(PrintCallback&& printOutput);
 
 			template<typename T, typename... Args> T& RegisterLibrary(Args&&... args);
