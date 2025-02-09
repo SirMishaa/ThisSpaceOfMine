@@ -19,6 +19,7 @@ jobs:
         platform:
         - { runner: windows-latest, os: windows, arch: x64,    archive_ext: .zip }
         - { runner: ubuntu-latest,  os: linux,   arch: x86_64, archive_ext: .tar.gz }
+        - { runner: ubuntu-latest,  os: linux,   arch: x86_64, archive_ext: -server.tar.gz, config: --serveronly=y, cache_key: -server }
         - { runner: macos-14,       os: macos,   arch: x86_64, archive_ext: .tar.gz }
         - { runner: macos-14,       os: macos,   arch: arm64,  archive_ext: .tar.gz }
         mode: [debug, releasedbg]
@@ -68,10 +69,10 @@ jobs:
       uses: actions/cache/restore@v4
       with:
         path: ${{ env.XMAKE_GLOBALDIR }}/.xmake/packages
-        key: ${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ matrix.mode }}-${{ steps.dep_hash.outputs.hash }}-W${{ steps.cache_key.outputs.key }}
+        key: ${{ matrix.platform.os }}-${{ matrix.platform.arch }}-${{ matrix.mode }}-${{ steps.dep_hash.outputs.hash }}-W${{ steps.cache_key.outputs.key }}${{ matrix.platform.cache_key }}
 
     - name: Configure xmake and install dependencies
-      run: xmake config --arch=${{ matrix.platform.arch }} --mode=${{ matrix.mode }} --yes --policies=package.precompiled:n
+      run: xmake config --arch=${{ matrix.platform.arch }} --mode=${{ matrix.mode }} ${{ matrix.platform.config }} --yes --policies=package.precompiled:n
 
     # Save dependencies
     - name: Save cached xmake dependencies
