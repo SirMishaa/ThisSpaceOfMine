@@ -314,6 +314,7 @@ namespace tsom
 				return;
 
 			std::shared_ptr<Nz::MaterialInstance> colliderMat = Nz::MaterialInstance::Instantiate(Nz::MaterialType::Basic);
+			colliderMat->ApplyPreset(Nz::MaterialInstancePreset::ReverseZ);
 			colliderMat->SetValueProperty("BaseColor", Nz::Color::Green());
 			colliderMat->UpdatePassesStates([](Nz::RenderStates& states)
 			{
