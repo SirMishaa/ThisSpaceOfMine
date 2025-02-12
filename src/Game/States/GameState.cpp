@@ -704,7 +704,7 @@ namespace tsom
 	{
 		WidgetState::Leave(fsm);
 
-		Nz::Mouse::SetRelativeMouseMode(false);
+		GetStateData().window->SetRelativeMouseMode(false);
 
 		m_chatBox->Close();
 	}
@@ -1190,6 +1190,6 @@ namespace tsom
 		m_localConsole->EnableMouseInput(!m_isMouseLocked);
 		m_remoteConsole->EnableMouseInput(!m_isMouseLocked);
 
-		Nz::Mouse::SetRelativeMouseMode(m_isMouseLocked);
+		GetStateData().window->SetRelativeMouseMode(m_isMouseLocked);
 	}
 }

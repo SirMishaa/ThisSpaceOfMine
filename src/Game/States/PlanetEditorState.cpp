@@ -26,6 +26,7 @@
 #include <Nazara/Graphics/Components/LightComponent.hpp>
 #include <Nazara/Graphics/PropertyHandler/TexturePropertyHandler.hpp>
 #include <Nazara/Graphics/PropertyHandler/UniformValuePropertyHandler.hpp>
+#include <Nazara/Platform/Window.hpp>
 #include <Nazara/TextRenderer/SimpleTextDrawer.hpp>
 #include <Nazara/Widgets/BoxLayout.hpp>
 #include <Nazara/Widgets/ButtonWidget.hpp>
@@ -311,7 +312,7 @@ namespace tsom
 	{
 		WidgetState::Leave(fsm);
 
-		Nz::Mouse::SetRelativeMouseMode(false);
+		GetStateData().window->SetRelativeMouseMode(false);
 	}
 
 	bool PlanetEditorState::Update(Nz::StateMachine& fsm, Nz::Time elapsedTime)
@@ -396,7 +397,7 @@ namespace tsom
 	void PlanetEditorState::UpdateMouseLock()
 	{
 		m_isMouseLocked = !m_shouldFreeMouse && !m_escapeMenu->IsVisible();
-		Nz::Mouse::SetRelativeMouseMode(m_isMouseLocked);
+		GetStateData().window->SetRelativeMouseMode(m_isMouseLocked);
 		if (m_isMouseLocked)
 		{
 			// FIXME: Expose a way for the canvas to reset keyboard focus
