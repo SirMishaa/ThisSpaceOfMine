@@ -10,7 +10,7 @@ namespace tsom
 {
 	std::pair<std::shared_ptr<Nz::Collider3D>, Nz::Vector3f> DeformedChunk::BuildBlockCollider(const Nz::Vector3ui& blockIndices, float scale) const
 	{
-		auto corners = ComputeVoxelCorners(blockIndices);
+		auto corners = ComputeBlockCorners(blockIndices);
 		Nz::Vector3f blockCenter = std::accumulate(corners.begin(), corners.end(), Nz::Vector3f::Zero()) / corners.size();
 
 		for (Nz::Vector3f& corner : corners)
@@ -69,9 +69,9 @@ namespace tsom
 		};
 	}
 
-	Nz::EnumArray<Nz::BoxCorner, Nz::Vector3f> DeformedChunk::ComputeVoxelCorners(const Nz::Vector3ui& indices) const
+	Nz::EnumArray<Nz::BoxCorner, Nz::Vector3f> DeformedChunk::ComputeBlockCorners(const Nz::Vector3ui& indices) const
 	{
-		Nz::EnumArray<Nz::BoxCorner, Nz::Vector3f> corners = Chunk::ComputeVoxelCorners(indices);
+		Nz::EnumArray<Nz::BoxCorner, Nz::Vector3f> corners = Chunk::ComputeBlockCorners(indices);
 		for (auto& position : corners)
 			position = DeformPosition(position, m_deformationCenter, m_deformationRadius);
 

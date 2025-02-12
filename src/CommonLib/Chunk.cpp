@@ -205,7 +205,7 @@ namespace tsom
 						continue;
 
 					// Get unaltered voxel corners and deform them next
-					Nz::EnumArray<Nz::BoxCorner, Nz::Vector3f> corners = Chunk::ComputeVoxelCorners(blockIndices);
+					Nz::EnumArray<Nz::BoxCorner, Nz::Vector3f> corners = Chunk::ComputeBlockCorners(blockIndices);
 
 					Nz::Vector3f blockCenter = std::accumulate(corners.begin(), corners.end(), Nz::Vector3f::Zero()) / corners.size();
 
@@ -271,7 +271,7 @@ namespace tsom
 		}
 	}
 
-	Nz::EnumArray<Nz::BoxCorner, Nz::Vector3f> Chunk::ComputeVoxelCorners(const Nz::Vector3ui& indices) const
+	Nz::EnumArray<Nz::BoxCorner, Nz::Vector3f> Chunk::ComputeBlockCorners(const Nz::Vector3ui& indices) const
 	{
 		Nz::Vector3f blockPos = (Nz::Vector3f(indices) - Nz::Vector3f(m_size) * 0.5f) * m_blockSize;
 		Nz::Boxf box(blockPos.x, blockPos.z, blockPos.y, m_blockSize, m_blockSize, m_blockSize);

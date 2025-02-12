@@ -386,7 +386,7 @@ namespace tsom
 					if (!chunk)
 						return;
 
-					auto corners = chunk->ComputeVoxelCorners(innerCoordinates);
+					auto corners = chunk->ComputeBlockCorners(innerCoordinates);
 					Nz::Vector3f blockCenter = std::accumulate(corners.begin(), corners.end(), Nz::Vector3f::Zero()) / corners.size();
 					Nz::Vector3f offset = chunk->GetContainer().GetChunkOffset(chunk->GetIndices());
 

@@ -61,7 +61,7 @@ namespace tsom
 			}),
 			"GetBlockCenterPosition", LuaFunction([](const Chunk& chunk, const Nz::Vector3ui& blockIndices)
 			{
-				Nz::EnumArray<Nz::BoxCorner, Nz::Vector3f> corners = chunk.ComputeVoxelCorners(blockIndices);
+				Nz::EnumArray<Nz::BoxCorner, Nz::Vector3f> corners = chunk.ComputeBlockCorners(blockIndices);
 				return std::accumulate(corners.begin(), corners.end(), Nz::Vector3f::Zero()) / corners.size();
 			}),
 			"GetBlockLibrary", LuaFunction([](const Chunk& chunk)

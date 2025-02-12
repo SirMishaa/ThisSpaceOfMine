@@ -969,7 +969,7 @@ namespace tsom
 							m_debugOverlay->textDrawer.AppendText(fmt::format("Target block depth: {0}\n", depth));
 						}
 
-						auto cornerPos = hitChunk.ComputeVoxelCorners(hitCoordinates->blockIndices);
+						auto cornerPos = hitChunk.ComputeBlockCorners(hitCoordinates->blockIndices);
 
 						constexpr Nz::EnumArray<Direction, std::array<Nz::BoxCorner, 4>> directionToCorners = {
 							// Back
