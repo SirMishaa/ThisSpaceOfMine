@@ -1,12 +1,12 @@
-// Copyright (C) 2024 Jérôme "SirLynix" Leclercq (lynix680@gmail.com)
+// Copyright (C) 2025 Jérôme "SirLynix" Leclercq (lynix680@gmail.com)
 // This file is part of the "This Space Of Mine" project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <CommonLib/Systems/BuoyancySystem.hpp>
 #include <CommonLib/CharacterController.hpp>
 #include <CommonLib/GravityController.hpp>
-#include <CommonLib/Debug/DebugDrawInterface.hpp>
 #include <CommonLib/Components/BuoyancyComponent.hpp>
+#include <CommonLib/Debug/DebugDrawInterface.hpp>
 #include <Nazara/Core/Color.hpp>
 #include <Nazara/Core/Components/DisabledComponent.hpp>
 #include <Nazara/Physics3D/PhysContact3D.hpp>
@@ -109,7 +109,7 @@ namespace tsom
 
 		buoyancyComponent->contactCount.fetch_sub(1, std::memory_order::relaxed);
 	};
-	
+
 	void BuoyancySystem::PreSimulate(float elapsedTime)
 	{
 		Nz::HybridVector<Nz::Vector3f, 32> debugLines;

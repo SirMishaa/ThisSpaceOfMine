@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Jérôme "SirLynix" Leclercq (lynix680@gmail.com)
+// Copyright (C) 2025 Jérôme "SirLynix" Leclercq (lynix680@gmail.com)
 // This file is part of the "This Space Of Mine" project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
@@ -286,7 +286,7 @@ namespace tsom
 		{
 			m_localConsole->PrintMessage(std::string(error));
 		});
-		
+
 		m_remoteConsole = CreateWidget<Console>();
 		m_remoteConsole->SetBackgroundColor(Nz::Color(0.33f, 0.f, 0.f, 0.5f));
 		m_remoteConsole->SetRenderLayerOffset(1);

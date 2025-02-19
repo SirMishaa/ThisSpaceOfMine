@@ -3,9 +3,9 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <ServerLib/Debug/DebugDrawBroadcaster.hpp>
+#include <CommonLib/Protocol/Packets.hpp>
 #include <ServerLib/ServerEnvironment.hpp>
 #include <ServerLib/ServerPlayer.hpp>
-#include <CommonLib/Protocol/Packets.hpp>
 
 namespace tsom
 {

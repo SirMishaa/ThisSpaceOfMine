@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Jérôme "SirLynix" Leclercq (lynix680@gmail.com)
+// Copyright (C) 2025 Jérôme "SirLynix" Leclercq (lynix680@gmail.com)
 // This file is part of the "This Space Of Mine" project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
@@ -8,8 +8,8 @@
 #include <CommonLib/ShipController.hpp>
 #include <CommonLib/Components/ChunkComponent.hpp>
 #include <CommonLib/Components/ScriptedEntityComponent.hpp>
-#include <CommonLib/Scripting/SharedEntityScriptingLibrary.hpp>
 #include <CommonLib/Scripting/ScriptingUtils.hpp>
+#include <CommonLib/Scripting/SharedEntityScriptingLibrary.hpp>
 #include <Nazara/Physics3D/Systems/Physics3DSystem.hpp>
 
 namespace tsom

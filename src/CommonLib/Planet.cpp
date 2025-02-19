@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Jérôme "SirLynix" Leclercq (lynix680@gmail.com)
+// Copyright (C) 2025 Jérôme "SirLynix" Leclercq (lynix680@gmail.com)
 // This file is part of the "This Space Of Mine" project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
@@ -58,7 +58,7 @@ namespace tsom
 			std::lock_guard lock(m_chunkLayerAddedSignalMutex);
 			OnChunkLayerAdded(this, chunk, layerIndex);
 		});
-		
+
 		chunkData.onLayerUnregistered.Connect(chunkData.chunk->OnLayerUnregistered, [this](Chunk* chunk, std::size_t layerIndex)
 		{
 			// FIXME: Nz::Signal operator() is not thread-safe!

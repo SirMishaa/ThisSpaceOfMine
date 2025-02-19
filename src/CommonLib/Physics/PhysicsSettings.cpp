@@ -1,12 +1,12 @@
-// Copyright (C) 2024 Jérôme "SirLynix" Leclercq (lynix680@gmail.com)
+// Copyright (C) 2025 Jérôme "SirLynix" Leclercq (lynix680@gmail.com)
 // This file is part of the "This Space Of Mine" project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <CommonLib/Physics/PhysicsSettings.hpp>
-#include <Nazara/Physics3D/PhysContact3D.hpp>
-#include <Nazara/Physics3D/PhysContactResponse3D.hpp>
 #include <CommonLib/PhysicsConstants.hpp>
 #include <CommonLib/Physics/ContactCallbackComponents.hpp>
+#include <Nazara/Physics3D/PhysContact3D.hpp>
+#include <Nazara/Physics3D/PhysContactResponse3D.hpp>
 
 namespace tsom::Physics
 {

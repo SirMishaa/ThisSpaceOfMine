@@ -1,12 +1,12 @@
-// Copyright (C) 2024 Jérôme "SirLynix" Leclercq (lynix680@gmail.com)
+// Copyright (C) 2025 Jérôme "SirLynix" Leclercq (lynix680@gmail.com)
 // This file is part of the "This Space Of Mine" project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <CommonLib/Utility/CrashHandler.hpp>
-#include <NazaraUtils/Prerequisites.hpp>
-#include <Nazara/Core/HardwareInfo.hpp>
 #include <CommonLib/Utils.hpp>
 #include <CommonLib/Version.hpp>
+#include <Nazara/Core/HardwareInfo.hpp>
+#include <NazaraUtils/Prerequisites.hpp>
 #include <ostream>
 
 #ifdef NAZARA_PLATFORM_WINDOWS

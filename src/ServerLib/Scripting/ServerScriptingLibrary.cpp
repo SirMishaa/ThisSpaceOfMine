@@ -1,12 +1,12 @@
-// Copyright (C) 2024 Jérôme "SirLynix" Leclercq (lynix680@gmail.com)
+// Copyright (C) 2025 Jérôme "SirLynix" Leclercq (lynix680@gmail.com)
 // This file is part of the "This Space Of Mine" project
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <ServerLib/Scripting/ServerScriptingLibrary.hpp>
 #include <CommonLib/CharacterController.hpp>
 #include <CommonLib/Scripting/ScriptingUtils.hpp>
-#include <ServerLib/ServerPlanetEnvironment.hpp>
 #include <ServerLib/ServerInstance.hpp>
+#include <ServerLib/ServerPlanetEnvironment.hpp>
 #include <ServerLib/ServerPlayer.hpp>
 #include <ServerLib/ServerShipEnvironment.hpp>
 #include <ServerLib/Scripting/ServerEntityScriptingLibrary.hpp>
@@ -151,7 +151,7 @@ namespace tsom
 				{
 					if (!*alive)
 						return;
-					
+
 					auto result = cb();
 					if (!result.valid())
 					{
