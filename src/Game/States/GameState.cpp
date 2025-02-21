@@ -743,7 +743,7 @@ namespace tsom
 			}
 
 			const Nz::Node* rootNode = stateData.sessionHandler->GetEnvironmentNode(debugDrawLines.environmentId);
-			if (rootNode->GetPosition().ApproxEqual(Nz::Vector3f::Zero()) && rootNode->GetRotation().ApproxEqual(Nz::Quaternionf::Identity()) && rootNode->GetScale().ApproxEqual(Nz::Vector3f::Unit()))
+			if (rootNode->GetGlobalPosition().ApproxEqual(Nz::Vector3f::Zero()) && rootNode->GetGlobalRotation().ApproxEqual(Nz::Quaternionf::Identity()) && rootNode->GetGlobalScale().ApproxEqual(Nz::Vector3f::Unit()))
 			{
 				// Fast path, environment node has no transformation (root environment)
 				debugDrawer->DrawLines(debugDrawLines.vertices, debugDrawLines.color);
