@@ -28,7 +28,7 @@ namespace tsom
 			static constexpr Nz::Int64 ExecutionOrder = -1; //< execute before physics
 			using Components = Nz::TypeList<Nz::NodeComponent, class EnvironmentEnterTriggerComponent>;
 
-			inline EnvironmentSwitchSystem(entt::registry& registry, ServerEnvironment* ownerEnvironment);
+			EnvironmentSwitchSystem(entt::registry& registry);
 			EnvironmentSwitchSystem(const EnvironmentSwitchSystem&) = delete;
 			EnvironmentSwitchSystem(EnvironmentSwitchSystem&&) = delete;
 			~EnvironmentSwitchSystem() = default;

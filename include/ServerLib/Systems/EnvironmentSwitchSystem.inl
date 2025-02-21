@@ -4,9 +4,4 @@
 
 namespace tsom
 {
-	inline EnvironmentSwitchSystem::EnvironmentSwitchSystem(entt::registry& registry, ServerEnvironment* ownerEnvironment) :
-	m_registry(registry),
-	m_ownerEnvironment(ownerEnvironment)
-	{
-	}
 }

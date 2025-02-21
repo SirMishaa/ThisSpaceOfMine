@@ -35,8 +35,8 @@ namespace tsom
 	ServerEnvironment(serverInstance, ServerEnvironmentType::Planet, true),
 	m_savePath(std::move(savePath))
 	{
-		m_world->AddSystem<EnvironmentSwitchSystem>(this);
 		m_world->GetRegistry().ctx().emplace<ServerPlanetEnvironment*>(this);
+		m_world->AddSystem<EnvironmentSwitchSystem>();
 
 		auto& blockLibrary = serverInstance.GetBlockLibrary();
 
