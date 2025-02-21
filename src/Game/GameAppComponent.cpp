@@ -230,7 +230,7 @@ namespace tsom
 
 	void GameAppComponent::SetupCanvas(Nz::EnttWorld& world, Nz::Window& window)
 	{
-		m_canvas.emplace(world.GetRegistry(), window.GetEventHandler(), window.GetCursorController().CreateHandle(), Constants::RenderMaskUI);
+		m_canvas.emplace(world.GetRegistry(), window, Constants::RenderMaskUI);
 		m_canvas->Resize(Nz::Vector2f(window.GetSize()));
 		window.GetEventHandler().OnResized.Connect([&](const Nz::WindowEventHandler* /*eventHandler*/, const Nz::WindowEvent::SizeEvent& sizeEvent)
 		{
