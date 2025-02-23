@@ -312,7 +312,8 @@ namespace tsom
 	{
 		WidgetState::Leave(fsm);
 
-		GetStateData().window->SetRelativeMouseMode(false);
+		if (Nz::Window* window = GetStateData().window)
+			window->SetRelativeMouseMode(false);
 	}
 
 	bool PlanetEditorState::Update(Nz::StateMachine& fsm, Nz::Time elapsedTime)
@@ -397,7 +398,10 @@ namespace tsom
 	void PlanetEditorState::UpdateMouseLock()
 	{
 		m_isMouseLocked = !m_shouldFreeMouse && !m_escapeMenu->IsVisible();
-		GetStateData().window->SetRelativeMouseMode(m_isMouseLocked);
+
+		if (Nz::Window* window = GetStateData().window)
+			window->SetRelativeMouseMode(m_isMouseLocked);
+
 		if (m_isMouseLocked)
 		{
 			// FIXME: Expose a way for the canvas to reset keyboard focus

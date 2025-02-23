@@ -11,6 +11,7 @@
 #include <CommonLib/Systems/GravityPhysicsSystem.hpp>
 #include <Nazara/Core/ApplicationComponent.hpp>
 #include <Nazara/Core/StateMachine.hpp>
+#include <Nazara/Platform/WindowEventHandler.hpp>
 #include <Nazara/Widgets/Canvas.hpp>
 #include <NazaraUtils/Prerequisites.hpp>
 #include <optional>
@@ -47,6 +48,8 @@ namespace tsom
 			std::shared_ptr<Nz::RenderTarget> SetupRenderTarget(Nz::EnttWorld& world, Nz::Window& window);
 			Nz::Window& SetupWindow();
 			Nz::EnttWorld& SetupWorld();
+
+			NazaraSlot(Nz::WindowEventHandler, OnDestruction, m_onWindowDestruction);
 
 			std::optional<Nz::Canvas> m_canvas;
 			std::optional<ClientBlockLibrary> m_blockLibrary;

@@ -88,6 +88,12 @@ namespace tsom
 			stateData->window = &window;
 			stateData->world = &world;
 
+			// Window may be destroyed before application ends, be sure to not get a dangling pointer
+			m_onWindowDestruction.Connect(window.GetEventHandler().OnDestruction, [stateData](const Nz::WindowEventHandler*)
+			{
+				stateData->window = nullptr;
+			});
+
 			auto& commandLineParams = GetApp().GetCommandLineParameters();
 			if (commandLineParams.HasFlag("planet-editor"))
 			{
