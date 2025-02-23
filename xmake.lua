@@ -78,6 +78,7 @@ end
 
 if is_plat("windows") then
 	set_runtimes(is_mode("debug") and "MDd" or "MD")
+	add_cxflags("cl::/diagnostics:caret")
 end
 
 add_rules("@nazarautils/compiler_setup")
