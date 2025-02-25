@@ -164,3 +164,4 @@ DocProject/Help/html
 src/CommonLib/VersionData.hpp
 project.autoversion.d
 *.dmp
+imgui.ini

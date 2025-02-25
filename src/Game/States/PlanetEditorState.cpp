@@ -12,11 +12,14 @@
 #include <Game/States/StateData.hpp>
 #include <Nazara/Core/ApplicationBase.hpp>
 #include <Nazara/Core/FilesystemAppComponent.hpp>
+#include <Nazara/Core/PluginManagerAppComponent.hpp>
 #include <Nazara/Core/Primitive.hpp>
 #include <Nazara/Core/TaskSchedulerAppComponent.hpp>
 #include <Nazara/Core/Components/NodeComponent.hpp>
 #include <Nazara/Graphics/DirectionalLight.hpp>
 #include <Nazara/Graphics/GraphicalMesh.hpp>
+#include <Nazara/Graphics/Graphics.hpp>
+#include <Nazara/Graphics/ImGuiPipelinePass.hpp>
 #include <Nazara/Graphics/Material.hpp>
 #include <Nazara/Graphics/MaterialInstance.hpp>
 #include <Nazara/Graphics/Model.hpp>
@@ -27,13 +30,9 @@
 #include <Nazara/Graphics/PropertyHandler/TexturePropertyHandler.hpp>
 #include <Nazara/Graphics/PropertyHandler/UniformValuePropertyHandler.hpp>
 #include <Nazara/Platform/Window.hpp>
-#include <Nazara/TextRenderer/SimpleTextDrawer.hpp>
-#include <Nazara/Widgets/BoxLayout.hpp>
-#include <Nazara/Widgets/ButtonWidget.hpp>
-#include <Nazara/Widgets/SimpleLabelWidget.hpp>
-#include <Nazara/Widgets/TextAreaWidget.hpp>
-#include <fast_float/fast_float.h>
-#include <charconv>
+#include <Nazara/Renderer/Plugins/ImGuiPlugin.hpp>
+#include <imgui.h>
+#include <misc/cpp/imgui_stdlib.h>
 
 namespace tsom
 {
@@ -43,13 +42,26 @@ namespace tsom
 	{
 		auto& stateData = GetStateData();
 
+		auto& pluginManager = stateData.app->GetComponent<Nz::PluginManagerAppComponent>();
+		m_imgui = &pluginManager.Load<Nz::ImGuiPlugin>();
+
+		IMGUI_CHECKVERSION();
+		m_imguiContext = ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO();
+
+		m_imgui->SetupContext(m_imguiContext, *stateData.window);
+		m_imgui->SetupRenderer(m_imguiContext, *stateData.swapchain);
+
+		Nz::Graphics* graphics = Nz::Graphics::Instance();
+		Nz::ImGuiPipelinePass::RegisterPass(graphics->GetFramePipelinePassRegistry(), *m_imgui, m_imguiContext);
+
 		auto& filesystem = stateData.app->GetComponent<Nz::FilesystemAppComponent>();
 
 		m_cameraEntity = CreateEntity();
 		{
 			auto& cameraNode = m_cameraEntity.emplace<Nz::NodeComponent>(Nz::Vector3f(0.f, 150.f, -75.f), m_cameraRotation);
 
-			auto passList = filesystem.Load<Nz::PipelinePassList>("assets/3d.passlist");
+			auto passList = filesystem.Load<Nz::PipelinePassList>("assets/3d_imgui.passlist");
 
 			auto& cameraComponent = m_cameraEntity.emplace<Nz::CameraComponent>(stateData.renderTarget, std::move(passList));
 			cameraComponent.EnableInfiniteZFar(true);
@@ -177,103 +189,29 @@ namespace tsom
 		m_planetParentEntity.emplace<VisualEntityComponent>().visualEntity = m_planetParentEntity;
 
 		m_planet = std::make_unique<Planet>(*stateData.app, 1.f, 16.f, 9.81f);
-		m_planetEntities = std::make_unique<ClientChunkEntities>(*stateData.app, *stateData.world, *m_planet, *stateData.blockLibrary, 0);
-		m_planetEntities->SetParentEntity(m_planetParentEntity);
-		m_planetEntities->EnableCollisionGeneration(false);
-
-		m_widgetLayout = CreateWidget<Nz::BoxLayout>(Nz::BoxLayoutOrientation::TopToBottom);
-		m_widgetLayout->EnableBackground(true);
-		m_widgetLayout->SetBackgroundColor(Nz::Color(1.f, 1.f, 1.f, 0.2f));
-
-		Nz::SimpleLabelWidget* label = m_widgetLayout->Add<Nz::SimpleLabelWidget>();
-		label->SetText("F1 to lock/unlock mouse");
-
-		Nz::BoxLayout* cornerRadiusLayout = m_widgetLayout->Add<Nz::BoxLayout>(Nz::BoxLayoutOrientation::LeftToRight);
+		for (std::size_t layerIndex = 0; layerIndex < m_planetEntities.size(); ++layerIndex)
 		{
-			Nz::SimpleLabelWidget* cornerRadiusLabel = cornerRadiusLayout->Add<Nz::SimpleLabelWidget>();
-			cornerRadiusLabel->SetText("Corner radius:");
+			if (!stateData.blockLibrary->IsValidLayer(layerIndex))
+				continue;
 
-			m_cornerRadiusArea = cornerRadiusLayout->Add<Nz::TextAreaWidget>();
-			m_cornerRadiusArea->SetCharacterFilter([](char32_t c) { return c >= U'0' && c <= U'9'; });
-			m_cornerRadiusArea->EnableBackground(true);
-			m_cornerRadiusArea->SetBackgroundColor(Nz::Color::White());
-			m_cornerRadiusArea->SetTextColor(Nz::Color::Black());
-			m_cornerRadiusArea->SetText("0");
+			m_planetEntities[layerIndex] = std::make_unique<ClientChunkEntities>(*stateData.app, *stateData.world, *m_planet, *stateData.blockLibrary, layerIndex);
+			m_planetEntities[layerIndex]->SetParentEntity(m_planetParentEntity);
+			m_planetEntities[layerIndex]->EnableCollisionGeneration(false);
 		}
-
-		Nz::BoxLayout* sizeLayout = m_widgetLayout->Add<Nz::BoxLayout>(Nz::BoxLayoutOrientation::LeftToRight);
-		{
-			Nz::SimpleLabelWidget* sizeLabel = sizeLayout->Add<Nz::SimpleLabelWidget>();
-			sizeLabel->SetText("Chunk count:");
-
-			Nz::BoxLayout* sizeAreaLayout = sizeLayout->Add<Nz::BoxLayout>(Nz::BoxLayoutOrientation::LeftToRight);
-
-			m_chunkCountXArea = sizeAreaLayout->Add<Nz::TextAreaWidget>();
-			m_chunkCountXArea->SetCharacterFilter([](char32_t c) { return c >= U'0' && c <= U'9'; });
-			m_chunkCountXArea->EnableBackground(true);
-			m_chunkCountXArea->SetBackgroundColor(Nz::Color::White());
-			m_chunkCountXArea->SetTextColor(Nz::Color::Black());
-			m_chunkCountXArea->SetText("5");
-
-			Nz::SimpleLabelWidget* sep1Label = sizeAreaLayout->Add<Nz::SimpleLabelWidget>();
-			sep1Label->SetText("x");
-
-			m_chunkCountYArea = sizeAreaLayout->Add<Nz::TextAreaWidget>();
-			m_chunkCountYArea->SetCharacterFilter([](char32_t c) { return c >= U'0' && c <= U'9'; });
-			m_chunkCountYArea->EnableBackground(true);
-			m_chunkCountYArea->SetBackgroundColor(Nz::Color::White());
-			m_chunkCountYArea->SetTextColor(Nz::Color::Black());
-			m_chunkCountYArea->SetText("5");
-
-			Nz::SimpleLabelWidget* sep2Label = sizeAreaLayout->Add<Nz::SimpleLabelWidget>();
-			sep2Label->SetText("x");
-
-			m_chunkCountZArea = sizeAreaLayout->Add<Nz::TextAreaWidget>();
-			m_chunkCountZArea->SetCharacterFilter([](char32_t c) { return c >= U'0' && c <= U'9'; });
-			m_chunkCountZArea->EnableBackground(true);
-			m_chunkCountZArea->SetBackgroundColor(Nz::Color::White());
-			m_chunkCountZArea->SetTextColor(Nz::Color::Black());
-			m_chunkCountZArea->SetText("5");
-		}
-
-		Nz::BoxLayout* seedLayout = m_widgetLayout->Add<Nz::BoxLayout>(Nz::BoxLayoutOrientation::LeftToRight);
-		{
-			Nz::SimpleLabelWidget* seedLabel = seedLayout->Add<Nz::SimpleLabelWidget>();
-			seedLabel->SetText("Seed:");
-
-			m_seedArea = seedLayout->Add<Nz::TextAreaWidget>();
-			m_seedArea->SetCharacterFilter([](char32_t c) { return c >= U'0' && c <= U'9'; });
-			m_seedArea->EnableBackground(true);
-			m_seedArea->SetBackgroundColor(Nz::Color::White());
-			m_seedArea->SetTextColor(Nz::Color::Black());
-			m_seedArea->SetText("42");
-		}
-
-		Nz::BoxLayout* scriptLayout = m_widgetLayout->Add<Nz::BoxLayout>(Nz::BoxLayoutOrientation::LeftToRight);
-		{
-			Nz::SimpleLabelWidget* scriptLabel = scriptLayout->Add<Nz::SimpleLabelWidget>();
-			scriptLabel->SetText("Script:");
-
-			m_scriptArea = scriptLayout->Add<Nz::TextAreaWidget>();
-			m_scriptArea->EnableBackground(true);
-			m_scriptArea->SetBackgroundColor(Nz::Color::White());
-			m_scriptArea->SetTextColor(Nz::Color::Black());
-			m_scriptArea->SetText("bob");
-		}
-
-		Nz::ButtonWidget* refreshButton = m_widgetLayout->Add<Nz::ButtonWidget>();
-		refreshButton->UpdateText(Nz::SimpleTextDrawer::Draw("Refresh", 36));
-
-		refreshButton->OnButtonTrigger.Connect([this](const Nz::ButtonWidget*)
-		{
-			RefreshPlanet();
-		});
-
-		m_widgetLayout->Resize({ 300.f, 300.f });
-		m_widgetLayout->Move({ 10.f, 0.f });
 	}
 
-	PlanetEditorState::~PlanetEditorState() = default;
+	PlanetEditorState::~PlanetEditorState()
+	{
+		auto& stateData = GetStateData();
+		auto& taskScheduler = stateData.app->GetComponent<Nz::TaskSchedulerAppComponent>();
+
+		m_imgui->ShutdownRenderer(m_imguiContext);
+		m_imgui->ShutdownContext(m_imguiContext);
+		ImGui::DestroyContext(m_imguiContext);
+
+		// In case previous chunks were still generating
+		taskScheduler.WaitForTasks();
+	}
 
 	void PlanetEditorState::Enter(Nz::StateMachine& fsm)
 	{
@@ -321,7 +259,11 @@ namespace tsom
 		if (!WidgetState::Update(fsm, elapsedTime))
 			return false;
 
-		m_planetEntities->Update();
+		for (auto& chunkEntitiesPtr : m_planetEntities)
+		{
+			if (chunkEntitiesPtr)
+				chunkEntitiesPtr->Update();
+		}
 
 		auto& stateData = GetStateData();
 
@@ -353,46 +295,59 @@ namespace tsom
 
 		cameraNode.SetPosition(cameraPos);
 
+		m_imgui->NewFrame(m_imguiContext, elapsedTime);
+
+		ImGui::NewFrame();
+		if (ImGui::Begin("Planet settings"))
+		{
+			ImGui::Text("Press F1 to lock/unlock mouse");
+			ImGui::Separator();
+
+			ImGui::SliderFloat("Corner radius", &m_planetSettings.cornerRadius, 0.f, 250.f);
+
+			int chunkCount[3] = {
+				int(m_planetSettings.chunkCount.x),
+				int(m_planetSettings.chunkCount.y),
+				int(m_planetSettings.chunkCount.z)
+			};
+			if (ImGui::InputInt3("Chunk count", chunkCount))
+				m_planetSettings.chunkCount = Nz::Vector3ui(std::max(chunkCount[0], 0), std::max(chunkCount[1], 0), std::max(chunkCount[2], 0));
+
+			int seed = m_planetSettings.seed;
+			if (ImGui::InputInt("Seed", &seed))
+				m_planetSettings.seed = std::max(seed, 0);
+
+			ImGui::InputText("Generator name", &m_planetSettings.scriptName);
+
+			ImGui::Separator();
+
+			if (ImGui::Button("Update planet"))
+				RefreshPlanet();
+		}
+		ImGui::End();
+		ImGui::Render();
+
 		return true;
 	}
 
 	void PlanetEditorState::RefreshPlanet()
 	{
-		float cornerRadius = 0.f;
-		Nz::Vector3ui chunkCount(5, 5, 5);
-		Nz::UInt32 seed = 42;
-
-		auto AreaToValue = [](Nz::TextAreaWidget* textArea, auto& value)
-		{
-			using T = std::decay_t<decltype(value)>;
-
-			std::string_view str = textArea->GetText();
-			if constexpr (std::is_floating_point_v<T>)
-				fast_float::from_chars(str.data(), str.data() + str.size(), value);
-			else
-				std::from_chars(str.data(), str.data() + str.size(), value);
-		};
-
-		AreaToValue(m_cornerRadiusArea, cornerRadius);
-		AreaToValue(m_chunkCountXArea, chunkCount.x);
-		AreaToValue(m_chunkCountYArea, chunkCount.y);
-		AreaToValue(m_chunkCountZArea, chunkCount.z);
-		AreaToValue(m_seedArea, seed);
-
 		auto& stateData = GetStateData();
 		auto& taskScheduler = stateData.app->GetComponent<Nz::TaskSchedulerAppComponent>();
 
-		m_planet->UpdateCornerRadius(cornerRadius);
+		// In case previous chunks were still generating
+		taskScheduler.WaitForTasks();
+
+		m_planet->UpdateCornerRadius(m_planetSettings.cornerRadius);
 
 		m_planet->ClearChunks();
-		m_planet->GenerateChunks(*stateData.blockLibrary, taskScheduler, seed, chunkCount, m_scriptArea->GetText());
+		m_planet->AddChunks(*stateData.blockLibrary, m_planetSettings.chunkCount);
+		m_planet->GenerateChunks(*stateData.blockLibrary, taskScheduler, m_planetSettings.seed, m_planetSettings.chunkCount, m_planetSettings.scriptName);
 	}
 
 	void PlanetEditorState::LayoutWidgets(const Nz::Vector2f& /*newSize*/)
 	{
 		m_escapeMenu->Center();
-
-		m_widgetLayout->CenterVertical();
 	}
 
 	void PlanetEditorState::UpdateMouseLock()
@@ -401,16 +356,5 @@ namespace tsom
 
 		if (Nz::Window* window = GetStateData().window)
 			window->SetRelativeMouseMode(m_isMouseLocked);
-
-		if (m_isMouseLocked)
-		{
-			// FIXME: Expose a way for the canvas to reset keyboard focus
-			m_chunkCountXArea->ClearFocus();
-			m_chunkCountYArea->ClearFocus();
-			m_chunkCountZArea->ClearFocus();
-			m_cornerRadiusArea->ClearFocus();
-			m_scriptArea->ClearFocus();
-			m_seedArea->ClearFocus();
-		}
 	}
 }

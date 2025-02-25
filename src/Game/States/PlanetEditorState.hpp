@@ -12,14 +12,18 @@
 #include <Game/States/WidgetState.hpp>
 #include <Nazara/Core/State.hpp>
 #include <Nazara/Core/Time.hpp>
+#include <Nazara/Math/Vector3.hpp>
 #include <Nazara/Widgets/Canvas.hpp>
 #include <memory>
 #include <optional>
+
+struct ImGuiContext;
 
 namespace Nz
 {
 	class BoxLayout;
 	class ButtonWidget;
+	class ImGuiPlugin;
 	class SimpleLabelWidget;
 	class TextAreaWidget;
 }
@@ -56,22 +60,26 @@ namespace tsom
 			NazaraSlot(Nz::Canvas, OnUnhandledMouseMoved, m_mouseMovedSlot);
 			NazaraSlot(Nz::Canvas, OnUnhandledMouseWheelMoved, m_mouseWheelMovedSlot);
 
+			struct PlanetSettings
+			{
+				float cornerRadius = 0.f;
+				Nz::Vector3ui chunkCount = Nz::Vector3ui(5);
+				std::size_t seed = 42;
+				std::string scriptName = "bob";
+			};
+
+			std::array<std::unique_ptr<ClientChunkEntities>, Constants::MaxChunkLayerCount> m_planetEntities;
 			std::optional<ConsoleExecutor> m_consoleExecutor;
-			std::unique_ptr<ClientChunkEntities> m_planetEntities;
 			std::unique_ptr<Planet> m_planet;
 			entt::handle m_cameraEntity;
 			entt::handle m_planetParentEntity;
 			entt::handle m_skyboxEntity;
 			entt::handle m_sunLightEntity;
-			Nz::BoxLayout* m_widgetLayout;
-			Nz::TextAreaWidget* m_chunkCountXArea;
-			Nz::TextAreaWidget* m_chunkCountYArea;
-			Nz::TextAreaWidget* m_chunkCountZArea;
-			Nz::TextAreaWidget* m_cornerRadiusArea;
-			Nz::TextAreaWidget* m_scriptArea;
-			Nz::TextAreaWidget* m_seedArea;
+			Nz::ImGuiPlugin* m_imgui;
 			Nz::EulerAnglesf m_cameraRotation;
+			PlanetSettings m_planetSettings;
 			EscapeMenu* m_escapeMenu;
+			ImGuiContext* m_imguiContext;
 			bool m_isMouseLocked;
 			bool m_shouldFreeMouse;
 	};

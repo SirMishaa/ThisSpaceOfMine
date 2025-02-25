@@ -34,6 +34,7 @@ namespace tsom
 		Nz::Canvas* canvas;
 		Nz::EnttWorld* world;
 		Nz::Window* window;
+		Nz::WindowSwapchain* swapchain;
 		ConnectionState* connectionState = nullptr;
 		ClientBlockLibrary* blockLibrary = nullptr;
 		ClientSessionHandler* sessionHandler = nullptr;

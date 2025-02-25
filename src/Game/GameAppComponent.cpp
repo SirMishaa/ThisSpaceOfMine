@@ -74,23 +74,26 @@ namespace tsom
 		{
 			auto& window = SetupWindow();
 			auto& world = SetupWorld();
+			auto& swapchain = SetupSwapchain(world, window);
 
-			auto renderTarget = SetupRenderTarget(world, window);
+			auto renderWindow = std::make_shared<Nz::RenderWindow>(swapchain);
 
 			SetupCanvas(world, window);
-			SetupCamera(renderTarget, world);
+			SetupCamera(renderWindow, world);
 
 			std::shared_ptr<tsom::StateData> stateData = std::make_shared<tsom::StateData>();
 			stateData->app = &GetApp();
 			stateData->blockLibrary = &m_blockLibrary.value();
 			stateData->canvas = &m_canvas.value();
-			stateData->renderTarget = std::move(renderTarget);
+			stateData->renderTarget = std::move(renderWindow);
 			stateData->window = &window;
+			stateData->swapchain = &swapchain;
 			stateData->world = &world;
 
 			// Window may be destroyed before application ends, be sure to not get a dangling pointer
 			m_onWindowDestruction.Connect(window.GetEventHandler().OnDestruction, [stateData](const Nz::WindowEventHandler*)
 			{
+				stateData->swapchain = nullptr;
 				stateData->window = nullptr;
 			});
 
@@ -244,7 +247,7 @@ namespace tsom
 		});
 	}
 
-	std::shared_ptr<Nz::RenderTarget> GameAppComponent::SetupRenderTarget(Nz::EnttWorld& world, Nz::Window& window)
+	Nz::WindowSwapchain& GameAppComponent::SetupSwapchain(Nz::EnttWorld& world, Nz::Window& window)
 	{
 		auto& app = GetApp();
 
@@ -257,9 +260,7 @@ namespace tsom
 			swapchainParams.presentMode = { Nz::PresentMode::RelaxedVerticalSync, Nz::PresentMode::VerticalSync };
 
 		auto& renderSystem = world.GetSystem<Nz::RenderSystem>();
-		auto& windowSwapchain = renderSystem.CreateSwapchain(window, swapchainParams);
-
-		return std::make_shared<Nz::RenderWindow>(windowSwapchain);
+		return renderSystem.CreateSwapchain(window, swapchainParams);
 	}
 
 	Nz::Window& GameAppComponent::SetupWindow()

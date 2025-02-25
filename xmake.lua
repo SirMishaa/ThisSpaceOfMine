@@ -19,7 +19,7 @@ end)
 add_repositories("nazara-repo https://github.com/NazaraEngine/xmake-repo.git")
 add_requires("fmt[header_only:n]")
 add_requires("libcurl[shared]", { system = false, configs = { openssl = is_plat("linux", "android", "cross") } })
-add_requires("nazaraengine >=2024.12.31", { debug = is_mode("debug"), configs = { symbols = true }})
+add_requires("nazaraengine >=2025.02.25", { debug = is_mode("debug"), configs = { symbols = true, plugin_imgui = true }})
 add_requires(
 	"concurrentqueue",
 	"cppcodec",
@@ -36,7 +36,21 @@ add_requires(
 )
 
 if has_config("serveronly") then
-	add_requireconfs("nazaraengine", { debug = is_mode("debug"), configs = { symbols = true, audio = false, graphics = false, physics2d = false, platform = false, renderer = false, textrenderer = false, widgets = false }})
+	add_requireconfs("nazaraengine", {
+		debug = is_mode("debug"),
+		override = true,
+		configs = { 
+			symbols = true,
+			audio = false,
+			graphics = false,
+			physics2d = false,
+			platform = false,
+			renderer = false,
+			textrenderer = false, 
+			widgets = false,
+			plugin_imgui = false
+		}
+	})
 end
 
 if is_plat("windows") then

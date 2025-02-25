@@ -22,6 +22,7 @@ namespace Nz
 	class RenderTarget;
 	class WindowSwapchain;
 	class Window;
+	class WindowSwapchain;
 }
 
 namespace tsom
@@ -45,7 +46,7 @@ namespace tsom
 			bool CheckAssets();
 			void SetupCamera(std::shared_ptr<const Nz::RenderTarget> renderTarget, Nz::EnttWorld& world);
 			void SetupCanvas(Nz::EnttWorld& world, Nz::Window& window);
-			std::shared_ptr<Nz::RenderTarget> SetupRenderTarget(Nz::EnttWorld& world, Nz::Window& window);
+			Nz::WindowSwapchain& SetupSwapchain(Nz::EnttWorld& world, Nz::Window& window);
 			Nz::Window& SetupWindow();
 			Nz::EnttWorld& SetupWorld();
 
