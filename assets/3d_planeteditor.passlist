@@ -34,6 +34,20 @@ passlist "Forward Passlist"
         flag "LightShadowing"
     }
 
+    attachment "AtmosphereOutput"
+    {
+        format "RGBA16F"
+    }
+
+    pass "AtmospherePass"
+    {
+        impl "TSOM_AtmosphereScattering"
+
+        input "Color" "ForwardOutput"
+        input "Depth" "DepthBuffer"
+        output "Output" "AtmosphereOutput"
+    }
+
     attachment "Gamma corrected"
     {
         format "RGBA8"
@@ -46,7 +60,7 @@ passlist "Forward Passlist"
             Shader "PostProcess.GammaCorrection"
         }
 
-        input "Input" "ForwardOutput"
+        input "Input" "AtmosphereOutput"
         output "Output" "Gamma corrected"
     }
 

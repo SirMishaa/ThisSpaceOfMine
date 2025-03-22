@@ -8,6 +8,7 @@
 #include <ClientLib/Systems/CameraFollowerSystem.hpp>
 #include <ClientLib/Systems/NetworkMovementInterpolationSystem.hpp>
 #include <ClientLib/Systems/PhysicsInterpolationSystem.hpp>
+#include <ClientLib/Rendering/AtmosphereScatteringPipelinePass.hpp>
 #include <ClientLib/Systems/TransformCopySystem.hpp>
 #include <CommonLib/DownloadManager.hpp>
 #include <CommonLib/GameConstants.hpp>
@@ -75,6 +76,9 @@ namespace tsom
 			auto& window = SetupWindow();
 			auto& world = SetupWorld();
 			auto& swapchain = SetupSwapchain(world, window);
+
+			// TODO: Find a better place
+			tsom::AtmosphereScatteringPipelinePass::Register(world);
 
 			auto renderWindow = std::make_shared<Nz::RenderWindow>(swapchain);
 

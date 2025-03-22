@@ -8,6 +8,7 @@
 #define TSOM_GAME_STATES_PLANETEDITORSTATE_HPP
 
 #include <ClientLib/ClientChunkEntities.hpp>
+#include <CommonLib/AtmosphereScattering.hpp>
 #include <CommonLib/ConsoleExecutor.hpp>
 #include <Game/States/WidgetState.hpp>
 #include <Nazara/Core/State.hpp>
@@ -71,12 +72,14 @@ namespace tsom
 			std::array<std::unique_ptr<ClientChunkEntities>, Constants::MaxChunkLayerCount> m_planetEntities;
 			std::optional<ConsoleExecutor> m_consoleExecutor;
 			std::unique_ptr<Planet> m_planet;
+			entt::handle m_atmosphereEntity;
 			entt::handle m_cameraEntity;
 			entt::handle m_planetParentEntity;
 			entt::handle m_skyboxEntity;
 			entt::handle m_sunLightEntity;
 			Nz::ImGuiPlugin* m_imgui;
 			Nz::EulerAnglesf m_cameraRotation;
+			AtmosphereScattering m_atmosphereSettings;
 			PlanetSettings m_planetSettings;
 			EscapeMenu* m_escapeMenu;
 			ImGuiContext* m_imguiContext;
