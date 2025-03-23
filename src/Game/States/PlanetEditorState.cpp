@@ -139,8 +139,8 @@ namespace tsom
 			{
 				case Nz::Keyboard::Scancode::Escape:
 				{
-					if (m_shouldFreeMouse)
-						m_shouldFreeMouse = false;
+					if (m_lockInputs)
+						m_lockInputs = false;
 					else if (m_escapeMenu->IsVisible())
 						m_escapeMenu->Hide();
 					else
@@ -152,7 +152,7 @@ namespace tsom
 
 				case Nz::Keyboard::Scancode::F1:
 				{
-					m_shouldFreeMouse = !m_shouldFreeMouse;
+					m_lockInputs = !m_lockInputs;
 					UpdateMouseLock();
 					break;
 				}
@@ -223,7 +223,7 @@ namespace tsom
 	{
 		WidgetState::Enter(fsm);
 
-		m_shouldFreeMouse = false;
+		m_lockInputs = false;
 
 		m_escapeMenu->Hide();
 
@@ -273,33 +273,36 @@ namespace tsom
 
 		auto& stateData = GetStateData();
 
-		float cameraSpeed = 5.f * elapsedTime.AsSeconds();
-		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::VKey::LShift))
-			cameraSpeed *= 10.f;
+		if (m_isMouseLocked)
+		{
+			float cameraSpeed = 5.f * elapsedTime.AsSeconds();
+			if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::VKey::LShift))
+				cameraSpeed *= 10.f;
 
-		auto& cameraNode = m_cameraEntity.get<Nz::NodeComponent>();
-		Nz::Vector3f cameraPos = cameraNode.GetPosition();
-		Nz::Quaternionf cameraRot = cameraNode.GetRotation();
+			auto& cameraNode = m_cameraEntity.get<Nz::NodeComponent>();
+			Nz::Vector3f cameraPos = cameraNode.GetPosition();
+			Nz::Quaternionf cameraRot = cameraNode.GetRotation();
 
-		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::W))
-			cameraPos += cameraRot * Nz::Vector3f::Forward() * cameraSpeed;
+			if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::W))
+				cameraPos += cameraRot * Nz::Vector3f::Forward() * cameraSpeed;
 
-		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::S))
-			cameraPos += cameraRot * Nz::Vector3f::Backward() * cameraSpeed;
+			if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::S))
+				cameraPos += cameraRot * Nz::Vector3f::Backward() * cameraSpeed;
 
-		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::A))
-			cameraPos += cameraRot * Nz::Vector3f::Left() * cameraSpeed;
+			if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::A))
+				cameraPos += cameraRot * Nz::Vector3f::Left() * cameraSpeed;
 
-		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::D))
-			cameraPos += cameraRot * Nz::Vector3f::Right() * cameraSpeed;
+			if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::D))
+				cameraPos += cameraRot * Nz::Vector3f::Right() * cameraSpeed;
 
-		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::Space))
-			cameraPos += Nz::Vector3f::Up() * cameraSpeed;
+			if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::Space))
+				cameraPos += Nz::Vector3f::Up() * cameraSpeed;
 
-		if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::LControl))
-			cameraPos += Nz::Vector3f::Down() * cameraSpeed;
+			if (Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::LControl))
+				cameraPos += Nz::Vector3f::Down() * cameraSpeed;
 
-		cameraNode.SetPosition(cameraPos);
+			cameraNode.SetPosition(cameraPos);
+		}
 
 		m_imgui->NewFrame(m_imguiContext, elapsedTime);
 
@@ -337,6 +340,7 @@ namespace tsom
 			AtmosphereScattering& atmosphereScattering = m_atmosphereEntity.get<AtmosphereScattering>();
 
 			ImGui::Text("Planet and sun parameters");
+			ImGui::Text("(drag or ctrl+click to set a value)");
 
 			float sunDir[] = { atmosphereScattering.sunDir.x, atmosphereScattering.sunDir.y, atmosphereScattering.sunDir.z };
 			if (ImGui::SliderFloat3("Sun direction", sunDir, -1.f, 1.f))
@@ -429,7 +433,7 @@ namespace tsom
 
 	void PlanetEditorState::UpdateMouseLock()
 	{
-		m_isMouseLocked = !m_shouldFreeMouse && !m_escapeMenu->IsVisible();
+		m_isMouseLocked = !m_lockInputs && !m_escapeMenu->IsVisible();
 
 		if (Nz::Window* window = GetStateData().window)
 			window->SetRelativeMouseMode(m_isMouseLocked);

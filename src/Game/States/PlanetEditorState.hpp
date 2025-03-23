@@ -84,7 +84,7 @@ namespace tsom
 			EscapeMenu* m_escapeMenu;
 			ImGuiContext* m_imguiContext;
 			bool m_isMouseLocked;
-			bool m_shouldFreeMouse;
+			bool m_lockInputs;
 	};
 }
 
