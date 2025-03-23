@@ -16,7 +16,6 @@ namespace tsom
 	{
 		Nz::Vector3f sunDir = Nz::Vector3f(0.852868497f, 0.5f, 0.150383770f);
 		Nz::Vector3f sunIntensity = Nz::Vector3f(40.f);
-		Nz::Vector3f planetPosition = Nz::Vector3f::Zero();
 		Nz::Vector3f planetDimensions = Nz::Vector3f(60.f);
 		float planetCornerRadius = 16.f;
 		float atmosphereMaxHeight = 192.f;
@@ -32,7 +31,7 @@ namespace tsom
 		float heightAbsorption = 30.f;
 		float absorptionFalloff = 3.5f;
 
-		Nz::Int32 primarySteps = 32;
+		Nz::Int32 primarySteps = 8;
 		Nz::Int32 lightSteps = 8;
 	};
 }
