@@ -12,8 +12,9 @@ struct AtmosphereScatteringData
 	sunIntensity: vec3[f32],
 
 	planetPosition: vec3[f32],
-	atmosphereRadius: f32,
-	planetRadius: f32,
+	planetDimensions: vec3[f32],
+	planetCornerRadius: f32,
+	atmosphereMaxHeight: f32,
 
 	// scattering coeffs
 	rayleighBeta: vec3[f32],   // rayleigh, affects the color of the sky
@@ -90,26 +91,27 @@ fn main(input: VertOut) -> FragOut
 		let atmosphere = passData.atmospheres[atmosphereIndex];
 
 		color = calculate_scattering(
-			cameraPos,                   // the position of the camera
-			viewVector,                  // the camera vector (ray direction of this pixel)
-			linearDepth,                 // max dist, essentially the scene depth
-			color,                       // scene color, the color of the current pixel being rendered
-			atmosphere.sunDir,           // light direction
-			atmosphere.sunIntensity,     // light intensity, 40 looks nice
-			atmosphere.planetPosition,   // position of the planet
-			atmosphere.planetRadius,     // radius of the planet in meters
-			atmosphere.atmosphereRadius, // radius of the atmosphere in meters
-			atmosphere.rayleighBeta,     // Rayleigh scattering coefficient
-			atmosphere.mieBeta,          // Mie scattering coefficient
-			atmosphere.absorptionBeta,   // Absorbtion coefficient
-			atmosphere.ambientBeta,      // ambient scattering, turned off for now. This causes the air to glow a bit when no light reaches it
-			atmosphere.mieScattering,    // Mie preferred scattering direction
-			atmosphere.rayleighHeight,   // Rayleigh scale height
-			atmosphere.mieHeight,        // Mie scale height
-			atmosphere.heightAbsorption, // the height at which the most absorption happens
-			atmosphere.absorptionFalloff,// how fast the absorption falls off from the absorption height 
-			atmosphere.primarySteps,     // steps in the ray direction 
-			atmosphere.lightSteps        // steps in the light direction
+			cameraPos,                      // the position of the camera
+			viewVector,                     // the camera vector (ray direction of this pixel)
+			linearDepth,                    // max dist, essentially the scene depth
+			color,                          // scene color, the color of the current pixel being rendered
+			atmosphere.sunDir,              // light direction
+			atmosphere.sunIntensity,        // light intensity, 40 looks nice
+			atmosphere.planetPosition,      // center of the planet
+			atmosphere.planetDimensions,    // planet box dimensions
+			atmosphere.planetCornerRadius,  // planet box corner radius
+			atmosphere.atmosphereMaxHeight, // max height of the atmosphere (for culling)
+			atmosphere.rayleighBeta,        // Rayleigh scattering coefficient
+			atmosphere.mieBeta,             // Mie scattering coefficient
+			atmosphere.absorptionBeta,      // Absorbtion coefficient
+			atmosphere.ambientBeta,         // ambient scattering, turned off for now. This causes the air to glow a bit when no light reaches it
+			atmosphere.mieScattering,       // Mie preferred scattering direction
+			atmosphere.rayleighHeight,      // Rayleigh scale height
+			atmosphere.mieHeight,           // Mie scale height
+			atmosphere.heightAbsorption,    // the height at which the most absorption happens
+			atmosphere.absorptionFalloff,   // how fast the absorption falls off from the absorption height 
+			atmosphere.primarySteps,        // steps in the ray direction 
+			atmosphere.lightSteps           // steps in the light direction
 		);	
 	}
 
@@ -118,6 +120,9 @@ fn main(input: VertOut) -> FragOut
 
 	return output;
 }
+
+const HEIGHT_SCALE = 64.0;
+const HEIGHT_SCALE_INV = 1.0 / HEIGHT_SCALE;
 
 // From https://www.shadertoy.com/view/wlBXWK
 /*
@@ -128,48 +133,35 @@ because the color that reaches the sample also changes due to scattering
 */
 fn calculate_scattering(
 	start: vec3[f32], 			// the start of the ray (the camera position)
-    dir: vec3[f32], 			// the direction of the ray (the camera vector)
-    max_dist: f32, 			    // the maximum distance the ray can travel (because something is in the way, like an object)
-    scene_color: vec3[f32],		// the color of the scene
-    light_dir: vec3[f32], 		// the direction of the light
-    light_intensity: vec3[f32],	// how bright the light is, affects the brightness of the atmosphere
-    planet_position: vec3[f32], // the position of the planet
-    planetRadius: f32, 	        // the ground dimensions of the planet
-    atmo_radius: f32, 			// the radius of the atmosphere
-    beta_ray: vec3[f32], 		// the amount rayleigh scattering scatters the colors (for earth: causes the blue atmosphere)
-    beta_mie: vec3[f32], 		// the amount mie scattering scatters colors
-    beta_absorption: vec3[f32], // how much air is absorbed
-    beta_ambient: vec3[f32],	// the amount of scattering that always occurs, cna help make the back side of the atmosphere a bit brighter
-    g: f32, 					// the direction mie scatters the light in (like a cone). closer to -1 means more towards a single direction
-    height_ray: f32, 			// how high do you have to go before there is no rayleigh scattering?
-    height_mie: f32, 			// the same, but for mie
-    height_absorption: f32,	    // the height at which the most absorption happens
-    absorption_falloff: f32,	// how fast the absorption falls off from the absorption height
-    steps_i: i32, 				// the amount of steps along the 'primary' ray, more looks better but slower
-    steps_l: i32 				// the amount of steps along the light ray, more looks better but slower
+	dir: vec3[f32], 			// the direction of the ray (the camera vector)
+	max_dist: f32, 			    // the maximum distance the ray can travel (because something is in the way, like an object)
+	scene_color: vec3[f32],		// the color of the scene
+	light_dir: vec3[f32], 		// the direction of the light
+	light_intensity: vec3[f32],	// how bright the light is, affects the brightness of the atmosphere
+	planet_position: vec3[f32], // the position of the planet
+	planet_dims: vec3[f32],     // the planet dimensions
+	planet_corner_radius: f32,  // the planet corner radius
+	atmosphereMaxHeight: f32,   // the atmosphere max height (starting from planet dimensions)
+	beta_ray: vec3[f32], 		// the amount rayleigh scattering scatters the colors (for earth: causes the blue atmosphere)
+	beta_mie: vec3[f32], 		// the amount mie scattering scatters colors
+	beta_absorption: vec3[f32], // how much air is absorbed
+	beta_ambient: vec3[f32],	// the amount of scattering that always occurs, cna help make the back side of the atmosphere a bit brighter
+	g: f32, 					// the direction mie scatters the light in (like a cone). closer to -1 means more towards a single direction
+	height_ray: f32, 			// how high do you have to go before there is no rayleigh scattering?
+	height_mie: f32, 			// the same, but for mie
+	height_absorption: f32,	    // the height at which the most absorption happens
+	absorption_falloff: f32,	// how fast the absorption falls off from the absorption height
+	steps_i: i32, 				// the amount of steps along the 'primary' ray, more looks better but slower
+	steps_l: i32 				// the amount of steps along the light ray, more looks better but slower
 ) -> vec3[f32] {
     // add an offset to the camera position, so that the atmosphere is in the correct position
     start -= planet_position;
     // calculate the start and end position of the ray, as a distance along the ray
-    // we do this with a ray sphere intersect
-    let a = dot(dir, dir);
-    let b = 2.0 * dot(dir, start);
-    let c = dot(start, start) - (atmo_radius * atmo_radius);
-    let d = (b * b) - 4.0 * a * c;
-    
-    // stop early if there is no intersect
-    if (d < 0.0) 
-		return scene_color;
-    
-    // calculate the ray length
-	let sqrt_d = sqrt(d);
-    let ray_length = vec2[f32](
-        max((-b - sqrt_d) / (2.0 * a), 0.0),
-        min((-b + sqrt_d) / (2.0 * a), max_dist)
-    );
+    // we do this with an AABB intersect
+	let ray_length = aabbIntersect(start, dir, planet_dims + atmosphereMaxHeight.xxx);
 
-    // if the ray did not hit the atmosphere, return a black color
-    if (ray_length.x > ray_length.y) 
+	// stop early if there is no intersect
+    if (ray_length.x > ray_length.y || ray_length.y < 0.0) 
 		return scene_color;
 
     // prevent the mie glow from appearing if there's an object in front of the camera
@@ -212,8 +204,8 @@ fn calculate_scattering(
         let pos_i = start + dir * ray_pos_i;
 
         // and how high we are above the surface
-        //let height_i = sdRoundBox(pos_i, planet_dims, planet_corner_radius);
-		let height_i = length(pos_i) - planetRadius;
+        let height_i = sdRoundBox(pos_i, planet_dims, planet_corner_radius);
+		//let height_i = length(pos_i) - planetRadius;
 
         // now calculate the density of the particles (both for rayleigh and mie)
         let density = vec3[f32](exp(-height_i / scale_height), 0.0);
@@ -229,19 +221,14 @@ fn calculate_scattering(
         density *= step_size_i;
 
         // Add these densities to the optical depth, so that we know how many particles are on this ray.
-        opt_i += density;
+        opt_i += density * HEIGHT_SCALE;
 
         // Calculate the step size of the light ray.
-        // again with a ray sphere intersect
-        // a, b, c and d are already defined
-        a = dot(light_dir, light_dir);
-        b = 2.0 * dot(light_dir, pos_i);
-        c = dot(pos_i, pos_i) - (atmo_radius * atmo_radius);
-        d = (b * b) - 4.0 * a * c;
+		ray_length = aabbIntersect(pos_i, light_dir, planet_dims);
 
         // no early stopping, this one should always be inside the atmosphere
         // calculate the ray length
-        let step_size_l = (-b + sqrt(d)) / (2.0 * a * f32(steps_l));
+        let step_size_l = ray_length.y / f32(steps_l);
 
         // and the position along this ray
         // this time we are sure the ray is in the atmosphere, so set it to 0
@@ -258,8 +245,8 @@ fn calculate_scattering(
             let pos_l = pos_i + light_dir * ray_pos_l;
 
             // the heigth of the position
-            //let height_l = sdRoundBox(pos_l, planet_dims, planet_corner_radius);
-			let height_l = length(pos_l) - planetRadius;
+            let height_l = sdRoundBox(pos_l, planet_dims, planet_corner_radius);
+			//let height_l = length(pos_l) - planetRadius;
 
             // calculate the particle density, and add it
             // this is a bit verbose
@@ -271,7 +258,7 @@ fn calculate_scattering(
             density_l.z = (1.0 / (denom * denom + 1.0)) * density_l.x;
             
             // multiply the density by the step size
-            density_l *= step_size_l;
+            density_l *= step_size_l * HEIGHT_SCALE;
             
             // and add it to the total optical depth
             opt_l += density_l;
@@ -282,7 +269,7 @@ fn calculate_scattering(
         
         // Now we need to calculate the attenuation
         // this is essentially how much light reaches the current sample point due to scattering
-        let attn = exp(-beta_ray * (opt_i.x + opt_l.x) - beta_mie * (opt_i.y + opt_l.y) - beta_absorption * (opt_i.z + opt_l.z));
+        let attn = exp(-beta_ray * (opt_i.x + opt_l.x) * HEIGHT_SCALE_INV - beta_mie * (opt_i.y + opt_l.y) * HEIGHT_SCALE_INV - beta_absorption * (opt_i.z + opt_l.z));
 
         // accumulate the scattered light (how much will be scattered towards the camera)
         total_ray += density.x * attn;
@@ -293,46 +280,32 @@ fn calculate_scattering(
     }
     
     // calculate how much light can pass through the atmosphere
-    let opacity = exp(-(beta_mie * opt_i.y + beta_ray * opt_i.x + beta_absorption * opt_i.z));
+    let opacity = exp(-(beta_mie * opt_i.y + beta_ray * opt_i.x + beta_absorption * opt_i.z) * HEIGHT_SCALE_INV);
     
 	// calculate and return the final color
     return vec3[f32]((
-        	phase_ray * beta_ray * total_ray // rayleigh color
-       		+ phase_mie * beta_mie * total_mie // mie
+            phase_ray * beta_ray * total_ray // rayleigh color
+       	    + phase_mie * beta_mie * total_mie // mie
             + opt_i.x * beta_ambient // and ambient
     ) * light_intensity + scene_color * opacity); // now make sure the background is rendered correctly
-}
-
-/*
-A ray-sphere intersect
-This was previously used in the atmosphere as well, but it's only used for the planet intersect now, since the atmosphere has this
-ray sphere intersect built in
-*/
-
-fn ray_sphere_intersect(
-    start: vec3[f32], // starting position of the ray
-    dir: vec3[f32], // the direction of the ray
-    radius: f32 // and the sphere radius
-) -> vec2[f32] {
-    // ray-sphere intersection that assumes
-    // the sphere is centered at the origin.
-    // No intersection when result.x > result.y
-    let a = dot(dir, dir);
-    let b = 2.0 * dot(dir, start);
-    let c = dot(start, start) - (radius * radius);
-    let d = (b*b) - 4.0*a*c;
-    if (d < 0.0) 
-		return vec2[f32](100000.0, -100000.0);
-
-	let sqrt_d = sqrt(d);
-    return vec2[f32](
-        (-b - sqrt_d)/(2.0*a),
-        (-b + sqrt_d)/(2.0*a)
-    );
 }
 
 fn sdRoundBox(pos: vec3[f32], dims: vec3[f32], cornerRadius: f32) -> f32
 {
 	let q = abs(pos) - dims + cornerRadius.xxx;
 	return length(max(q, (0.0).xxx)) + min(max(q.x, max(q.y, q.z)), 0.0) - cornerRadius;
+}
+
+// https://iquilezles.org/articles/intersectors/
+fn aabbIntersect(rayOrigin: vec3[f32], rayDir: vec3[f32], boxSize: vec3[f32]) -> vec2[f32]
+{
+    let m = 1.0 / rayDir; // can precompute if traversing a set of aligned boxes
+    let n = m * rayOrigin;   // can precompute if traversing a set of aligned boxes
+    let k = abs(m) * boxSize;
+    let t1 = -n - k;
+    let t2 = -n + k;
+    let tN = max( max( t1.x, t1.y ), t1.z );
+    let tF = min( min( t2.x, t2.y ), t2.z );
+
+    return vec2[f32](tN, tF);
 }

@@ -307,7 +307,10 @@ namespace tsom
 		m_imgui->NewFrame(m_imguiContext, elapsedTime);
 
 		ImGui::NewFrame();
-		if (ImGui::Begin("Planet settings"))
+
+		ImGui::SetNextWindowPos({ 60, 60 }, ImGuiCond_FirstUseEver);
+
+		if (ImGui::Begin("Planet settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			ImGui::Text("Press F1 to lock/unlock mouse");
 			ImGui::Separator();
@@ -335,7 +338,9 @@ namespace tsom
 		}
 		ImGui::End();
 
-		if (ImGui::Begin("Atmosphere scattering settings"))
+		ImGui::SetNextWindowPos({ 60, 300 }, ImGuiCond_FirstUseEver);
+
+		if (ImGui::Begin("Atmosphere scattering settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			AtmosphereScattering& atmosphereScattering = m_atmosphereEntity.get<AtmosphereScattering>();
 
@@ -355,8 +360,12 @@ namespace tsom
 			if (ImGui::DragFloat3("Sun intensity", sunIntensity))
 				atmosphereScattering.sunIntensity = Nz::Vector3f(sunIntensity[0], sunIntensity[1], sunIntensity[2]);
 
-			ImGui::DragFloat("Atmosphere radius (limit)", &atmosphereScattering.atmosphereRadius);
-			ImGui::DragFloat("Planet radius", &atmosphereScattering.planetRadius);
+			float planetDimensions[] = { atmosphereScattering.planetDimensions.x, atmosphereScattering.planetDimensions.y, atmosphereScattering.planetDimensions.z };
+			if (ImGui::DragFloat3("Planet dimensions", planetDimensions, 1.0f, 0.0f, 200.f))
+				atmosphereScattering.planetDimensions = Nz::Vector3f(planetDimensions[0], planetDimensions[1], planetDimensions[2]);
+
+			ImGui::DragFloat("Atmosphere max height", &atmosphereScattering.atmosphereMaxHeight, 1.0f, 0.0f, 1000.f);
+			ImGui::DragFloat("Planet corner radius", &atmosphereScattering.planetCornerRadius, 1.0f, 0.0f, 128.f);
 
 			ImGui::Separator();
 
