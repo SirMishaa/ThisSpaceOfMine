@@ -196,9 +196,10 @@ namespace tsom
 		{
 			auto&& [planetPos, atmosphereScattering] = *rit;
 
+			Nz::AccessByOffset<Nz::Vector3f&>(atmosphereBasePtr, AtmosphereScatteringFields.planetPositionOffset) = planetPos;
+
 			Nz::AccessByOffset<Nz::Vector3f&>(atmosphereBasePtr, AtmosphereScatteringFields.sunDirOffset) = atmosphereScattering->sunDir;
 			Nz::AccessByOffset<Nz::Vector3f&>(atmosphereBasePtr, AtmosphereScatteringFields.sunIntensityOffset) = atmosphereScattering->sunIntensity;
-			Nz::AccessByOffset<Nz::Vector3f&>(atmosphereBasePtr, AtmosphereScatteringFields.planetPositionOffset) = atmosphereScattering->planetPosition;
 			Nz::AccessByOffset<Nz::Vector3f&>(atmosphereBasePtr, AtmosphereScatteringFields.planetDimensionsOffset) = atmosphereScattering->planetDimensions;
 			Nz::AccessByOffset<float&>(atmosphereBasePtr, AtmosphereScatteringFields.planetCornerRadiusOffset) = atmosphereScattering->planetCornerRadius;
 			Nz::AccessByOffset<float&>(atmosphereBasePtr, AtmosphereScatteringFields.atmosphereMaxHeightOffset) = atmosphereScattering->atmosphereMaxHeight;

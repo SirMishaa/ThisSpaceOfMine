@@ -84,6 +84,8 @@ namespace tsom
 	{
 		for (auto it = m_updateJobs.begin(); it != m_updateJobs.end(); ++it)
 		{
+			//FIXME: If applyFunc inserts a new job it will invalidate the iterators
+
 			UpdateJob& job = *it->second;
 			if (!job.HasFinished())
 				continue;

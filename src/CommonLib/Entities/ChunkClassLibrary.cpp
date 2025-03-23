@@ -18,9 +18,10 @@ namespace tsom
 	{
 		registry.RegisterClass(EntityClass("planet", {
 			{
-				EntityClass::Property { .name = "CellSize",     .type = EntityPropertyType::Float, .defaultValue = EntityPropertySingleValue<EntityPropertyType::Float>(1.f),   .isNetworked = true },
-				EntityClass::Property { .name = "CornerRadius", .type = EntityPropertyType::Float, .defaultValue = EntityPropertySingleValue<EntityPropertyType::Float>(16.f),  .isNetworked = true },
-				EntityClass::Property { .name = "Gravity",      .type = EntityPropertyType::Float, .defaultValue = EntityPropertySingleValue<EntityPropertyType::Float>(9.81f), .isNetworked = true }
+				EntityClass::Property { .name = "CellSize",             .type = EntityPropertyType::Float,       .defaultValue = EntityPropertySingleValue<EntityPropertyType::Float>(1.f),                      .isNetworked = true },
+				EntityClass::Property { .name = "CornerRadius",         .type = EntityPropertyType::Float,       .defaultValue = EntityPropertySingleValue<EntityPropertyType::Float>(16.f),                     .isNetworked = true },
+				EntityClass::Property { .name = "Gravity",              .type = EntityPropertyType::Float,       .defaultValue = EntityPropertySingleValue<EntityPropertyType::Float>(9.81f),                    .isNetworked = true },
+				EntityClass::Property { .name = "AtmospherePlanetDims", .type = EntityPropertyType::FloatSize3D, .defaultValue = EntityPropertySingleValue<EntityPropertyType::FloatSize3D>(Nz::Vector3f(60.f)), .isNetworked = true },
 			}
 		},
 		{
@@ -45,7 +46,7 @@ namespace tsom
 					planetComponent.planetEntities[layerIndex]->SetParentEntity(entity);
 				}
 
-				InitializeChunkEntity(entity);
+				InitializePlanetEntity(entity);
 			}
 		},
 		{}));
@@ -75,13 +76,17 @@ namespace tsom
 					shipComponent.shipEntities[layerIndex]->SetParentEntity(entity);
 				}
 
-				InitializeChunkEntity(entity);
+				InitializeShipEntity(entity);
 			}
 		},
 		{}));
 	}
 
-	void ChunkClassLibrary::InitializeChunkEntity(entt::handle entity)
+	void ChunkClassLibrary::InitializePlanetEntity(entt::handle entity)
+	{
+	}
+
+	void ChunkClassLibrary::InitializeShipEntity(entt::handle entity)
 	{
 	}
 

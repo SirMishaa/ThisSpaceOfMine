@@ -5,7 +5,9 @@
 #include <ClientLib/Entities/ClientChunkClassLibrary.hpp>
 #include <ClientLib/ClientBlockLibrary.hpp>
 #include <ClientLib/ClientChunkEntities.hpp>
+#include <CommonLib/AtmosphereScattering.hpp>
 #include <ClientLib/Components/ChunkNetworkMapComponent.hpp>
+#include <CommonLib/Components/ClassInstanceComponent.hpp>
 
 namespace tsom
 {
@@ -14,7 +16,18 @@ namespace tsom
 	{
 	}
 
-	void ClientChunkClassLibrary::InitializeChunkEntity(entt::handle entity)
+	void ClientChunkClassLibrary::InitializePlanetEntity(entt::handle entity)
+	{
+		entity.emplace<ChunkNetworkMapComponent>();
+		auto& atmosphereScattering = entity.emplace<AtmosphereScattering>();
+
+		auto& entityInstance = entity.get<ClassInstanceComponent>();
+
+		atmosphereScattering.planetCornerRadius = entityInstance.GetProperty<EntityPropertyType::Float>("CornerRadius");
+		atmosphereScattering.planetDimensions = entityInstance.GetProperty<EntityPropertyType::FloatSize3D>("AtmospherePlanetDims");
+	}
+
+	void ClientChunkClassLibrary::InitializeShipEntity(entt::handle entity)
 	{
 		entity.emplace<ChunkNetworkMapComponent>();
 	}

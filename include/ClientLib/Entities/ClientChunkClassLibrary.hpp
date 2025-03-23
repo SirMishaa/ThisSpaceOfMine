@@ -20,7 +20,8 @@ namespace tsom
 			ClientChunkClassLibrary(Nz::ApplicationBase& app, const ClientBlockLibrary& blockLibrary);
 
 		private:
-			void InitializeChunkEntity(entt::handle entity) override;
+			void InitializePlanetEntity(entt::handle entity) override;
+			void InitializeShipEntity(entt::handle entity) override;
 			std::unique_ptr<ChunkEntities> SetupChunkEntities(Nz::EnttWorld& world, ChunkContainer& chunkContainer, std::size_t layerIndex) override;
 	};
 }
