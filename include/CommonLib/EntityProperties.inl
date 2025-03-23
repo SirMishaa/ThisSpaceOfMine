@@ -141,12 +141,6 @@ namespace tsom
 	}
 
 	template<EntityPropertyType P>
-	auto EntityPropertySingleValue<P>::operator*() && -> UnderlyingType&&
-	{
-		return std::move(value);
-	}
-
-	template<EntityPropertyType P>
 	auto EntityPropertySingleValue<P>::operator*() const & -> const UnderlyingType&
 	{
 		return value;
@@ -156,12 +150,6 @@ namespace tsom
 	EntityPropertySingleValue<P>::operator UnderlyingType& () &
 	{
 		return value;
-	}
-
-	template<EntityPropertyType P>
-	EntityPropertySingleValue<P>::operator UnderlyingType && () &&
-	{
-		return std::move(value);
 	}
 
 	template<EntityPropertyType P>
