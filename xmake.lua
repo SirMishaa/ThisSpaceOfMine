@@ -266,6 +266,7 @@ target("TSOMServer", function ()
 	add_headerfiles("src/Server/**.hpp", "src/Server/**.inl")
 	add_files("src/Server/**.cpp")
 	add_installfiles("serverconfig.lua.default", { prefixdir = "bin" })
+	add_installfiles("(database/**.lua)", { prefixdir = "bin" })
 	add_installfiles("(scripts/**.lua)", { prefixdir = "bin" })
 
 	add_rpathdirs("@executable_path")
