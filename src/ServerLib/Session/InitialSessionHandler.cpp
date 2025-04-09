@@ -113,15 +113,12 @@ namespace tsom
 			return FailAuth(AuthError::UpgradeRequired);
 		}
 
-		if (authRequest.gameVersion > GameVersion)
+		// Disallow more recent client than the server (except in dev mode for dev version)
+		if (authRequest.gameVersion > GameVersion && (!IsDevVersion() || authRequest.gameVersion != Nz::MaxValue<Nz::UInt32>()))
 		{
 			fmt::print(fg(fmt::color::red), "{0} authentication failed (version is more recent than server's)\n", login);
 			return FailAuth(AuthError::ServerIsOutdated);
 		}
-
-		// Make a special dev version
-		if (IsDevVersion())
-			authRequest.gameVersion = Nz::MaxValue();
 
 		NetworkSession* session = GetSession();
 		session->SetProtocolVersion(authRequest.gameVersion);

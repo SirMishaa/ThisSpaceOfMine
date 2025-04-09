@@ -122,7 +122,7 @@ namespace tsom
 			UpdateStatus(Nz::SimpleTextDrawer::Draw("Authenticating...", 36));
 
 			Packets::AuthRequest request;
-			request.gameVersion = GameVersion;
+			request.gameVersion = (IsDevVersion()) ? Nz::MaxValue() : GameVersion;
 			request.token = m_playerData;
 
 			m_serverSession->SendPacket(request);
