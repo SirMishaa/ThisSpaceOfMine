@@ -157,10 +157,17 @@ namespace tsom
 	void ServerInstance::LoadFromDatabase()
 	{
 		m_databaseEnvironments.clear();
-		m_serverDatabase.GetAllPlanets([&](Database::Planet&& planetData)
+		m_serverDatabase.GetAllPlanets([&, first = true](Database::Planet&& planetData) mutable
 		{
 			auto planetEnv = std::make_unique<ServerPlanetEnvironment>(*this, planetData.id, std::string(planetData.generatorName), planetData.seed, planetData.chunkCount, 1.f, planetData.cornerRadius);
-			SetDefaultSpawnpoint(planetEnv.get(), Nz::Vector3f::Up() * 100.f + Nz::Vector3f::Backward() * 5.f, Nz::Quaternionf::Identity());
+
+			// FIXME: Move default spawnpoint to database config
+			if (first)
+			{
+				SetDefaultSpawnpoint(planetEnv.get(), Nz::Vector3f::Up() * 100.f + Nz::Vector3f::Backward() * 5.f, Nz::Quaternionf::Identity());
+				first = false;
+			}
+
 			m_databaseEnvironments[planetData.id] = std::move(planetEnv);
 
 			return true;
