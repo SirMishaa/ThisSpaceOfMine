@@ -11,7 +11,7 @@ namespace tsom
 {
 	void DebugDrawBroadcaster::DrawLines(Nz::UInt64 hash, float duration, std::span<const Nz::UInt16> indices, std::span<const Nz::Vector3f> positions, const Nz::Color& color)
 	{
-		Packets::DebugDrawLineList debugDrawLineList;
+		Packets::S_DebugDrawLineList debugDrawLineList;
 		debugDrawLineList.uniqueHash = hash;
 		debugDrawLineList.color = color;
 		debugDrawLineList.duration = duration;

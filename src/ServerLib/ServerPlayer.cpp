@@ -108,7 +108,7 @@ namespace tsom
 
 			m_console->executor.OnError.Connect([this](ConsoleExecutor* /*executor*/, std::string_view error)
 			{
-				Packets::ConsoleOutput consoleOutputPacket;
+				Packets::S_ConsoleOutput consoleOutputPacket;
 				consoleOutputPacket.color = Nz::Color::Red();
 				consoleOutputPacket.output = std::string(error);
 
@@ -117,7 +117,7 @@ namespace tsom
 
 			m_console->executor.OnOutput.Connect([this](ConsoleExecutor* /*executor*/, std::string_view error)
 			{
-				Packets::ConsoleOutput consoleOutputPacket;
+				Packets::S_ConsoleOutput consoleOutputPacket;
 				consoleOutputPacket.color = Nz::Color::White();
 				consoleOutputPacket.output = std::string(error);
 
@@ -189,7 +189,7 @@ namespace tsom
 
 	void ServerPlayer::SendChatMessage(std::string chatMessage)
 	{
-		Packets::ChatMessage chatMessagePacket;
+		Packets::S_ChatMessage chatMessagePacket;
 		chatMessagePacket.message = std::move(chatMessage);
 
 		GetSession()->SendPacket(std::move(chatMessagePacket));

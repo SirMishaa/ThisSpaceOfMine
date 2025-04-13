@@ -32,26 +32,26 @@
 namespace tsom
 {
 	constexpr SessionHandler::SendAttributeTable s_packetAttributes = SessionHandler::BuildAttributeTable({
-		{ PacketIndex<Packets::ChatMessage>,             { .channel = 0, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::ChunkCreate>,             { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::ChunkDestroy>,            { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::ChunkReset>,              { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::ChunkUpdate>,             { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::ConsoleOutput>,           { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::DebugDrawLineList>,       { .channel = 0, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::EntitiesCreation>,        { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::EntitiesDelete>,          { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::EntitiesStateUpdate>,     { .channel = 1, .flags = Nz::ENetPacketFlag_Unreliable } },
-		{ PacketIndex<Packets::EntityEnvironmentUpdate>, { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::EntityProcedureCall>,     { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::EntityPropertiesUpdate>,    { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::EnvironmentCreate>,       { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::EnvironmentDestroy>,      { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::EnvironmentsUpdateOwner>, { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::GameData>,                { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::PlayerJoin>,              { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::PlayerLeave>,             { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::PlayerNameUpdate>,        { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_ChatMessage>,             { .channel = 0, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_ChunkCreate>,             { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_ChunkDestroy>,            { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_ChunkReset>,              { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_ChunkUpdate>,             { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_ConsoleOutput>,           { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_DebugDrawLineList>,       { .channel = 0, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_EntitiesCreation>,        { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_EntitiesDelete>,          { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_EntitiesStateUpdate>,     { .channel = 1, .flags = Nz::ENetPacketFlag_Unreliable } },
+		{ PacketIndex<Packets::S_EntityEnvironmentUpdate>, { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_EntityProcedureCall>,     { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_EntityPropertiesUpdate>,  { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_EnvironmentCreate>,       { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_EnvironmentDestroy>,      { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_EnvironmentsUpdateOwner>, { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_GameData>,                { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_PlayerJoin>,              { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_PlayerLeave>,             { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_PlayerNameUpdate>,        { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
 	});
 
 	PlayerSessionHandler::PlayerSessionHandler(NetworkSession* session, ServerPlayer* player) :
@@ -67,12 +67,12 @@ namespace tsom
 		m_player->Destroy();
 	}
 
-	void PlayerSessionHandler::HandlePacket(Packets::ExitShipControl&& exitShipControl)
+	void PlayerSessionHandler::HandlePacket(Packets::C_ExitShipControl&& exitShipControl)
 	{
 		m_player->GetCharacterController()->SetShipController(nullptr);
 	}
 
-	void PlayerSessionHandler::HandlePacket(Packets::Interact&& interact)
+	void PlayerSessionHandler::HandlePacket(Packets::C_Interact&& interact)
 	{
 		entt::handle entity;
 		if (!m_player->GetVisibilityHandler().GetEntityByNetworkId(interact.entityId, &entity))
@@ -94,7 +94,7 @@ namespace tsom
 		interactibleEntity->onInteraction(entity, m_player);
 	}
 
-	void PlayerSessionHandler::HandlePacket(Packets::MineBlock&& mineBlock)
+	void PlayerSessionHandler::HandlePacket(Packets::C_MineBlock&& mineBlock)
 	{
 		Chunk* chunk;
 		if (!m_player->GetVisibilityHandler().GetChunkByNetworkId(mineBlock.chunkId, nullptr, &chunk))
@@ -111,7 +111,7 @@ namespace tsom
 		chunk->UnlockWrite();
 	}
 
-	void PlayerSessionHandler::HandlePacket(Packets::PlaceBlock&& placeBlock)
+	void PlayerSessionHandler::HandlePacket(Packets::C_PlaceBlock&& placeBlock)
 	{
 		Chunk* chunk;
 		entt::handle entityOwner;
@@ -132,7 +132,7 @@ namespace tsom
 		chunk->UnlockWrite();
 	}
 
-	void PlayerSessionHandler::HandlePacket(Packets::SendChatMessage&& playerChat)
+	void PlayerSessionHandler::HandlePacket(Packets::C_SendChatMessage&& playerChat)
 	{
 		std::string_view message = static_cast<std::string_view>(playerChat.message);
 		if (message == "/respawn")
@@ -146,7 +146,7 @@ namespace tsom
 		{
 			m_player->GetCharacterController()->EnableFlying(!m_player->GetCharacterController()->IsFlying());
 
-			Packets::ChatMessage chatMessage;
+			Packets::S_ChatMessage chatMessage;
 			chatMessage.message = (m_player->GetCharacterController()->IsFlying()) ? "fly enabled" : "fly disabled";
 
 			GetSession()->SendPacket(std::move(chatMessage));
@@ -616,7 +616,7 @@ namespace tsom
 		m_player->GetServerInstance().BroadcastChatMessage(std::move(playerChat.message), m_player->GetPlayerIndex());
 	}
 
-	void PlayerSessionHandler::HandlePacket(Packets::SendConsoleCommand&& consoleCommand)
+	void PlayerSessionHandler::HandlePacket(Packets::C_SendConsoleCommand&& consoleCommand)
 	{
 		if (!m_player->HasPermission(PlayerPermission::Admin))
 			return;
@@ -624,7 +624,7 @@ namespace tsom
 		m_player->ExecuteConsoleCommand(consoleCommand.command);
 	}
 
-	void PlayerSessionHandler::HandlePacket(Packets::UpdatePlayerInputs&& playerInputs)
+	void PlayerSessionHandler::HandlePacket(Packets::C_UpdatePlayerInputs&& playerInputs)
 	{
 		m_player->PushInputs(playerInputs.inputs);
 	}

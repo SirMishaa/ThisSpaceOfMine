@@ -146,7 +146,7 @@ namespace tsom
 		auto& stateData = GetStateData();
 		if (stateData.connectionState)
 		{
-			Packets::AuthRequest::AnonymousPlayerData anonymousPlayer;
+			Packets::C_AuthRequest::AnonymousPlayerData anonymousPlayer;
 			anonymousPlayer.nickname = login;
 
 			stateData.connectionState->Connect(serverAddress, std::move(anonymousPlayer), shared_from_this());

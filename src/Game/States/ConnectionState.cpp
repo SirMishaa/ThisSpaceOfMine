@@ -24,7 +24,7 @@ namespace tsom
 		m_connectingLabel = CreateWidget<Nz::LabelWidget>();
 	}
 
-	void ConnectionState::Connect(const Nz::IpAddress& serverAddress, std::variant<Packets::AuthRequest::AuthenticatedPlayerData, Packets::AuthRequest::AnonymousPlayerData> playerData, std::shared_ptr<Nz::State> previousState)
+	void ConnectionState::Connect(const Nz::IpAddress& serverAddress, std::variant<Packets::C_AuthRequest::AuthenticatedPlayerData, Packets::C_AuthRequest::AnonymousPlayerData> playerData, std::shared_ptr<Nz::State> previousState)
 	{
 		// Don't allow connection while we're switching to game state
 		if (m_nextState)
@@ -63,7 +63,7 @@ namespace tsom
 		m_serverSession->SetProtocolVersion(IsDevVersion() ? Nz::MaxValue() : GameVersion);
 
 		ClientSessionHandler& sessionHandler = m_serverSession->SetupHandler<ClientSessionHandler>(*stateData.app, *stateData.world, *stateData.blockLibrary);
-		ConnectSignal(sessionHandler.OnAuthResponse, [this](const Packets::AuthResponse& authResponse)
+		ConnectSignal(sessionHandler.OnAuthResponse, [this](const Packets::S_AuthResponse& authResponse)
 		{
 			if (authResponse.authResult.IsOk())
 			{
@@ -121,7 +121,7 @@ namespace tsom
 
 			UpdateStatus(Nz::SimpleTextDrawer::Draw("Authenticating...", 36));
 
-			Packets::AuthRequest request;
+			Packets::C_AuthRequest request;
 			request.gameVersion = (IsDevVersion()) ? Nz::MaxValue() : GameVersion;
 			request.token = m_playerData;
 

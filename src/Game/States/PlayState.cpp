@@ -254,7 +254,7 @@ namespace tsom
 						auto& stateData = playState->GetStateData();
 						if (stateData.connectionState)
 						{
-							Packets::AuthRequest::AuthenticatedPlayerData playerData;
+							Packets::C_AuthRequest::AuthenticatedPlayerData playerData;
 							playerData.connectionToken = std::move(token);
 
 							stateData.connectionState->Connect(serverAddress, std::move(playerData), playState);

@@ -116,19 +116,19 @@ namespace tsom
 			}
 		}
 
-		void Serialize(PacketSerializer& serializer, AuthRequest& data)
+		void Serialize(PacketSerializer& serializer, C_AuthRequest& data)
 		{
 			serializer &= data.gameVersion;
 			if (data.gameVersion < BuildVersion(0, 4, 0)) //< can't use serializer.GetProtocolVersion() as its initialized after this packet
 			{
 				if (serializer.IsWriting())
 				{
-					auto& playerData = std::get<AuthRequest::AnonymousPlayerData>(data.token);
+					auto& playerData = std::get<C_AuthRequest::AnonymousPlayerData>(data.token);
 					serializer &= playerData.nickname;
 				}
 				else
 				{
-					auto& playerData = data.token.emplace<AuthRequest::AnonymousPlayerData>();
+					auto& playerData = data.token.emplace<C_AuthRequest::AnonymousPlayerData>();
 					serializer &= playerData.nickname;
 				}
 			}
@@ -136,11 +136,11 @@ namespace tsom
 			{
 				serializer.Serialize(data.token, Nz::Overloaded
 				{
-					[&](AuthRequest::AuthenticatedPlayerData& playerData)
+					[&](C_AuthRequest::AuthenticatedPlayerData& playerData)
 					{
 						Serialize(serializer, playerData.connectionToken);
 					},
-					[&](AuthRequest::AnonymousPlayerData& playerData)
+					[&](C_AuthRequest::AnonymousPlayerData& playerData)
 					{
 						serializer &= playerData.nickname;
 					}
@@ -148,7 +148,44 @@ namespace tsom
 			}
 		}
 
-		void Serialize(PacketSerializer& serializer, AuthResponse& data)
+		void Serialize(PacketSerializer& serializer, C_ExitShipControl& data)
+		{
+		}
+
+		void Serialize(PacketSerializer& serializer, C_Interact& data)
+		{
+			serializer &= data.entityId;
+		}
+
+		void Serialize(PacketSerializer& serializer, C_MineBlock& data)
+		{
+			serializer &= data.chunkId;
+			Helper::Serialize(serializer, data.voxelLoc);
+		}
+
+		void Serialize(PacketSerializer& serializer, C_PlaceBlock& data)
+		{
+			serializer &= data.chunkId;
+			Helper::Serialize(serializer, data.voxelLoc);
+			serializer &= data.newContent;
+		}
+
+		void Serialize(PacketSerializer& serializer, C_SendChatMessage& data)
+		{
+			serializer &= data.message;
+		}
+
+		void Serialize(PacketSerializer& serializer, C_SendConsoleCommand& data)
+		{
+			serializer &= data.command;
+		}
+
+		void Serialize(PacketSerializer& serializer, C_UpdatePlayerInputs& data)
+		{
+			Helper::Serialize(serializer, data.inputs);
+		}
+
+		void Serialize(PacketSerializer& serializer, S_AuthResponse& data)
 		{
 			serializer &= data.authResult;
 			if (data.authResult.IsOk())
@@ -157,7 +194,7 @@ namespace tsom
 			}
 		}
 
-		void Serialize(PacketSerializer& serializer, ChatMessage& data)
+		void Serialize(PacketSerializer& serializer, S_ChatMessage& data)
 		{
 			serializer &= data.message;
 
@@ -165,7 +202,7 @@ namespace tsom
 			serializer.Serialize(data.playerIndex);
 		}
 
-		void Serialize(PacketSerializer& serializer, ChunkCreate& data)
+		void Serialize(PacketSerializer& serializer, S_ChunkCreate& data)
 		{
 			serializer &= data.tickIndex;
 			serializer &= data.entityId;
@@ -179,14 +216,14 @@ namespace tsom
 			serializer &= data.cellSize;
 		}
 
-		void Serialize(PacketSerializer& serializer, ChunkDestroy& data)
+		void Serialize(PacketSerializer& serializer, S_ChunkDestroy& data)
 		{
 			serializer &= data.tickIndex;
 			serializer &= data.entityId;
 			serializer &= data.chunkId;
 		}
 
-		void Serialize(PacketSerializer& serializer, ChunkReset& data)
+		void Serialize(PacketSerializer& serializer, S_ChunkReset& data)
 		{
 			// FIXME: Handle endianness
 
@@ -228,7 +265,7 @@ namespace tsom
 			}
 		}
 
-		void Serialize(PacketSerializer& serializer, ChunkUpdate& data)
+		void Serialize(PacketSerializer& serializer, S_ChunkUpdate& data)
 		{
 			serializer &= data.tickIndex;
 			serializer &= data.entityId;
@@ -242,13 +279,13 @@ namespace tsom
 			}
 		}
 
-		void Serialize(PacketSerializer& serializer, ConsoleOutput& data)
+		void Serialize(PacketSerializer& serializer, S_ConsoleOutput& data)
 		{
 			serializer &= data.color;
 			serializer &= data.output;
 		}
 
-		void Serialize(PacketSerializer& serializer, DebugDrawLineList& data)
+		void Serialize(PacketSerializer& serializer, S_DebugDrawLineList& data)
 		{
 			serializer &= data.uniqueHash;
 			serializer &= data.environmentId;
@@ -258,7 +295,7 @@ namespace tsom
 			serializer &= data.vertices;
 		}
 
-		void Serialize(PacketSerializer& serializer, EntitiesCreation& data)
+		void Serialize(PacketSerializer& serializer, S_EntitiesCreation& data)
 		{
 			serializer &= data.tickIndex;
 
@@ -267,7 +304,7 @@ namespace tsom
 				Helper::Serialize(serializer, entity);
 		}
 
-		void Serialize(PacketSerializer& serializer, EntitiesDelete& data)
+		void Serialize(PacketSerializer& serializer, S_EntitiesDelete& data)
 		{
 			serializer &= data.tickIndex;
 
@@ -276,7 +313,7 @@ namespace tsom
 				serializer &= entityId;
 		}
 
-		void Serialize(PacketSerializer& serializer, EntitiesStateUpdate& data)
+		void Serialize(PacketSerializer& serializer, S_EntitiesStateUpdate& data)
 		{
 			serializer &= data.tickIndex;
 			serializer &= data.lastInputIndex;
@@ -299,21 +336,21 @@ namespace tsom
 			}
 		}
 
-		void Serialize(PacketSerializer& serializer, EntityEnvironmentUpdate& data)
+		void Serialize(PacketSerializer& serializer, S_EntityEnvironmentUpdate& data)
 		{
 			serializer &= data.tickIndex;
 			serializer &= data.entity;
 			serializer &= data.newEnvironmentId;
 		}
 
-		void Serialize(PacketSerializer& serializer, EntityProcedureCall& data)
+		void Serialize(PacketSerializer& serializer, S_EntityProcedureCall& data)
 		{
 			serializer &= data.tickIndex;
 			serializer &= data.entity;
 			serializer &= data.rpcIndex;
 		}
 
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, EntityPropertiesUpdate& data)
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_EntityPropertiesUpdate& data)
 		{
 			serializer &= data.tickIndex;
 			serializer &= data.entity;
@@ -326,7 +363,7 @@ namespace tsom
 			}
 		}
 
-		void Serialize(PacketSerializer& serializer, EnvironmentCreate& data)
+		void Serialize(PacketSerializer& serializer, S_EnvironmentCreate& data)
 		{
 			serializer &= data.tickIndex;
 			serializer &= data.id;
@@ -337,13 +374,13 @@ namespace tsom
 				Helper::Serialize(serializer, entity);
 		}
 
-		void Serialize(PacketSerializer& serializer, EnvironmentDestroy& data)
+		void Serialize(PacketSerializer& serializer, S_EnvironmentDestroy& data)
 		{
 			serializer &= data.tickIndex;
 			serializer &= data.id;
 		}
 
-		void Serialize(PacketSerializer& serializer, EnvironmentsUpdateOwner& data)
+		void Serialize(PacketSerializer& serializer, S_EnvironmentsUpdateOwner& data)
 		{
 			serializer &= data.tickIndex;
 			serializer.SerializeArraySize(data.ownerUpdates);
@@ -354,11 +391,7 @@ namespace tsom
 			}
 		}
 
-		void Serialize(PacketSerializer& serializer, ExitShipControl& data)
-		{
-		}
-
-		void Serialize(PacketSerializer& serializer, GameData& data)
+		void Serialize(PacketSerializer& serializer, S_GameData& data)
 		{
 			serializer &= data.tickIndex;
 
@@ -371,18 +404,7 @@ namespace tsom
 			}
 		}
 
-		void Serialize(PacketSerializer& serializer, Interact& data)
-		{
-			serializer &= data.entityId;
-		}
-
-		void Serialize(PacketSerializer& serializer, MineBlock& data)
-		{
-			serializer &= data.chunkId;
-			Helper::Serialize(serializer, data.voxelLoc);
-		}
-
-		void Serialize(PacketSerializer& serializer, NetworkStrings& data)
+		void Serialize(PacketSerializer& serializer, S_NetworkStrings& data)
 		{
 			serializer &= data.startId;
 
@@ -391,44 +413,22 @@ namespace tsom
 				serializer &= string;
 		}
 
-		void Serialize(PacketSerializer& serializer, PlaceBlock& data)
-		{
-			serializer &= data.chunkId;
-			Helper::Serialize(serializer, data.voxelLoc);
-			serializer &= data.newContent;
-		}
-
-		void Serialize(PacketSerializer& serializer, PlayerLeave& data)
+		void Serialize(PacketSerializer& serializer, S_PlayerLeave& data)
 		{
 			serializer &= data.index;
 		}
 
-		void Serialize(PacketSerializer& serializer, PlayerJoin& data)
+		void Serialize(PacketSerializer& serializer, S_PlayerJoin& data)
 		{
 			serializer &= data.index;
 			serializer &= data.nickname;
 			serializer &= data.isAuthenticated;
 		}
 
-		void Serialize(PacketSerializer& serializer, PlayerNameUpdate& data)
+		void Serialize(PacketSerializer& serializer, S_PlayerNameUpdate& data)
 		{
 			serializer &= data.index;
 			serializer &= data.newNickname;
-		}
-
-		void Serialize(PacketSerializer& serializer, SendChatMessage& data)
-		{
-			serializer &= data.message;
-		}
-
-		void Serialize(PacketSerializer& serializer, SendConsoleCommand& data)
-		{
-			serializer &= data.command;
-		}
-
-		void Serialize(PacketSerializer& serializer, UpdatePlayerInputs& data)
-		{
-			Helper::Serialize(serializer, data.inputs);
 		}
 	}
 }

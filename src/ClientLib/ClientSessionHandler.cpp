@@ -55,14 +55,14 @@
 namespace tsom
 {
 	constexpr SessionHandler::SendAttributeTable s_packetAttributes = SessionHandler::BuildAttributeTable({
-		{ PacketIndex<Packets::AuthRequest>,        { .channel = 0, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::ExitShipControl>,    { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::Interact>,           { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::MineBlock>,          { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::PlaceBlock>,         { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::SendChatMessage>,    { .channel = 0, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::SendConsoleCommand>, { .channel = 0, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::UpdatePlayerInputs>, { .channel = 1, .flags = Nz::ENetPacketFlag_Unreliable } }
+		{ PacketIndex<Packets::C_AuthRequest>,        { .channel = 0, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::C_ExitShipControl>,    { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::C_Interact>,           { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::C_MineBlock>,          { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::C_PlaceBlock>,         { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::C_SendChatMessage>,    { .channel = 0, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::C_SendConsoleCommand>, { .channel = 0, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::C_UpdatePlayerInputs>, { .channel = 1, .flags = Nz::ENetPacketFlag_Unreliable } }
 	});
 
 	ClientSessionHandler::ClientSessionHandler(NetworkSession* session, Nz::ApplicationBase& app, Nz::EnttWorld& world, ClientBlockLibrary& blockLibrary) :
@@ -112,7 +112,7 @@ namespace tsom
 		return m_environments[environmentIndex]->rootEntity.try_get<Nz::NodeComponent>();
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::AuthResponse&& authResponse)
+	void ClientSessionHandler::HandlePacket(Packets::S_AuthResponse&& authResponse)
 	{
 		if (authResponse.authResult.IsOk())
 			m_ownPlayerIndex = authResponse.ownPlayerIndex;
@@ -120,7 +120,7 @@ namespace tsom
 		OnAuthResponse(authResponse);
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::ChatMessage&& chatMessage)
+	void ClientSessionHandler::HandlePacket(Packets::S_ChatMessage&& chatMessage)
 	{
 		if (chatMessage.playerIndex)
 		{
@@ -136,7 +136,7 @@ namespace tsom
 			OnChatMessage(chatMessage.message);
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::ChunkCreate&& chunkCreate)
+	void ClientSessionHandler::HandlePacket(Packets::S_ChunkCreate&& chunkCreate)
 	{
 		ChunkIndices indices(chunkCreate.chunkLocX, chunkCreate.chunkLocY, chunkCreate.chunkLocZ);
 
@@ -154,7 +154,7 @@ namespace tsom
 		chunkNetworkMap.chunkNetworkIndices.emplace(chunk, chunkCreate.chunkId);
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::ChunkDestroy&& chunkDestroy)
+	void ClientSessionHandler::HandlePacket(Packets::S_ChunkDestroy&& chunkDestroy)
 	{
 		assert(m_entities[chunkDestroy.entityId]);
 		entt::handle& entity = m_entities[chunkDestroy.entityId]->entity;
@@ -169,7 +169,7 @@ namespace tsom
 		chunkNetworkMap.chunkByNetworkIndex.erase(it);
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::ChunkReset&& chunkReset)
+	void ClientSessionHandler::HandlePacket(Packets::S_ChunkReset&& chunkReset)
 	{
 		assert(m_entities[chunkReset.entityId]);
 		entt::handle& entity = m_entities[chunkReset.entityId]->entity;
@@ -191,7 +191,7 @@ namespace tsom
 		chunk->UnlockWrite();
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::ChunkUpdate&& chunkUpdate)
+	void ClientSessionHandler::HandlePacket(Packets::S_ChunkUpdate&& chunkUpdate)
 	{
 		assert(m_entities[chunkUpdate.entityId]);
 		entt::handle& entity = m_entities[chunkUpdate.entityId]->entity;
@@ -206,23 +206,23 @@ namespace tsom
 		chunk->UnlockWrite();
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::ConsoleOutput&& consoleOutput)
+	void ClientSessionHandler::HandlePacket(Packets::S_ConsoleOutput&& consoleOutput)
 	{
 		OnConsoleOutput(consoleOutput.color, consoleOutput.output);
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::DebugDrawLineList&& debugDrawLineList)
+	void ClientSessionHandler::HandlePacket(Packets::S_DebugDrawLineList&& debugDrawLineList)
 	{
 		OnDebugDrawLineList(debugDrawLineList);
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::EntitiesCreation&& entitiesCreation)
+	void ClientSessionHandler::HandlePacket(Packets::S_EntitiesCreation&& entitiesCreation)
 	{
 		for (auto&& entityData : entitiesCreation.entities)
 			HandleEntityCreation(std::move(entityData));
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::EntitiesDelete&& entitiesDelete)
+	void ClientSessionHandler::HandlePacket(Packets::S_EntitiesDelete&& entitiesDelete)
 	{
 		for (auto entityId : entitiesDelete.entities)
 		{
@@ -242,7 +242,7 @@ namespace tsom
 		}
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::EntitiesStateUpdate&& stateUpdate)
+	void ClientSessionHandler::HandlePacket(Packets::S_EntitiesStateUpdate&& stateUpdate)
 	{
 		for (auto& entityStates : stateUpdate.entities)
 		{
@@ -272,7 +272,7 @@ namespace tsom
 			OnControlledEntityStateUpdate(stateUpdate.lastInputIndex, *stateUpdate.controlledCharacter);
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::EntityEnvironmentUpdate&& environmentUpdate)
+	void ClientSessionHandler::HandlePacket(Packets::S_EntityEnvironmentUpdate&& environmentUpdate)
 	{
 		assert(m_entities[environmentUpdate.entity]);
 		EntityData& entityData = *m_entities[environmentUpdate.entity];
@@ -301,7 +301,7 @@ namespace tsom
 		visualNode.SetParent(newEnvironment.visualRootEntity, true);
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::EntityProcedureCall&& procedureCall)
+	void ClientSessionHandler::HandlePacket(Packets::S_EntityProcedureCall&& procedureCall)
 	{
 		assert(m_entities[procedureCall.entity]);
 		EntityData& entityData = *m_entities[procedureCall.entity];
@@ -314,7 +314,7 @@ namespace tsom
 			fmt::print(fg(fmt::color::yellow), "client rpc {} has been triggered but has no callback\n", clientRpc.name);
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::EntityPropertiesUpdate&& propertyUpdate)
+	void ClientSessionHandler::HandlePacket(Packets::S_EntityPropertiesUpdate&& propertyUpdate)
 	{
 		assert(m_entities[propertyUpdate.entity]);
 		EntityData& entityData = *m_entities[propertyUpdate.entity];
@@ -324,7 +324,7 @@ namespace tsom
 			classInstance.UpdateProperty(propertyData.index, std::move(propertyData.value));
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::EnvironmentCreate&& envCreate)
+	void ClientSessionHandler::HandlePacket(Packets::S_EnvironmentCreate&& envCreate)
 	{
 		fmt::print("Created environment #{} (owned by {})\n", envCreate.id, envCreate.ownerEntity);
 		if (envCreate.id >= m_environments.size())
@@ -353,7 +353,7 @@ namespace tsom
 			HandleEntityCreation(std::move(entityData));
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::EnvironmentDestroy&& envDestroy)
+	void ClientSessionHandler::HandlePacket(Packets::S_EnvironmentDestroy&& envDestroy)
 	{
 		fmt::print("Destroyed environment #{}\n", envDestroy.id);
 		for (std::size_t entityIndex : m_environments[envDestroy.id]->entities.IterBits())
@@ -368,7 +368,7 @@ namespace tsom
 		m_environments[envDestroy.id].reset();
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::EnvironmentsUpdateOwner&& envOwnerUpdate)
+	void ClientSessionHandler::HandlePacket(Packets::S_EnvironmentsUpdateOwner&& envOwnerUpdate)
 	{
 		for (const auto& ownerUpdate : envOwnerUpdate.ownerUpdates)
 		{
@@ -389,7 +389,7 @@ namespace tsom
 		}
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::GameData&& gameData)
+	void ClientSessionHandler::HandlePacket(Packets::S_GameData&& gameData)
 	{
 		m_lastTickIndex = gameData.tickIndex;
 		for (auto& playerData : gameData.players)
@@ -403,12 +403,12 @@ namespace tsom
 		}
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::NetworkStrings&& networkStrings)
+	void ClientSessionHandler::HandlePacket(Packets::S_NetworkStrings&& networkStrings)
 	{
 		GetSession()->GetStringStore().FillStore(networkStrings.startId, std::move(networkStrings.strings));
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::PlayerJoin&& playerJoin)
+	void ClientSessionHandler::HandlePacket(Packets::S_PlayerJoin&& playerJoin)
 	{
 		if (playerJoin.index >= m_players.size())
 			m_players.resize(playerJoin.index + 1);
@@ -420,7 +420,7 @@ namespace tsom
 		OnPlayerJoined(playerInfo);
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::PlayerLeave&& playerLeave)
+	void ClientSessionHandler::HandlePacket(Packets::S_PlayerLeave&& playerLeave)
 	{
 		if (playerLeave.index >= m_players.size() || !m_players[playerLeave.index])
 		{
@@ -433,7 +433,7 @@ namespace tsom
 		m_players[playerLeave.index].reset();
 	}
 
-	void ClientSessionHandler::HandlePacket(Packets::PlayerNameUpdate&& playerNameUpdate)
+	void ClientSessionHandler::HandlePacket(Packets::S_PlayerNameUpdate&& playerNameUpdate)
 	{
 		if (playerNameUpdate.index >= m_players.size() || !m_players[playerNameUpdate.index])
 		{

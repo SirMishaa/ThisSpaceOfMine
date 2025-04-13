@@ -21,7 +21,7 @@ namespace tsom
 			InitialSessionHandler(ServerInstance& instance, NetworkSession* session);
 			~InitialSessionHandler() = default;
 
-			void HandlePacket(Packets::AuthRequest&& authRequest);
+			void HandlePacket(Packets::C_AuthRequest&& authRequest);
 
 			void OnDeserializationError(std::size_t packetIndex) override;
 			void OnUnexpectedPacket(std::size_t packetIndex) override;

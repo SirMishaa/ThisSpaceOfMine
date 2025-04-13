@@ -20,13 +20,13 @@ namespace tsom
 			PlayerSessionHandler(NetworkSession* session, ServerPlayer* player);
 			~PlayerSessionHandler();
 
-			void HandlePacket(Packets::ExitShipControl&& exitShipControl);
-			void HandlePacket(Packets::Interact&& interact);
-			void HandlePacket(Packets::MineBlock&& mineBlock);
-			void HandlePacket(Packets::PlaceBlock&& placeBlock);
-			void HandlePacket(Packets::SendChatMessage&& chatMessage);
-			void HandlePacket(Packets::SendConsoleCommand&& consoleCommand);
-			void HandlePacket(Packets::UpdatePlayerInputs&& playerInputs);
+			void HandlePacket(Packets::C_ExitShipControl&& exitShipControl);
+			void HandlePacket(Packets::C_Interact&& interact);
+			void HandlePacket(Packets::C_MineBlock&& mineBlock);
+			void HandlePacket(Packets::C_PlaceBlock&& placeBlock);
+			void HandlePacket(Packets::C_SendChatMessage&& chatMessage);
+			void HandlePacket(Packets::C_SendConsoleCommand&& consoleCommand);
+			void HandlePacket(Packets::C_UpdatePlayerInputs&& playerInputs);
 
 			void OnDeserializationError(std::size_t packetIndex) override;
 			void OnUnexpectedPacket(std::size_t packetIndex) override;

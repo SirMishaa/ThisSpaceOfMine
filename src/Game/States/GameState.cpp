@@ -176,7 +176,7 @@ namespace tsom
 			skyboxNode.SetParent(m_cameraEntity);
 		}
 
-		m_onControlledEntityStateUpdate.Connect(stateData.sessionHandler->OnControlledEntityStateUpdate, [&](InputIndex inputIndex, const Packets::EntitiesStateUpdate::ControlledCharacter& characterStates)
+		m_onControlledEntityStateUpdate.Connect(stateData.sessionHandler->OnControlledEntityStateUpdate, [&](InputIndex inputIndex, const Packets::S_EntitiesStateUpdate::ControlledCharacter& characterStates)
 		{
 			if (!m_controlledEntity)
 				return;
@@ -279,7 +279,7 @@ namespace tsom
 		m_chatBox = CreateWidget<Chatbox>();
 		m_chatBox->OnChatMessage.Connect([&](const std::string& message)
 		{
-			Packets::SendChatMessage messagePacket;
+			Packets::C_SendChatMessage messagePacket;
 			messagePacket.message = message;
 
 			stateData.networkSession->SendPacket(messagePacket);
@@ -312,7 +312,7 @@ namespace tsom
 
 		m_remoteConsole->OnCommand.Connect([this](std::string_view command)
 		{
-			Packets::SendConsoleCommand sendConsole;
+			Packets::C_SendConsoleCommand sendConsole;
 			sendConsole.command = command;
 
 			GetStateData().networkSession->SendPacket(sendConsole);
@@ -371,7 +371,7 @@ namespace tsom
 						m_chatBox->Close();
 					else if (m_isPilotingShip)
 					{
-						stateData.networkSession->SendPacket(Packets::ExitShipControl{});
+						stateData.networkSession->SendPacket(Packets::C_ExitShipControl{});
 						m_isPilotingShip = false;
 						m_crosshairEntity.get<Nz::GraphicsComponent>().Hide();
 					}
@@ -405,7 +405,7 @@ namespace tsom
 						{
 							auto& entityNetId = raycastHit->hitEntity.get<ClientEntityNetworkIndex>();
 
-							Packets::Interact interact;
+							Packets::C_Interact interact;
 							interact.entityId = entityNetId.networkIndex;
 
 							stateData.networkSession->SendPacket(interact);
@@ -517,7 +517,7 @@ namespace tsom
 				m_remoteConsole->PrintMessage(std::string(message), color);
 		});
 
-		m_onDebugDrawLineList.Connect(stateData.sessionHandler->OnDebugDrawLineList, [this](const Packets::DebugDrawLineList& debugDrawLinePacket)
+		m_onDebugDrawLineList.Connect(stateData.sessionHandler->OnDebugDrawLineList, [this](const Packets::S_DebugDrawLineList& debugDrawLinePacket)
 		{
 			auto& debugDrawLines = m_debugDrawLines[debugDrawLinePacket.uniqueHash];
 			debugDrawLines.color = debugDrawLinePacket.color;
@@ -680,7 +680,7 @@ namespace tsom
 						if (event.button == Nz::Mouse::Left)
 						{
 							// Mine
-							Packets::MineBlock mineBlock;
+							Packets::C_MineBlock mineBlock;
 							mineBlock.chunkId = Nz::Retrieve(chunkNetworkMap.chunkNetworkIndices, &hitChunk);
 							mineBlock.voxelLoc.x = hitCoordinates->blockIndices.x;
 							mineBlock.voxelLoc.y = hitCoordinates->blockIndices.y;
@@ -702,7 +702,7 @@ namespace tsom
 							if (!chunk)
 								return;
 
-							Packets::PlaceBlock placeBlock;
+							Packets::C_PlaceBlock placeBlock;
 							placeBlock.chunkId = Nz::Retrieve(chunkNetworkMap.chunkNetworkIndices, chunk);
 							placeBlock.voxelLoc.x = innerCoordinates.x;
 							placeBlock.voxelLoc.y = innerCoordinates.y;
@@ -1140,7 +1140,7 @@ namespace tsom
 
 	void GameState::SendInputs()
 	{
-		Packets::UpdatePlayerInputs inputPacket;
+		Packets::C_UpdatePlayerInputs inputPacket;
 		inputPacket.inputs.index = m_nextInputIndex++;
 
 		if (m_isMouseLocked)

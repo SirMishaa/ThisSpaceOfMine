@@ -23,7 +23,7 @@ namespace tsom
 			inline NetworkStringStore();
 			~NetworkStringStore() = default;
 
-			Packets::NetworkStrings BuildPacket(Nz::UInt32 firstId = 0) const;
+			Packets::S_NetworkStrings BuildPacket(Nz::UInt32 firstId = 0) const;
 
 			inline void Clear();
 

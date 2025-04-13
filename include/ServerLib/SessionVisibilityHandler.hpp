@@ -110,7 +110,7 @@ namespace tsom
 
 				entt::handle entityOwner;
 				Chunk* chunk;
-				Packets::ChunkUpdate chunkUpdatePacket;
+				Packets::S_ChunkUpdate chunkUpdatePacket;
 			};
 
 			struct ChunkWithPos

@@ -55,7 +55,7 @@ namespace tsom
 
 	void ServerInstance::BroadcastChatMessage(std::string message, std::optional<PlayerIndex> senderIndex)
 	{
-		Packets::ChatMessage chatMessage;
+		Packets::S_ChatMessage chatMessage;
 		chatMessage.message = std::move(message);
 		chatMessage.playerIndex = senderIndex;
 
@@ -274,7 +274,7 @@ namespace tsom
 		// Handle disconnected players
 		for (std::size_t playerIndex : m_disconnectedPlayers.IterBits())
 		{
-			Packets::PlayerLeave playerLeave;
+			Packets::S_PlayerLeave playerLeave;
 			playerLeave.index = Nz::SafeCast<PlayerIndex>(playerIndex);
 
 			ForEachPlayer([&](ServerPlayer& serverPlayer)
@@ -296,7 +296,7 @@ namespace tsom
 		// Handle renaming
 		for (auto&& [playerIndex, newNickname] : m_pendingPlayerRename)
 		{
-			Packets::PlayerNameUpdate playerNameUpdate;
+			Packets::S_PlayerNameUpdate playerNameUpdate;
 			playerNameUpdate.index = Nz::SafeCast<PlayerIndex>(playerIndex);
 			playerNameUpdate.newNickname = std::move(newNickname);
 
@@ -314,7 +314,7 @@ namespace tsom
 			ServerPlayer* player = m_players.RetrieveFromIndex(playerIndex);
 
 			// Send a packet to existing players telling them someone just arrived
-			Packets::PlayerJoin playerJoined;
+			Packets::S_PlayerJoin playerJoined;
 			playerJoined.index = Nz::SafeCast<PlayerIndex>(playerIndex);
 			playerJoined.nickname = player->GetNickname();
 			playerJoined.isAuthenticated = player->IsAuthenticated();
@@ -332,7 +332,7 @@ namespace tsom
 			// Send a packet to the new player containing all existing players
 			if (NetworkSession* session = player->GetSession())
 			{
-				Packets::GameData gameData;
+				Packets::S_GameData gameData;
 				gameData.tickIndex = m_tickIndex;
 
 				ForEachPlayer([&](ServerPlayer& serverPlayer)

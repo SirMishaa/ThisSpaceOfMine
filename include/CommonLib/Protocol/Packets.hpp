@@ -99,7 +99,7 @@ namespace tsom
 			TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, VoxelLocation& data);
 		}
 
-		struct AuthRequest
+		struct C_AuthRequest
 		{
 			Nz::UInt32 gameVersion;
 
@@ -116,7 +116,16 @@ namespace tsom
 			std::variant<AuthenticatedPlayerData, AnonymousPlayerData> token;
 		};
 
-		struct AuthResponse
+		struct C_ExitShipControl
+		{
+		};
+
+		struct C_Interact
+		{
+			Helper::EntityId entityId;
+		};
+
+		struct S_AuthResponse
 		{
 			Nz::Result<void, AuthError> authResult = Nz::Err(AuthError::UpgradeRequired); // To allow type to be default constructed
 
@@ -124,19 +133,19 @@ namespace tsom
 			PlayerIndex ownPlayerIndex;
 		};
 
-		struct ChatMessage
+		struct S_ChatMessage
 		{
 			std::optional<PlayerIndex> playerIndex;
 			SecuredString<Constants::ChatMaxMessageLength> message;
 		};
 
-		struct ConsoleOutput
+		struct S_ConsoleOutput
 		{
 			Nz::Color color;
 			std::string output;
 		};
 
-		struct ChunkCreate
+		struct S_ChunkCreate
 		{
 			Nz::UInt16 tickIndex;
 			Helper::ChunkId chunkId;
@@ -150,14 +159,14 @@ namespace tsom
 			float cellSize;
 		};
 
-		struct ChunkDestroy
+		struct S_ChunkDestroy
 		{
 			Nz::UInt16 tickIndex;
 			Helper::ChunkId chunkId;
 			Helper::EntityId entityId;
 		};
 
-		struct ChunkReset
+		struct S_ChunkReset
 		{
 			Nz::UInt16 tickIndex;
 			Helper::ChunkId chunkId;
@@ -165,7 +174,35 @@ namespace tsom
 			std::vector<BlockIndex> content;
 		};
 
-		struct ChunkUpdate
+		struct C_MineBlock
+		{
+			Helper::ChunkId chunkId;
+			Helper::VoxelLocation voxelLoc;
+		};
+
+		struct C_PlaceBlock
+		{
+			Helper::ChunkId chunkId;
+			Helper::VoxelLocation voxelLoc;
+			Nz::UInt8 newContent;
+		};
+
+		struct C_SendChatMessage
+		{
+			SecuredString<Constants::ChatMaxPlayerMessageLength> message;
+		};
+
+		struct C_SendConsoleCommand
+		{
+			SecuredString<Constants::ConsoleMaxCommandLength> command;
+		};
+
+		struct C_UpdatePlayerInputs
+		{
+			PlayerInputs inputs;
+		};
+
+		struct S_ChunkUpdate
 		{
 			struct BlockUpdate
 			{
@@ -179,7 +216,7 @@ namespace tsom
 			std::vector<BlockUpdate> updates;
 		};
 
-		struct DebugDrawLineList
+		struct S_DebugDrawLineList
 		{
 			Nz::UInt64 uniqueHash = 0;
 			Helper::EnvironmentId environmentId;
@@ -189,19 +226,19 @@ namespace tsom
 			float duration;
 		};
 
-		struct EntitiesCreation
+		struct S_EntitiesCreation
 		{
 			Nz::UInt16 tickIndex;
 			std::vector<Helper::EntityData> entities;
 		};
 
-		struct EntitiesDelete
+		struct S_EntitiesDelete
 		{
 			Nz::UInt16 tickIndex;
 			std::vector<Helper::EntityId> entities;
 		};
 
-		struct EntitiesStateUpdate
+		struct S_EntitiesStateUpdate
 		{
 			struct ControlledCharacter
 			{
@@ -223,21 +260,21 @@ namespace tsom
 			std::vector<EntityData> entities;
 		};
 
-		struct EntityEnvironmentUpdate
+		struct S_EntityEnvironmentUpdate
 		{
 			Nz::UInt16 tickIndex;
 			Helper::EntityId entity;
 			Helper::EnvironmentId newEnvironmentId;
 		};
 
-		struct EntityProcedureCall
+		struct S_EntityProcedureCall
 		{
 			Nz::UInt16 tickIndex;
 			Helper::EntityId entity;
 			CompressedUnsigned<Nz::UInt32> rpcIndex;
 		};
 
-		struct EntityPropertiesUpdate
+		struct S_EntityPropertiesUpdate
 		{
 			struct Properties
 			{
@@ -250,7 +287,7 @@ namespace tsom
 			Nz::HybridVector<Properties, 8> properties;
 		};
 
-		struct EnvironmentCreate
+		struct S_EnvironmentCreate
 		{
 			Nz::UInt16 tickIndex;
 			Helper::EnvironmentId id;
@@ -258,13 +295,13 @@ namespace tsom
 			std::vector<Helper::EntityData> entities;
 		};
 
-		struct EnvironmentDestroy
+		struct S_EnvironmentDestroy
 		{
 			Nz::UInt16 tickIndex;
 			Helper::EnvironmentId id;
 		};
 
-		struct EnvironmentsUpdateOwner
+		struct S_EnvironmentsUpdateOwner
 		{
 			struct OwnerUpdate
 			{
@@ -276,16 +313,7 @@ namespace tsom
 			Nz::HybridVector<OwnerUpdate, 3> ownerUpdates;
 		};
 
-		struct ExitShipControl
-		{
-		};
-
-		struct Interact
-		{
-			Helper::EntityId entityId;
-		};
-
-		struct GameData
+		struct S_GameData
 		{
 			struct PlayerData
 			{
@@ -298,88 +326,61 @@ namespace tsom
 			Nz::UInt16 tickIndex;
 		};
 
-		struct MineBlock
-		{
-			Helper::ChunkId chunkId;
-			Helper::VoxelLocation voxelLoc;
-		};
-
-		struct NetworkStrings
+		struct S_NetworkStrings
 		{
 			CompressedUnsigned<Nz::UInt32> startId;
 			std::vector<SecuredString<1024>> strings;
 		};
 
-		struct PlaceBlock
-		{
-			Helper::ChunkId chunkId;
-			Helper::VoxelLocation voxelLoc;
-			Nz::UInt8 newContent;
-		};
-
-		struct PlayerLeave
+		struct S_PlayerLeave
 		{
 			PlayerIndex index;
 		};
 
-		struct PlayerJoin
+		struct S_PlayerJoin
 		{
 			PlayerIndex index;
 			SecuredString<Constants::PlayerMaxNicknameLength * 2> nickname;
 			bool isAuthenticated;
 		};
 
-		struct PlayerNameUpdate
+		struct S_PlayerNameUpdate
 		{
 			PlayerIndex index;
 			SecuredString<Constants::PlayerMaxNicknameLength * 2> newNickname;
 		};
 
-		struct SendChatMessage
-		{
-			SecuredString<Constants::ChatMaxPlayerMessageLength> message;
-		};
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, C_AuthRequest& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, C_ExitShipControl& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, C_Interact& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, C_MineBlock& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, C_PlaceBlock& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, C_SendChatMessage& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, C_SendConsoleCommand& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, C_UpdatePlayerInputs& data);
 
-		struct SendConsoleCommand
-		{
-			SecuredString<Constants::ConsoleMaxCommandLength> command;
-		};
-
-		struct UpdatePlayerInputs
-		{
-			PlayerInputs inputs;
-		};
-
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, AuthRequest& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, AuthResponse& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, ChatMessage& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, ChunkCreate& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, ChunkDestroy& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, ChunkReset& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, ChunkUpdate& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, ConsoleOutput& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, DebugDrawLineList& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, EntitiesCreation& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, EntitiesDelete& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, EntitiesStateUpdate& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, EntityEnvironmentUpdate& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, EntityProcedureCall& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, EntityPropertiesUpdate& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, EnvironmentCreate& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, EnvironmentDestroy& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, EnvironmentsUpdateOwner& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, ExitShipControl& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, GameData& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, Interact& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, MineBlock& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, NetworkStrings& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, PlaceBlock& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, PlayerLeave& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, PlayerJoin& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, PlayerNameUpdate& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, SendChatMessage& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, SendConsoleCommand& data);
-		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, UpdatePlayerInputs& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_AuthResponse& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_ChatMessage& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_ChunkCreate& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_ChunkDestroy& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_ChunkReset& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_ChunkUpdate& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_ConsoleOutput& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_DebugDrawLineList& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_EntitiesCreation& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_EntitiesDelete& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_EntitiesStateUpdate& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_EntityEnvironmentUpdate& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_EntityProcedureCall& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_EntityPropertiesUpdate& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_EnvironmentCreate& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_EnvironmentDestroy& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_EnvironmentsUpdateOwner& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_GameData& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_NetworkStrings& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_PlayerJoin& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_PlayerLeave& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_PlayerNameUpdate& data);
 	}
 }
 

@@ -276,7 +276,7 @@ namespace tsom
 			m_resetChunk.UnboundedReset(chunkIndex);
 			m_updatedChunk.UnboundedReset(chunkIndex);
 
-			Packets::ChunkDestroy chunkDestroyPacket;
+			Packets::S_ChunkDestroy chunkDestroyPacket;
 			chunkDestroyPacket.chunkId = Nz::SafeCast<ChunkId>(chunkIndex);
 			chunkDestroyPacket.entityId = entityIndex;
 			chunkDestroyPacket.tickIndex = tickIndex;
@@ -324,7 +324,7 @@ namespace tsom
 				if (m_resetChunk.UnboundedTest(chunkIndex))
 					return;
 
-				auto comp = [](Packets::ChunkUpdate::BlockUpdate& blockUpdate, const Nz::Vector3ui& indices)
+				auto comp = [](Packets::S_ChunkUpdate::BlockUpdate& blockUpdate, const Nz::Vector3ui& indices)
 				{
 					return Nz::Vector3ui(blockUpdate.voxelLoc.x, blockUpdate.voxelLoc.y, blockUpdate.voxelLoc.z) < indices;
 				};
@@ -352,7 +352,7 @@ namespace tsom
 			ChunkIndices chunkLocation = visibleChunk.chunk->GetIndices();
 			Nz::Vector3ui chunkSize = visibleChunk.chunk->GetSize();
 
-			Packets::ChunkCreate chunkCreatePacket;
+			Packets::S_ChunkCreate chunkCreatePacket;
 			chunkCreatePacket.chunkId = Nz::SafeCast<ChunkId>(chunkIndex);
 			chunkCreatePacket.chunkLocX = chunkLocation.x;
 			chunkCreatePacket.chunkLocY = chunkLocation.y;
@@ -403,7 +403,7 @@ namespace tsom
 			ChunkIndices chunkLocation = visibleChunk.chunk->GetIndices();
 			Nz::Vector3ui chunkSize = visibleChunk.chunk->GetSize();
 
-			Packets::ChunkReset chunkResetPacket;
+			Packets::S_ChunkReset chunkResetPacket;
 			chunkResetPacket.chunkId = Nz::SafeCast<ChunkId>(chunk.chunkIndex);
 			chunkResetPacket.entityId = Nz::Retrieve(m_entityIndices, visibleChunk.entityOwner);
 			chunkResetPacket.tickIndex = tickIndex;
@@ -443,7 +443,7 @@ namespace tsom
 	{
 		if (!m_createdEntities.empty())
 		{
-			Packets::EntitiesCreation creationPacket;
+			Packets::S_EntitiesCreation creationPacket;
 			creationPacket.tickIndex = tickIndex;
 
 			for (auto it = m_createdEntities.begin(); it != m_createdEntities.end(); ++it)
@@ -458,7 +458,7 @@ namespace tsom
 	{
 		if (!m_deletedEntities.empty())
 		{
-			Packets::EntitiesDelete deletePacket;
+			Packets::S_EntitiesDelete deletePacket;
 			deletePacket.tickIndex = tickIndex;
 
 			for (const entt::handle& handle : m_deletedEntities)
@@ -499,7 +499,7 @@ namespace tsom
 				EntityId entityIndex = Nz::Retrieve(m_entityIndices, envUpdate.newEntity);
 				EnvironmentId envIndex = Nz::Retrieve(m_environmentIndices, envUpdate.newEnvironment);
 
-				Packets::EntityEnvironmentUpdate envUpdatePacket;
+				Packets::S_EntityEnvironmentUpdate envUpdatePacket;
 				envUpdatePacket.tickIndex = tickIndex;
 				envUpdatePacket.entity = entityIndex;
 				envUpdatePacket.newEnvironmentId = envIndex;
@@ -520,7 +520,7 @@ namespace tsom
 
 				Nz::UInt32 propertyBits = propertyData.propertiesMask;
 
-				Packets::EntityPropertiesUpdate propertyUpdatePacket;
+				Packets::S_EntityPropertiesUpdate propertyUpdatePacket;
 				propertyUpdatePacket.entity = entityIndex;
 				propertyUpdatePacket.tickIndex = tickIndex;
 				propertyUpdatePacket.properties.reserve(Nz::CountBits(propertyBits));
@@ -554,7 +554,7 @@ namespace tsom
 
 				for (Nz::UInt32 rpcIndex : rpcIndices)
 				{
-					Packets::EntityProcedureCall procedureCallPacket;
+					Packets::S_EntityProcedureCall procedureCallPacket;
 					procedureCallPacket.entity = entityIndex;
 					procedureCallPacket.rpcIndex = rpcIndex;
 					procedureCallPacket.tickIndex = tickIndex;
@@ -569,7 +569,7 @@ namespace tsom
 
 	void SessionVisibilityHandler::DispatchEntitiesStates(Nz::UInt16 tickIndex)
 	{
-		Packets::EntitiesStateUpdate stateUpdate;
+		Packets::S_EntitiesStateUpdate stateUpdate;
 		stateUpdate.tickIndex = tickIndex;
 		stateUpdate.lastInputIndex = m_lastInputIndex;
 
@@ -643,7 +643,7 @@ namespace tsom
 						EntityId entityIndex = Nz::Retrieve(m_entityIndices, envUpdate.newEntity);
 						EnvironmentId envIndex = Nz::Retrieve(m_environmentIndices, envUpdate.newEnvironment);
 
-						Packets::EntityEnvironmentUpdate envUpdatePacket;
+						Packets::S_EntityEnvironmentUpdate envUpdatePacket;
 						envUpdatePacket.tickIndex = tickIndex;
 						envUpdatePacket.entity = entityIndex;
 						envUpdatePacket.newEnvironmentId = envIndex;
@@ -665,7 +665,7 @@ namespace tsom
 					}
 				}
 
-				Packets::EnvironmentDestroy destroyPacket;
+				Packets::S_EnvironmentDestroy destroyPacket;
 				destroyPacket.id = envId;
 				destroyPacket.tickIndex = tickIndex;
 				m_networkSession->SendPacket(destroyPacket);
@@ -699,7 +699,7 @@ namespace tsom
 				if (environment.owner)
 					ownerEntityIndex = Nz::Retrieve(m_entityIndices, environment.owner);
 
-				Packets::EnvironmentCreate createPacket;
+				Packets::S_EnvironmentCreate createPacket;
 				createPacket.id = Nz::SafeCast<Nz::UInt8>(envIndex);
 				createPacket.tickIndex = tickIndex;
 				createPacket.ownerEntity = ownerEntityIndex;
@@ -714,7 +714,7 @@ namespace tsom
 
 		if (!m_environmentOwnerUpdates.empty())
 		{
-			Packets::EnvironmentsUpdateOwner updateOwnerPacket;
+			Packets::S_EnvironmentsUpdateOwner updateOwnerPacket;
 			updateOwnerPacket.tickIndex = tickIndex;
 
 			for (EnvironmentOwnerUpdate& ownerUpdate : m_environmentOwnerUpdates)

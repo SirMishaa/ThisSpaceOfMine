@@ -18,8 +18,8 @@
 namespace tsom
 {
 	constexpr SessionHandler::SendAttributeTable s_packetAttributes = SessionHandler::BuildAttributeTable({
-		{ PacketIndex<Packets::AuthResponse>,   { .channel = 0, .flags = Nz::ENetPacketFlag::Reliable } },
-		{ PacketIndex<Packets::NetworkStrings>, { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } }
+		{ PacketIndex<Packets::S_AuthResponse>,   { .channel = 0, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_NetworkStrings>, { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } }
 	});
 
 	InitialSessionHandler::InitialSessionHandler(ServerInstance& instance, NetworkSession* session) :
@@ -36,14 +36,14 @@ namespace tsom
 		});
 	}
 
-	void InitialSessionHandler::HandlePacket(Packets::AuthRequest&& authRequest)
+	void InitialSessionHandler::HandlePacket(Packets::C_AuthRequest&& authRequest)
 	{
 		std::uint32_t majorVersion, minorVersion, patchVersion;
 		DecodeVersion(authRequest.gameVersion, majorVersion, minorVersion, patchVersion);
 
 		auto FailAuth = [&](AuthError err)
 		{
-			Packets::AuthResponse response;
+			Packets::S_AuthResponse response;
 			response.authResult = Nz::Err(err);
 
 			GetSession()->SendPacket(response);
@@ -56,14 +56,14 @@ namespace tsom
 		PlayerPermissionFlags permissions;
 		bool success = std::visit(Nz::Overloaded
 		{
-			[&](Packets::AuthRequest::AnonymousPlayerData& anonymousData) -> bool
+			[&](Packets::C_AuthRequest::AnonymousPlayerData& anonymousData) -> bool
 			{
 				login = std::move(anonymousData.nickname).Str();
 
 				fmt::print("{0} authenticated (anonymous)\n", login);
 				return true;
 			},
-			[&](Packets::AuthRequest::AuthenticatedPlayerData& authenticatedData) -> bool
+			[&](Packets::C_AuthRequest::AuthenticatedPlayerData& authenticatedData) -> bool
 			{
 				const std::array<Nz::UInt8, 32>& key = m_instance.GetConfig().connectionTokenEncryptionKey;
 
@@ -132,7 +132,7 @@ namespace tsom
 		if (!player)
 			return FailAuth(AuthError::InternalError);
 
-		Packets::AuthResponse response;
+		Packets::S_AuthResponse response;
 		response.authResult = Nz::Ok();
 		response.ownPlayerIndex = player->GetPlayerIndex();
 
@@ -145,11 +145,11 @@ namespace tsom
 
 	void InitialSessionHandler::OnDeserializationError(std::size_t packetIndex)
 	{
-		if (packetIndex == PacketIndex<Packets::AuthRequest>)
+		if (packetIndex == PacketIndex<Packets::C_AuthRequest>)
 		{
 			fmt::print("failed to deserialize Auth packet from peer {0}\n", GetSession()->GetPeerId());
 
-			Packets::AuthResponse response;
+			Packets::S_AuthResponse response;
 			response.authResult = Nz::Err(AuthError::ProtocolError);
 
 			GetSession()->SendPacket(response);
