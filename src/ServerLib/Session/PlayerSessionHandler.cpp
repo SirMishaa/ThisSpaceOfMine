@@ -49,6 +49,8 @@ namespace tsom
 		{ PacketIndex<Packets::S_EnvironmentDestroy>,      { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
 		{ PacketIndex<Packets::S_EnvironmentsUpdateOwner>, { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
 		{ PacketIndex<Packets::S_GameData>,                { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_PilotShip>,               { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
+		{ PacketIndex<Packets::S_PilotShipFinish>,         { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
 		{ PacketIndex<Packets::S_PlayerJoin>,              { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
 		{ PacketIndex<Packets::S_PlayerLeave>,             { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
 		{ PacketIndex<Packets::S_PlayerNameUpdate>,        { .channel = 1, .flags = Nz::ENetPacketFlag::Reliable } },
@@ -69,7 +71,7 @@ namespace tsom
 
 	void PlayerSessionHandler::HandlePacket(Packets::C_ExitShipControl&& exitShipControl)
 	{
-		m_player->GetCharacterController()->SetShipController(nullptr);
+		m_player->ExitPiloting();
 	}
 
 	void PlayerSessionHandler::HandlePacket(Packets::C_Interact&& interact)

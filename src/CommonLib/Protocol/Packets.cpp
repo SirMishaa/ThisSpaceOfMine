@@ -430,5 +430,14 @@ namespace tsom
 			serializer &= data.index;
 			serializer &= data.newNickname;
 		}
+
+		void Serialize(PacketSerializer& serializer, S_PilotShip& data)
+		{
+			serializer &= data.shipEntity;
+		}
+
+		void Serialize(PacketSerializer& serializer, S_PilotShipFinish& data)
+		{
+		}
 	}
 }

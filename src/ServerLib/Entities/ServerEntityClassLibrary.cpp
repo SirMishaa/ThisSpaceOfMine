@@ -58,6 +58,11 @@ namespace tsom
 				if (*healthValue == 0)
 				{
 					playerInstance.TriggerClientRpc(deathRpc, nullptr);
+
+					// FIXME: Make this automatic
+					auto& playerControlled = playerEntity.get<ServerPlayerControlledComponent>();
+					playerControlled.GetPlayer()->ExitPiloting();
+
 					playerEntity.destroy();
 				}
 			}

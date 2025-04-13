@@ -124,6 +124,10 @@ namespace tsom
 	{
 		state.new_usertype<ServerPlayerHandle>("Player",
 			sol::no_constructor,
+			"ExitPiloting", LuaFunction([](ServerPlayer& player)
+			{
+				return player.ExitPiloting();
+			}),
 			"GetController", LuaFunction(&ServerPlayer::GetCharacterController),
 			"GetEnvironment", LuaFunction([](ServerPlayer& player)
 			{
@@ -142,6 +146,11 @@ namespace tsom
 					return sol::nil;
 
 				return sol::make_object(L, uuidOpt->ToString());
+			}),
+			"PilotShip", LuaFunction([](ServerPlayer& player, sol::table shipEntity, const Nz::Quaternionf& rotation)
+			{
+				entt::handle entity = AssertScriptEntity(shipEntity);
+				return player.PilotShip(entity, rotation);
 			})
 		);
 	}

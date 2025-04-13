@@ -437,6 +437,21 @@ namespace tsom
 		DispatchEntitiesDeletion(tickIndex);
 		DispatchEntitiesCreation(tickIndex);
 		DispatchEntitiesStates(tickIndex);
+
+		if (m_nextPilotedShip)
+		{
+			if (*m_nextPilotedShip)
+			{
+				Packets::S_PilotShip pilotShip;
+				pilotShip.shipEntity = Nz::Retrieve(m_entityIndices, *m_nextPilotedShip);
+
+				m_networkSession->SendPacket(pilotShip);
+			}
+			else
+				m_networkSession->SendPacket(Packets::S_PilotShipFinish{});
+
+			m_nextPilotedShip = std::nullopt;
+		}
 	}
 
 	void SessionVisibilityHandler::DispatchEntitiesCreation(Nz::UInt16 tickIndex)

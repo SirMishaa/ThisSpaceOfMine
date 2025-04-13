@@ -408,6 +408,16 @@ namespace tsom
 		GetSession()->GetStringStore().FillStore(networkStrings.startId, std::move(networkStrings.strings));
 	}
 
+	void ClientSessionHandler::HandlePacket(Packets::S_PilotShip&& pilotShip)
+	{
+		OnShipControlUpdated(true);
+	}
+
+	void ClientSessionHandler::HandlePacket(Packets::S_PilotShipFinish&& pilotShipFinish)
+	{
+		OnShipControlUpdated(false);
+	}
+
 	void ClientSessionHandler::HandlePacket(Packets::S_PlayerJoin&& playerJoin)
 	{
 		if (playerJoin.index >= m_players.size())

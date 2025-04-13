@@ -68,6 +68,8 @@ namespace tsom
 			void HandlePacket(Packets::S_EnvironmentsUpdateOwner&& envOwnerUpdate);
 			void HandlePacket(Packets::S_GameData&& gameData);
 			void HandlePacket(Packets::S_NetworkStrings&& networkStrings);
+			void HandlePacket(Packets::S_PilotShip&& pilotShip);
+			void HandlePacket(Packets::S_PilotShipFinish&& pilotShipFinish);
 			void HandlePacket(Packets::S_PlayerJoin&& playerJoin);
 			void HandlePacket(Packets::S_PlayerLeave&& playerLeave);
 			void HandlePacket(Packets::S_PlayerNameUpdate&& playerNameUpdate);

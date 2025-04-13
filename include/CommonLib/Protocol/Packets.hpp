@@ -332,6 +332,15 @@ namespace tsom
 			std::vector<SecuredString<1024>> strings;
 		};
 
+		struct S_PilotShip
+		{
+			Helper::EntityId shipEntity;
+		};
+
+		struct S_PilotShipFinish
+		{
+		};
+
 		struct S_PlayerLeave
 		{
 			PlayerIndex index;
@@ -378,6 +387,8 @@ namespace tsom
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_EnvironmentsUpdateOwner& data);
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_GameData& data);
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_NetworkStrings& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_PilotShip& data);
+		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_PilotShipFinish& data);
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_PlayerJoin& data);
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_PlayerLeave& data);
 		TSOM_COMMONLIB_API void Serialize(PacketSerializer& serializer, S_PlayerNameUpdate& data);

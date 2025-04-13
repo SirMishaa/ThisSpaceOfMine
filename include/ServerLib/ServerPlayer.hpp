@@ -48,6 +48,8 @@ namespace tsom
 
 			void ExecuteConsoleCommand(std::string_view command);
 
+			void ExitPiloting();
+
 			inline const std::shared_ptr<CharacterController>& GetCharacterController();
 			inline EntityReference& GetControlledEntityReference();
 			inline const EntityReference& GetControlledEntityReference() const;
@@ -71,6 +73,8 @@ namespace tsom
 			inline bool IsAuthenticated() const;
 
 			inline bool IsInEnvironment(const ServerEnvironment* environment);
+
+			void PilotShip(EntityReference shipEntity, const Nz::Quaternionf& rotation);
 
 			void PushInputs(const PlayerInputs& inputs);
 

@@ -5,6 +5,7 @@
 #include <ServerLib/ServerPlayer.hpp>
 #include <CommonLib/CharacterController.hpp>
 #include <CommonLib/ConsoleExecutor.hpp>
+#include <CommonLib/ShipController.hpp>
 #include <CommonLib/Scripting/AssetScriptingLibrary.hpp>
 #include <CommonLib/Scripting/ChunkScriptingLibrary.hpp>
 #include <CommonLib/Scripting/MathScriptingLibrary.hpp>
@@ -128,6 +129,15 @@ namespace tsom
 		m_console->executor.Execute(command, "remote client");
 	}
 
+	void ServerPlayer::ExitPiloting()
+	{
+		if (!m_controlledEntity)
+			return;
+
+		m_controller->SetShipController(nullptr);
+		m_visibilityHandler.SetControlledShip({});
+	}
+
 	ServerEnvironment* ServerPlayer::GetControlledEntityEnvironment()
 	{
 		if (!m_controlledEntity)
@@ -142,6 +152,15 @@ namespace tsom
 			return nullptr;
 
 		return ServerEnvironment::GetEnvironment(m_controlledEntity);
+	}
+
+	void ServerPlayer::PilotShip(EntityReference shipEntity, const Nz::Quaternionf& rotation)
+	{
+		if (!m_controlledEntity)
+			return;
+
+		m_controller->SetShipController(std::make_shared<ShipController>(shipEntity, rotation));
+		m_visibilityHandler.SetControlledShip(shipEntity);
 	}
 
 	void ServerPlayer::PushInputs(const PlayerInputs& inputs)
@@ -166,6 +185,8 @@ namespace tsom
 	void ServerPlayer::Respawn(ServerEnvironment* environment, const Nz::Vector3f& position, const Nz::Quaternionf& rotation)
 	{
 		assert(IsInEnvironment(environment));
+
+		ExitPiloting();
 
 		if (m_controlledEntity)
 			m_controlledEntity->destroy();
