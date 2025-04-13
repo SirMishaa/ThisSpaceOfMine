@@ -32,6 +32,7 @@ namespace tsom
 			Nz::UInt32 CreatePlanetEntity(const Database::PlanetEntity& planetEntity);
 			void DeletePlanetEntity(Nz::UInt32 planetEntityId);
 
+			void GetAllConfigs(Nz::FunctionRef<bool(Database::Config&& /*config*/)> callback) const;
 			void GetAllPlanets(Nz::FunctionRef<bool(Database::Planet&& /*planet*/)> callback) const;
 			void GetAllPlanetEntities(Nz::UInt32 planetEntityId, Nz::FunctionRef<bool(Database::PlanetEntity&& /*planetEntities*/)> callback) const;
 			void GetAllPlanetLinks(Nz::FunctionRef<bool(Database::PlanetLink&& /*planetLink*/)> callback) const;
@@ -55,6 +56,9 @@ namespace tsom
 			struct PreparedStatements
 			{
 				PreparedStatements(SQLite::Database& database);
+
+				// config
+				SQLite::Statement getAllConfigQuery;
 
 				// planet entities
 				SQLite::Statement createPlanetEntityQuery;

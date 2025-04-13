@@ -16,6 +16,12 @@
 
 namespace tsom::Database
 {
+	struct Config
+	{
+		std::string_view name;
+		nlohmann::json value;
+	};
+
 	struct Planet
 	{
 		Nz::UInt32 id;

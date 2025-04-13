@@ -13,6 +13,7 @@
 namespace tsom
 {
 	ServerDatabase::PreparedStatements::PreparedStatements(SQLite::Database& database) :
+	getAllConfigQuery(database, "SELECT name, value FROM configs"),
 	createPlanetEntityQuery(database, "INSERT INTO planet_entities(unique_id, planet_id, class_name, class_version, position_x, position_y, position_z, rotation_x, rotation_y, rotation_z, rotation_w, properties, last_update) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime()) RETURNING id"),
 	deletePlanetEntityQuery(database, "DELETE FROM planet_entities WHERE id = ?"),
 	getAllPlanetEntitiesQuery(database, "SELECT id, unique_id, class_name, class_version, position_x, position_y, position_z, rotation_x, rotation_y, rotation_z, rotation_w, properties FROM planet_entities WHERE planet_id = ?"),
@@ -63,6 +64,20 @@ namespace tsom
 		m_preparedStatements->deletePlanetEntityQuery.bind(1, planetEntityId);
 
 		m_preparedStatements->deletePlanetEntityQuery.exec();
+	}
+
+	void ServerDatabase::GetAllConfigs(Nz::FunctionRef<bool(Database::Config&& /*config*/)> callback) const
+	{
+		NAZARA_DEFER({ m_preparedStatements->getAllConfigQuery.reset(); });
+		while (m_preparedStatements->getAllConfigQuery.executeStep())
+		{
+			Database::Config config;
+			config.name = m_preparedStatements->getAllConfigQuery.getColumn(0).getText();
+			config.value = nlohmann::json::parse(m_preparedStatements->getAllConfigQuery.getColumn(1).getText());
+
+			if (!callback(std::move(config)))
+				break;
+		}
 	}
 
 	void ServerDatabase::GetAllPlanets(Nz::FunctionRef<bool(Database::Planet&& /*planet*/)> callback) const
@@ -208,10 +223,20 @@ namespace tsom
 			{
 				fmt::print(fg(fmt::color::red), "[Database Migration] failed to execute migration script {0}: {1}", migrationScript, e.what());
 				transaction.rollback();
+
+				throw std::runtime_error("failed to migrate database");
 			}
 		}
 
-		transaction.commit();
+		try
+		{
+			transaction.commit();
+		}
+		catch (const std::exception& e)
+		{
+			fmt::print(fg(fmt::color::red), "[Database Migration] failed to commit migration: {0}", e.what());
+			throw std::runtime_error("failed to migrate database");
+		}
 	}
 
 	void ServerDatabase::PrepareQueries()

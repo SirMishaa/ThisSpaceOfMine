@@ -7,6 +7,7 @@
 #include <CommonLib/Entities/ChunkClassLibrary.hpp>
 #include <CommonLib/Scripting/MathScriptingLibrary.hpp>
 #include <CommonLib/Scripting/SharedScriptingLibrary.hpp>
+#include <ServerLib/ServerConfig.hpp>
 #include <ServerLib/ServerPlanetEnvironment.hpp>
 #include <ServerLib/Components/EnvironmentEnterTriggerComponent.hpp>
 #include <ServerLib/Components/EnvironmentProxyComponent.hpp>
@@ -156,20 +157,12 @@ namespace tsom
 
 	void ServerInstance::LoadFromDatabase()
 	{
+		ServerConfig databaseConfig = ServerConfig::Load(m_serverDatabase);
+
 		m_databaseEnvironments.clear();
-		m_serverDatabase.GetAllPlanets([&, smaller_id = Nz::MaxValue<Nz::UInt32>()](Database::Planet&& planetData) mutable
+		m_serverDatabase.GetAllPlanets([&](Database::Planet&& planetData)
 		{
-			auto planetEnv = std::make_unique<ServerPlanetEnvironment>(*this, planetData.id, std::string(planetData.generatorName), planetData.seed, planetData.chunkCount, 1.f, planetData.cornerRadius);
-
-			// FIXME: Move default spawnpoint to database config
-			if (planetData.id < smaller_id)
-			{
-				SetDefaultSpawnpoint(planetEnv.get(), Nz::Vector3f::Up() * 100.f + Nz::Vector3f::Backward() * 5.f, Nz::Quaternionf::Identity());
-				smaller_id = planetData.id;
-			}
-
-			m_databaseEnvironments[planetData.id] = std::move(planetEnv);
-
+			m_databaseEnvironments[planetData.id] = std::make_unique<ServerPlanetEnvironment>(*this, planetData.id, std::string(planetData.generatorName), planetData.seed, planetData.chunkCount, 1.f, planetData.cornerRadius);
 			return true;
 		});
 
@@ -203,6 +196,12 @@ namespace tsom
 			enterTrigger.updateRoot = true;
 			return true;
 		});
+
+		if (auto it = m_databaseEnvironments.find(databaseConfig.defaultSpawnpoint.planetId); it != m_databaseEnvironments.end())
+		{
+			ServerEnvironment* planetEnv = it->second.get();
+			SetDefaultSpawnpoint(planetEnv, databaseConfig.defaultSpawnpoint.position, databaseConfig.defaultSpawnpoint.rotation);
+		}
 	}
 
 	std::unique_ptr<Nz::EnttWorld> ServerInstance::RegisterEnvironment(ServerEnvironment* environment)
