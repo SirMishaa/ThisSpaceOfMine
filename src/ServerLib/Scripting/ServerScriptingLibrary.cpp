@@ -147,10 +147,11 @@ namespace tsom
 
 				return sol::make_object(L, uuidOpt->ToString());
 			}),
-			"PilotShip", LuaFunction([](ServerPlayer& player, sol::table shipEntity, const Nz::Quaternionf& rotation)
+			"PilotShip", LuaFunction([](ServerPlayer& player, sol::table shipEntity, sol::table shipExteriorEntity, const Nz::Quaternionf& referenceRotation)
 			{
 				entt::handle entity = AssertScriptEntity(shipEntity);
-				return player.PilotShip(entity, rotation);
+				entt::handle exteriorEntity = AssertScriptEntity(shipExteriorEntity);
+				return player.PilotShip(entity, exteriorEntity, referenceRotation);
 			})
 		);
 	}

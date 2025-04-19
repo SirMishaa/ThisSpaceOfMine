@@ -135,7 +135,7 @@ namespace tsom
 			return;
 
 		m_controller->SetShipController(nullptr);
-		m_visibilityHandler.SetControlledShip({});
+		m_visibilityHandler.SetControlledShip({}, {}, Nz::Quaternionf::Identity());
 	}
 
 	ServerEnvironment* ServerPlayer::GetControlledEntityEnvironment()
@@ -154,13 +154,13 @@ namespace tsom
 		return ServerEnvironment::GetEnvironment(m_controlledEntity);
 	}
 
-	void ServerPlayer::PilotShip(EntityReference shipEntity, const Nz::Quaternionf& rotation)
+	void ServerPlayer::PilotShip(EntityReference shipEntity, EntityReference shipExteriorEntity, const Nz::Quaternionf& referenceRotation)
 	{
 		if (!m_controlledEntity)
 			return;
 
-		m_controller->SetShipController(std::make_shared<ShipController>(shipEntity, rotation));
-		m_visibilityHandler.SetControlledShip(shipEntity);
+		m_controller->SetShipController(std::make_shared<ShipController>(shipExteriorEntity, referenceRotation));
+		m_visibilityHandler.SetControlledShip(shipEntity, shipExteriorEntity, referenceRotation);
 	}
 
 	void ServerPlayer::PushInputs(const PlayerInputs& inputs)

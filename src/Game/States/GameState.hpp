@@ -16,6 +16,7 @@
 #include <Nazara/Core/State.hpp>
 #include <Nazara/Core/Time.hpp>
 #include <Nazara/Core/TimerManager.hpp>
+#include <Nazara/Math/Box.hpp>
 #include <Nazara/Math/EulerAngles.hpp>
 #include <Nazara/Platform/WindowEventHandler.hpp>
 #include <Nazara/TextRenderer/RichTextDrawer.hpp>
@@ -79,12 +80,13 @@ namespace tsom
 			NazaraSlot(ClientSessionHandler, OnConsoleOutput, m_onConsoleOutput);
 			NazaraSlot(ClientSessionHandler, OnControlledEntityChanged, m_onControlledEntityChanged);
 			NazaraSlot(ClientSessionHandler, OnControlledEntityStateUpdate, m_onControlledEntityStateUpdate);
+			NazaraSlot(ClientSessionHandler, OnControlledShip, m_onControlledShip);
+			NazaraSlot(ClientSessionHandler, OnControlledShipFinished, m_onControlledShipFinished);
 			NazaraSlot(ClientSessionHandler, OnDebugDrawLineList, m_onDebugDrawLineList);
 			NazaraSlot(ClientSessionHandler, OnPlayerChatMessage, m_onPlayerChatMessage);
 			NazaraSlot(ClientSessionHandler, OnPlayerJoined, m_onPlayerJoined);
 			NazaraSlot(ClientSessionHandler, OnPlayerLeave, m_onPlayerLeave);
 			NazaraSlot(ClientSessionHandler, OnPlayerNameUpdate, m_onPlayerNameUpdate);
-			NazaraSlot(ClientSessionHandler, OnShipControlUpdated, m_onShipControlUpdated);
 			NazaraSlot(Nz::Canvas, OnUnhandledKeyPressed, m_onUnhandledKeyPressed);
 			NazaraSlot(Nz::Canvas, OnUnhandledKeyReleased, m_onUnhandledKeyReleased);
 			NazaraSlot(Nz::Canvas, OnUnhandledMouseButtonPressed, m_mouseButtonReleasedSlot);
@@ -127,15 +129,18 @@ namespace tsom
 			tsl::hopscotch_map<Nz::UInt64, DebugDrawLines> m_debugDrawLines;
 			entt::handle m_cameraEntity;
 			entt::handle m_controlledEntity;
+			entt::handle m_shipEntity;
 			entt::handle m_crosshairEntity;
 			entt::handle m_skyboxEntity;
 			entt::handle m_sunLightEntity;
+			Nz::Boxf m_shipAABB;
 			Nz::DegreeAnglef m_targetCameraFOV;
 			Nz::EulerAnglesf m_incomingCameraRotation;  //< Accumulated rotation from inputs (will be applied on inputs)
 			Nz::EulerAnglesf m_predictedCameraRotation; //< Rotation sent to the server but not yet acknowledged
 			Nz::EulerAnglesf m_remainingCameraRotation; //< Remaining rotation to send to the server (in case we rotate too fast)
 			Nz::Quaternionf m_currentShipRotation;
 			Nz::Quaternionf m_referenceRotation;
+			Nz::Quaternionf m_shipReferenceRotation;
 			Nz::Quaternionf m_targetShipRotation;
 			Nz::Quaternionf m_upCorrection;
 			Nz::Time m_tickAccumulator;
@@ -150,7 +155,6 @@ namespace tsom
 			Console* m_remoteConsole;
 			EscapeMenu* m_escapeMenu;
 			bool m_isMouseLocked;
-			bool m_isPilotingShip;
 			unsigned int m_cameraMode;
 	};
 }

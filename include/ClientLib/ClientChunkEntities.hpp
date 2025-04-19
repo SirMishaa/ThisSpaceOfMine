@@ -58,7 +58,7 @@ namespace tsom
 
 			std::shared_ptr<Nz::MaterialInstance> m_chunkMaterial;
 			std::shared_ptr<Nz::VertexDeclaration> m_chunkVertexDeclaration;
-			bool m_isCollisionGenerationEnabled;;
+			bool m_isCollisionGenerationEnabled;
 	};
 }
 

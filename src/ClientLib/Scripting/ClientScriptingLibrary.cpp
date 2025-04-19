@@ -6,13 +6,7 @@
 #include <ClientLib/ClientAssetLibraryAppComponent.hpp>
 #include <ClientLib/ClientSessionHandler.hpp>
 #include <CommonLib/Scripting/ScriptingUtils.hpp>
-#include <Nazara/Core/ApplicationBase.hpp>
-#include <Nazara/Core/FilesystemAppComponent.hpp>
-#include <Nazara/Graphics/MaterialInstance.hpp>
 #include <Nazara/Graphics/Model.hpp>
-#include <Nazara/Graphics/TextureAsset.hpp>
-#include <NazaraUtils/FunctionTraits.hpp>
-#include <fmt/format.h>
 #include <sol/state.hpp>
 
 SOL_BASE_CLASSES(Nz::Model, Nz::InstancedRenderable);
@@ -40,15 +34,10 @@ namespace tsom
 		RegisterScripts(state);
 	}
 
-
 	void ClientScriptingLibrary::RegisterClientSession(sol::state& state)
 	{
 		sol::table sessionLibrary = state.create_named_table("ClientSession");
 
-		sessionLibrary["EnableShipControl"] = LuaFunction([this](bool enable)
-		{
-			m_sessionHandler.EnableShipControl(enable);
-		});
 	}
 
 	void ClientScriptingLibrary::RegisterScripts(sol::state& state)

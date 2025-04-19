@@ -438,19 +438,24 @@ namespace tsom
 		DispatchEntitiesCreation(tickIndex);
 		DispatchEntitiesStates(tickIndex);
 
-		if (m_nextPilotedShip)
+		if (m_pilotedShipUpdate)
 		{
-			if (*m_nextPilotedShip)
+			if (m_pilotedShipUpdate->shipEntity)
 			{
+				if (!m_pilotedShipUpdate->shipExteriorEntity)
+					m_pilotedShipUpdate->shipExteriorEntity = m_pilotedShipUpdate->shipEntity;
+
 				Packets::S_PilotShip pilotShip;
-				pilotShip.shipEntity = Nz::Retrieve(m_entityIndices, *m_nextPilotedShip);
+				pilotShip.referenceRotation = m_pilotedShipUpdate->referenceRotation;
+				pilotShip.shipEntity = Nz::Retrieve(m_entityIndices, m_pilotedShipUpdate->shipEntity);
+				pilotShip.shipExteriorEntity = Nz::Retrieve(m_entityIndices, m_pilotedShipUpdate->shipExteriorEntity);
 
 				m_networkSession->SendPacket(pilotShip);
 			}
 			else
 				m_networkSession->SendPacket(Packets::S_PilotShipFinish{});
 
-			m_nextPilotedShip = std::nullopt;
+			m_pilotedShipUpdate = std::nullopt;
 		}
 	}
 

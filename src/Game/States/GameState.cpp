@@ -24,6 +24,7 @@
 #include <CommonLib/Components/ChunkComponent.hpp>
 #include <CommonLib/Components/ClassInstanceComponent.hpp>
 #include <CommonLib/Components/PlanetComponent.hpp>
+#include <CommonLib/Components/ShipComponent.hpp>
 #include <Game/GameConfigAppComponent.hpp>
 #include <Game/States/ConnectionState.hpp>
 #include <Game/States/StateData.hpp>
@@ -70,7 +71,6 @@ namespace tsom
 	m_tickDuration(Constants::TickDuration),
 	m_nextInputIndex(1),
 	m_isMouseLocked(true),
-	m_isPilotingShip(false),
 	m_cameraMode(0)
 	{
 		auto& stateData = GetStateData();
@@ -261,7 +261,7 @@ namespace tsom
 
 		m_mouseWheelMovedSlot.Connect(stateData.window->GetEventHandler().OnMouseWheelMoved, [&](const Nz::WindowEventHandler* /*eventHandler*/, const Nz::WindowEvent::MouseWheelEvent& event)
 		{
-			if (!m_isMouseLocked)
+			if (!m_isMouseLocked || !m_blockSelectionBar->IsVisible())
 				return;
 
 			if (event.delta < 0.f)
@@ -369,12 +369,8 @@ namespace tsom
 						m_remoteConsole->Hide();
 					else if (m_chatBox->IsOpen())
 						m_chatBox->Close();
-					else if (m_isPilotingShip)
-					{
+					else if (m_shipEntity)
 						stateData.networkSession->SendPacket(Packets::C_ExitShipControl{});
-						m_isPilotingShip = false;
-						m_crosshairEntity.get<Nz::GraphicsComponent>().Hide();
-					}
 					else
 						m_escapeMenu->Show();
 
@@ -593,10 +589,42 @@ namespace tsom
 			fmt::print("{0} renamed to {1}\n", playerInfo.nickname, newNickname);
 		});
 
-		m_onShipControlUpdated.Connect(stateData.sessionHandler->OnShipControlUpdated, [this](bool enable)
+		m_onControlledShip.Connect(stateData.sessionHandler->OnControlledShip, [this](entt::handle shipEntity, entt::handle shipExteriorEntity, const Nz::Quaternionf& referenceRotation)
 		{
-			m_isPilotingShip = enable;
-			m_crosshairEntity.get<Nz::GraphicsComponent>().Show(enable);
+			m_shipEntity = shipExteriorEntity;
+			bool isControllingShip = static_cast<bool>(m_shipEntity);
+
+			m_blockSelectionBar->Show(!isControllingShip);
+			m_crosshairEntity.get<Nz::GraphicsComponent>().Show(isControllingShip);
+
+			m_shipAABB = Nz::Boxf::Invalid();
+			m_shipReferenceRotation = referenceRotation;
+
+			if (auto* shipComponent = shipEntity.try_get<ShipComponent>())
+			{
+				for (auto& chunkEntitiesPtr : shipComponent->shipEntities)
+				{
+					if (!chunkEntitiesPtr)
+						continue;
+
+					chunkEntitiesPtr->ForEachChunk([&](const ChunkIndices& chunkIndices, entt::handle chunkEntity)
+					{
+						auto& chunkVisual = chunkEntity.get<VisualEntityComponent>();
+						auto& chunkGfx = chunkVisual.visualEntity.get<Nz::GraphicsComponent>();
+						if (m_shipAABB.IsValid())
+							m_shipAABB.ExtendTo(chunkGfx.GetAABB());
+						else
+							m_shipAABB = chunkGfx.GetAABB();
+					});
+				}
+			}
+		});
+
+		m_onControlledShipFinished.Connect(stateData.sessionHandler->OnControlledShipFinished, [this]
+		{
+			m_shipEntity = {};
+			m_blockSelectionBar->Show();
+			m_crosshairEntity.get<Nz::GraphicsComponent>().Show(false);
 		});
 
 		m_escapeMenu->OnDisconnect.Connect([this](EscapeMenu* /*menu*/)
@@ -657,7 +685,7 @@ namespace tsom
 
 			auto& stateData = GetStateData();
 
-			if (!m_isPilotingShip)
+			if (!m_shipEntity)
 			{
 				if (auto raycastHit = RaycastQuery())
 				{
@@ -816,7 +844,7 @@ namespace tsom
 			Nz::Quaternionf characterRot = characterNode.GetGlobalRotation();
 
 			Nz::EulerAnglesf predictedCameraRotation = m_predictedCameraRotation;
-			if (!m_isPilotingShip)
+			if (!m_shipEntity)
 			{
 				predictedCameraRotation.pitch = Nz::Clamp(predictedCameraRotation.pitch + m_incomingCameraRotation.pitch, -89.f, 89.f);
 				predictedCameraRotation.yaw += m_incomingCameraRotation.yaw;
@@ -839,7 +867,7 @@ namespace tsom
 					Nz::Quaternionf cameraRotation = environmentNode->GetGlobalRotation() * m_referenceRotation * Nz::Quaternionf(predictedCameraRotation);
 					cameraRotation.Normalize();
 
-					if (m_isPilotingShip)
+					if (m_shipEntity)
 						cameraRotation *= m_currentShipRotation;
 
 					cameraNode.SetRotation(cameraRotation);
@@ -856,22 +884,39 @@ namespace tsom
 				}
 
 				case 1:
-				{
-					Nz::Quaternionf cameraRotation = characterRot * Nz::EulerAnglesf(predictedCameraRotation.pitch, 0.f, 0.f);
-					cameraRotation.Normalize();
-
-					cameraNode.SetPosition(characterPos + characterRot * (Nz::Vector3f::Up() * 1.f) + cameraRotation * Nz::Vector3f::Backward() * 1.f);
-					cameraNode.SetRotation(cameraRotation);
-					break;
-				}
-
 				case 2:
 				{
-					Nz::Quaternionf cameraRotation = characterRot * Nz::EulerAnglesf(predictedCameraRotation.pitch, 180.f, 0.f);
-					cameraRotation.Normalize();
+					if (m_shipEntity)
+					{
+						auto& shipNode = m_shipEntity.get<Nz::NodeComponent>();
 
-					cameraNode.SetPosition(characterPos + characterRot * (Nz::Vector3f::Up() * 0.5f) + cameraRotation * Nz::Vector3f::Backward() * 1.f);
-					cameraNode.SetRotation(cameraRotation);
+						Nz::Quaternionf forwardRotation = m_shipReferenceRotation;
+						if (m_cameraMode == 2)
+							forwardRotation *= Nz::Quaternionf(Nz::TurnAnglef(0.5f), Nz::Vector3f::Up());
+
+						Nz::Quaternionf cameraRotation = shipNode.GetGlobalRotation() * forwardRotation;
+						cameraRotation *= m_currentShipRotation;
+						cameraRotation.Normalize();
+
+						cameraNode.SetPosition(shipNode.ToGlobalPosition(m_shipAABB.GetCenter()) + cameraRotation * (Nz::Vector3f::Backward() * 2.f + Nz::Vector3f::Up()) * m_shipAABB.GetRadius());
+						cameraNode.SetRotation(cameraRotation * Nz::Quaternionf(Nz::DegreeAnglef(-5.f), Nz::Vector3f::Right()));
+
+						auto& cameraComponent = m_cameraEntity.get<Nz::CameraComponent>();
+						Nz::DegreeAnglef cameraFov = cameraComponent.GetFOV();
+						if (!cameraFov.ApproxEqual(m_targetCameraFOV))
+						{
+							float factor = (m_targetCameraFOV == Constants::DefaultCameraFOV) ? 2.f * updateTime : 0.5f * updateTime;
+							cameraComponent.UpdateFOV(Nz::Lerp(cameraFov, m_targetCameraFOV, factor));
+						}
+					}
+					else
+					{
+						Nz::Quaternionf cameraRotation = characterRot * Nz::EulerAnglesf(predictedCameraRotation.pitch, (m_cameraMode == 1) ? 0.f : 180.f, 0.f);
+						cameraRotation.Normalize();
+
+						cameraNode.SetPosition(characterPos + characterRot * (Nz::Vector3f::Up() * 1.f) + cameraRotation * Nz::Vector3f::Backward() * 1.f);
+						cameraNode.SetRotation(cameraRotation);
+					}
 					break;
 				}
 
@@ -942,7 +987,7 @@ namespace tsom
 
 		// Raycast
 		entt::handle interactibleEntity;
-		if (m_cameraMode != 2 && !m_isPilotingShip)
+		if (m_cameraMode != 2 && !m_shipEntity)
 		{
 			if (auto raycastHit = RaycastQuery())
 			{
@@ -1040,7 +1085,7 @@ namespace tsom
 			m_debugOverlay->label->SetPosition({ 0.f, stateData.canvas->GetHeight() - m_debugOverlay->label->GetHeight() });
 		}
 
-		if (m_isPilotingShip)
+		if (m_shipEntity)
 		{
 			float factor = 2.f * updateTime;
 			m_currentShipRotation = Nz::Quaternionf::Slerp(m_currentShipRotation, m_targetShipRotation, factor);
@@ -1145,7 +1190,7 @@ namespace tsom
 
 		if (m_isMouseLocked)
 		{
-			if (m_isPilotingShip && !Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::LAlt))
+			if (m_shipEntity && !Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::LAlt))
 			{
 				PlayerInputs::Ship& shipInputs = inputPacket.inputs.data.emplace<PlayerInputs::Ship>();
 				shipInputs.moveForward = Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::W);
@@ -1178,7 +1223,7 @@ namespace tsom
 			else
 			{
 				PlayerInputs::Character& characterInputs = inputPacket.inputs.data.emplace<PlayerInputs::Character>();
-				if (!m_isPilotingShip)
+				if (!m_shipEntity)
 				{
 					characterInputs.crouch = Nz::Keyboard::IsKeyPressed(Nz::Keyboard::Scancode::LControl);
 					characterInputs.jump = Nz::Keyboard::IsKeyPressed(Nz::Keyboard::VKey::Space);

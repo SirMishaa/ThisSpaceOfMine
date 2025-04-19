@@ -99,11 +99,6 @@ namespace tsom
 		}
 	}
 
-	void ClientSessionHandler::EnableShipControl(bool enable)
-	{
-		OnShipControlUpdated(enable);
-	}
-
 	const Nz::Node* ClientSessionHandler::GetEnvironmentNode(std::size_t environmentIndex) const
 	{
 		if (environmentIndex > m_environments.size() || !m_environments[environmentIndex])
@@ -410,12 +405,16 @@ namespace tsom
 
 	void ClientSessionHandler::HandlePacket(Packets::S_PilotShip&& pilotShip)
 	{
-		OnShipControlUpdated(true);
+		assert(m_entities[pilotShip.shipEntity]);
+		entt::handle& entity = m_entities[pilotShip.shipEntity]->entity;
+		entt::handle& exteriorEntity = m_entities[pilotShip.shipExteriorEntity]->entity;
+
+		OnControlledShip(entity, exteriorEntity, pilotShip.referenceRotation);
 	}
 
 	void ClientSessionHandler::HandlePacket(Packets::S_PilotShipFinish&& pilotShipFinish)
 	{
-		OnShipControlUpdated(false);
+		OnControlledShipFinished();
 	}
 
 	void ClientSessionHandler::HandlePacket(Packets::S_PlayerJoin&& playerJoin)

@@ -42,8 +42,6 @@ namespace tsom
 			ClientSessionHandler(NetworkSession* session, Nz::ApplicationBase& app, Nz::EnttWorld& world, ClientBlockLibrary& blockLibrary);
 			~ClientSessionHandler();
 
-			void EnableShipControl(bool enable);
-
 			inline entt::handle GetControlledEntity() const;
 			const Nz::Node* GetEnvironmentNode(std::size_t environmentIndex) const;
 			inline const GravityController* GetGravityController(std::size_t environmentIndex) const;
@@ -81,12 +79,13 @@ namespace tsom
 			NazaraSignal(OnConsoleOutput, const Nz::Color& /*color*/, std::string_view /*message*/);
 			NazaraSignal(OnControlledEntityChanged, entt::handle /*newEntity*/);
 			NazaraSignal(OnControlledEntityStateUpdate, InputIndex /*lastInputIndex*/, const Packets::S_EntitiesStateUpdate::ControlledCharacter& /*characterData*/);
+			NazaraSignal(OnControlledShip, entt::handle /*controlledShip*/, entt::handle /*controlledShipExterior*/, const Nz::Quaternionf& /*referenceRotation*/);
+			NazaraSignal(OnControlledShipFinished);
 			NazaraSignal(OnDebugDrawLineList, const Packets::S_DebugDrawLineList& /*debugDrawLineList*/);
 			NazaraSignal(OnPlayerChatMessage, const std::string& /*message*/, const PlayerInfo& /*playerInfo*/);
 			NazaraSignal(OnPlayerJoined, const PlayerInfo& /*playerInfo*/);
 			NazaraSignal(OnPlayerLeave, const PlayerInfo& /*playerInfo*/);
 			NazaraSignal(OnPlayerNameUpdate, const PlayerInfo& /*playerInfo*/, const std::string& /*newNickname*/);
-			NazaraSignal(OnShipControlUpdated, bool /*isControllingShip*/);
 
 			static constexpr Packets::Helper::EntityId InvalidEntity = Nz::MaxValue();
 

@@ -51,7 +51,7 @@ namespace tsom
 			inline bool GetEntityByNetworkId(Packets::Helper::EntityId networkId, entt::handle* entity) const;
 			inline Packets::Helper::EnvironmentId GetEnvironmentId(ServerEnvironment* environment) const;
 
-			inline void SetControlledShip(entt::handle entity);
+			inline void SetControlledShip(entt::handle shipEntity, entt::handle shipExteriorEntity, const Nz::Quaternionf& referenceRotation);
 
 			inline void TriggerEntityRpc(entt::handle entity, Nz::UInt32 rpcIndex);
 
@@ -160,6 +160,13 @@ namespace tsom
 				ServerEnvironment* newEnvironment;
 			};
 
+			struct PilotShipUpdate
+			{
+				Nz::Quaternionf referenceRotation;
+				entt::handle shipEntity;
+				entt::handle shipExteriorEntity;
+			};
+
 			using ChunkNetworkMap = tsl::hopscotch_map<ChunkIndices, ChunkId>;
 
 			tsl::hopscotch_map<entt::handle, EntityId, HandlerHasher> m_entityIndices;
@@ -170,7 +177,7 @@ namespace tsom
 			tsl::hopscotch_map<const ServerEnvironment*, EnvironmentId> m_environmentIndices;
 			tsl::hopscotch_set<entt::handle, HandlerHasher> m_deletedEntities;
 			tsl::hopscotch_set<entt::handle, HandlerHasher> m_movingEntities;
-			std::optional<entt::handle> m_nextPilotedShip;
+			std::optional<PilotShipUpdate> m_pilotedShipUpdate;
 			std::shared_ptr<std::size_t> m_activeChunkUpdates;
 			std::vector<ServerEnvironment*> m_destroyedEnvironments;
 			std::vector<ChunkData> m_visibleChunks;

@@ -433,7 +433,9 @@ namespace tsom
 
 		void Serialize(PacketSerializer& serializer, S_PilotShip& data)
 		{
+			serializer &= data.referenceRotation;
 			serializer &= data.shipEntity;
+			serializer &= data.shipExteriorEntity;
 		}
 
 		void Serialize(PacketSerializer& serializer, S_PilotShipFinish& data)

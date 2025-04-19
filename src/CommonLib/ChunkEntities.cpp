@@ -68,6 +68,12 @@ namespace tsom
 		}
 	}
 
+	void ChunkEntities::ForEachChunk(Nz::FunctionRef<void(const ChunkIndices& chunkIndices, entt::handle chunkEntity)> callback)
+	{
+		for (auto it = m_chunkEntities.begin(); it != m_chunkEntities.end(); ++it)
+			callback(it.key(), it.value());
+	}
+
 	void ChunkEntities::SetParentEntity(entt::handle entity)
 	{
 		m_parentEntity = entity;

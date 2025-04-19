@@ -10,6 +10,7 @@
 #include <CommonLib/ChunkContainer.hpp>
 #include <Nazara/Core/Node.hpp>
 #include <NazaraUtils/FixedVector.hpp>
+#include <NazaraUtils/FunctionRef.hpp>
 #include <entt/entt.hpp>
 #include <tsl/hopscotch_map.h>
 #include <tsl/hopscotch_set.h>
@@ -33,6 +34,8 @@ namespace tsom
 			ChunkEntities(const ChunkEntities&) = delete;
 			ChunkEntities(ChunkEntities&&) = delete;
 			~ChunkEntities();
+
+			void ForEachChunk(Nz::FunctionRef<void(const ChunkIndices& chunkIndices, entt::handle chunkEntity)> callback);
 
 			void SetParentEntity(entt::handle entity);
 

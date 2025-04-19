@@ -51,9 +51,13 @@ namespace tsom
 		return Nz::Retrieve(m_environmentIndices, environment);
 	}
 
-	inline void SessionVisibilityHandler::SetControlledShip(entt::handle entity)
+	inline void SessionVisibilityHandler::SetControlledShip(entt::handle shipEntity, entt::handle shipExteriorEntity, const Nz::Quaternionf& referenceRotation)
 	{
-		m_nextPilotedShip = entity;
+		m_pilotedShipUpdate = PilotShipUpdate{
+			.referenceRotation = referenceRotation,
+			.shipEntity = shipEntity,
+			.shipExteriorEntity = shipExteriorEntity
+		};
 	}
 
 	inline void SessionVisibilityHandler::TriggerEntityRpc(entt::handle entity, Nz::UInt32 rpcIndex)

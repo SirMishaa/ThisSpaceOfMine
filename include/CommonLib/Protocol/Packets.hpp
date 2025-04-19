@@ -334,7 +334,9 @@ namespace tsom
 
 		struct S_PilotShip
 		{
+			Nz::Quaternionf referenceRotation;
 			Helper::EntityId shipEntity;
+			Helper::EntityId shipExteriorEntity;
 		};
 
 		struct S_PilotShipFinish
