@@ -3,8 +3,8 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <ServerLib/ServerConfig.hpp>
-#include <ServerLib/Database/ServerDatabase.hpp>
 #include <CommonLib/Utility/JsonSerialization.hpp>
+#include <ServerLib/Database/ServerDatabase.hpp>
 #include <fmt/color.h>
 
 namespace tsom

@@ -13,8 +13,8 @@
 #include <ServerLib/ServerInstance.hpp>
 #include <ServerLib/Components/DatabaseComponent.hpp>
 #include <ServerLib/Components/NetworkedComponent.hpp>
-#include <ServerLib/Systems/PlanetDatabaseSystem.hpp>
 #include <ServerLib/Systems/EnvironmentSwitchSystem.hpp>
+#include <ServerLib/Systems/PlanetDatabaseSystem.hpp>
 #include <Nazara/Core/ApplicationBase.hpp>
 #include <Nazara/Core/ByteArray.hpp>
 #include <Nazara/Core/ByteStream.hpp>

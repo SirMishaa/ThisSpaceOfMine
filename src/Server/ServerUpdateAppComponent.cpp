@@ -3,8 +3,8 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <Server/ServerUpdateAppComponent.hpp>
-#include <ServerLib/ServerInstanceAppComponent.hpp>
 #include <CommonLib/Utils.hpp>
+#include <ServerLib/ServerInstanceAppComponent.hpp>
 #include <Nazara/Core/ApplicationBase.hpp>
 #include <fmt/color.h>
 #include <fmt/std.h>
@@ -91,7 +91,7 @@ namespace tsom
 			semver::version currentGameVersion(GameMajorVersion, GameMinorVersion, GamePatchVersion);
 
 			auto& appUpdater = GetApp().GetComponent<UpdaterAppComponent>();
-			
+
 			auto& serverInstance = GetApp().GetComponent<ServerInstanceAppComponent>();
 			serverInstance.ForEachInstance([&](ServerInstance& serverInstance)
 			{

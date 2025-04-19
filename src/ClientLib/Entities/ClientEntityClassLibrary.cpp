@@ -4,7 +4,6 @@
 
 #include <ClientLib/Entities/ClientEntityClassLibrary.hpp>
 #include <entt/entt.hpp>
-#include <fmt/format.h>
 
 namespace tsom
 {
@@ -14,6 +13,5 @@ namespace tsom
 
 	void ClientEntityClassLibrary::OnPlayerRpc_Death(entt::handle entity)
 	{
-		fmt::print("YOU DIED\n");
 	}
 }

@@ -7,8 +7,8 @@
 #ifndef TSOM_SERVERLIB_COMPONENTS_DATABASECOMPONENT_HPP
 #define TSOM_SERVERLIB_COMPONENTS_DATABASECOMPONENT_HPP
 
-#include <NazaraUtils/Prerequisites.hpp>
 #include <Nazara/Core/Uuid.hpp>
+#include <NazaraUtils/Prerequisites.hpp>
 #include <optional>
 
 namespace tsom
