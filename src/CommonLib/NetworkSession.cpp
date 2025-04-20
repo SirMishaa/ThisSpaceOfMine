@@ -3,7 +3,6 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <CommonLib/NetworkSession.hpp>
-#include <CommonLib/NetworkSessionManager.hpp>
 #include <CommonLib/SessionHandler.hpp>
 
 namespace tsom
@@ -23,7 +22,6 @@ namespace tsom
 		assert(m_peerId != NetworkReactor::InvalidPeerId);
 
 		m_reactor.DisconnectPeer(m_peerId, 0, type);
-		m_sessionHandler = nullptr;
 	}
 
 	void NetworkSession::HandlePacket(Nz::ByteArray&& byteArray)
