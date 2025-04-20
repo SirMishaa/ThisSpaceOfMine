@@ -76,6 +76,10 @@ namespace tsom
 
 	void PlayerSessionHandler::HandlePacket(Packets::C_Interact&& interact)
 	{
+		entt::handle playerEntity = m_player->GetControlledEntityReference();
+		if (!playerEntity)
+			return; //< player is either dead or not spawned yet
+
 		entt::handle entity;
 		if (!m_player->GetVisibilityHandler().GetEntityByNetworkId(interact.entityId, &entity))
 			return;
@@ -98,6 +102,10 @@ namespace tsom
 
 	void PlayerSessionHandler::HandlePacket(Packets::C_MineBlock&& mineBlock)
 	{
+		entt::handle playerEntity = m_player->GetControlledEntityReference();
+		if (!playerEntity)
+			return; //< player is either dead or not spawned yet
+
 		Chunk* chunk;
 		if (!m_player->GetVisibilityHandler().GetChunkByNetworkId(mineBlock.chunkId, nullptr, &chunk))
 			return; //< ignore
@@ -115,6 +123,10 @@ namespace tsom
 
 	void PlayerSessionHandler::HandlePacket(Packets::C_PlaceBlock&& placeBlock)
 	{
+		entt::handle playerEntity = m_player->GetControlledEntityReference();
+		if (!playerEntity)
+			return; //< player is either dead or not spawned yet
+
 		Chunk* chunk;
 		entt::handle entityOwner;
 		if (!m_player->GetVisibilityHandler().GetChunkByNetworkId(placeBlock.chunkId, &entityOwner, &chunk))
@@ -146,6 +158,10 @@ namespace tsom
 		}
 		else if (message == "/fly")
 		{
+			entt::handle playerEntity = m_player->GetControlledEntityReference();
+			if (!playerEntity)
+				return; //< player is either dead or not spawned yet
+
 			m_player->GetCharacterController()->EnableFlying(!m_player->GetCharacterController()->IsFlying());
 
 			Packets::S_ChatMessage chatMessage;
@@ -156,6 +172,10 @@ namespace tsom
 		}
 		else if (message == "/spawnship" || message.starts_with("/spawnship "))
 		{
+			entt::handle playerEntity = m_player->GetControlledEntityReference();
+			if (!playerEntity)
+				return; //< player is either dead or not spawned yet
+
 			constexpr std::size_t commandLength = sizeof("/spawnship ") - 1;
 
 			int slot = 0;
@@ -174,13 +194,6 @@ namespace tsom
 					m_player->SendChatMessage("slot must lie in [0;3[");
 					return;
 				}
-			}
-
-			entt::handle playerEntity = m_player->GetControlledEntityReference();
-			if (!playerEntity)
-			{
-				spdlog::warn("player {} tried to spawn ship but has no entity", m_player->GetNickname());
-				return;
 			}
 
 			ServerInstance& serverInstance = m_player->GetServerInstance();
@@ -282,9 +295,10 @@ namespace tsom
 
 			ServerInstance& serverInstance = m_player->GetServerInstance();
 			ServerEnvironment* currentEnvironment = ServerEnvironment::GetEnvironment(playerEntity);
+			if (currentEnvironment->GetType() != ServerEnvironmentType::Planet)
+				return;
 
-			// Bad temporary code
-			ServerPlanetEnvironment* planetEnvironment = dynamic_cast<ServerPlanetEnvironment*>(currentEnvironment);
+			ServerPlanetEnvironment* planetEnvironment = static_cast<ServerPlanetEnvironment*>(currentEnvironment);
 			if (!planetEnvironment)
 				return;
 
