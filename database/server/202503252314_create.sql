@@ -23,8 +23,10 @@ SELECT 1,
        5,
        5,
        16,
-       9.8 WHERE NOT EXISTS (
-    SELECT 1 FROM planets WHERE id = 1
+       9.8
+WHERE NOT EXISTS (SELECT 1
+                  FROM planets
+                  WHERE id = 1
 );
 
 CREATE TABLE "planet_chunks" (
