@@ -6,8 +6,8 @@
 #include <NazaraUtils/Endianness.hpp>
 #include <sodium.h>
 #include <cppcodec/base64_rfc4648.hpp>
-#include <fmt/format.h>
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 #include <cassert>
 
 namespace tsom

@@ -24,8 +24,8 @@
 #include <Nazara/Core/TaskSchedulerAppComponent.hpp>
 #include <Nazara/Core/Components/NodeComponent.hpp>
 #include <Nazara/Physics3D/Systems/Physics3DSystem.hpp>
-#include <fmt/color.h>
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 #include <charconv>
 #include <numeric>
 
@@ -83,13 +83,13 @@ namespace tsom
 		ServerInteractibleComponent* interactibleEntity = entity.try_get<ServerInteractibleComponent>();
 		if (!interactibleEntity || !interactibleEntity->isEnabled)
 		{
-			fmt::print("blocked interact request on non-interactible entity {} from player {}\n", entt::to_integral(entity.entity()), m_player->GetNickname());
+			spdlog::warn("blocked interact request on non-interactible entity {} from player {}", entt::to_integral(entity.entity()), m_player->GetNickname());
 			return;
 		}
 
 		if (!interactibleEntity->onInteraction)
 		{
-			fmt::print("entity {} has no interaction callback\n", entt::to_integral(entity.entity()));
+			spdlog::warn("entity {} has no interaction callback", entt::to_integral(entity.entity()));
 			return;
 		}
 
@@ -179,7 +179,7 @@ namespace tsom
 			entt::handle playerEntity = m_player->GetControlledEntityReference();
 			if (!playerEntity)
 			{
-				fmt::print(stderr, "player {} tried to spawn ship but has no entity", m_player->GetNickname());
+				spdlog::warn("player {} tried to spawn ship but has no entity", m_player->GetNickname());
 				return;
 			}
 
@@ -188,7 +188,7 @@ namespace tsom
 			ServerEnvironment* currentEnvironment = m_player->GetControlledEntityEnvironment();
 			if (currentEnvironment != m_player->GetRootEnvironment())
 			{
-				fmt::print(stderr, "player {} tried to spawn ship but their entity is not part of their root environment", m_player->GetNickname());
+				spdlog::warn("player {} tried to spawn ship but their entity is not part of their root environment", m_player->GetNickname());
 				return;
 			}
 
@@ -217,7 +217,7 @@ namespace tsom
 			{
 				if (!player || !playerEntity)
 				{
-					fmt::print(stderr, "player tried to spawn ship disconnected before the database answer", player->GetNickname());
+					spdlog::warn("player tried to spawn ship disconnected before the database answer", player->GetNickname());
 					return;
 				}
 
@@ -239,14 +239,14 @@ namespace tsom
 						}
 						catch (const std::exception& e)
 						{
-							fmt::print(fg(fmt::color::red), "failed to parse ship data json: {}\n", e.what());
+							spdlog::error("failed to parse ship data json: {}", e.what());
 							player->SendChatMessage("failed to load ship (an internal error occurred)");
 							return;
 						}
 
 						if (auto result = shipEnv->Load(dataDoc); !result)
 						{
-							fmt::print(fg(fmt::color::red), "failed to parse ship data json: {}\n", result.GetError());
+							spdlog::error("failed to parse ship data json: {}", result.GetError());
 							player->SendChatMessage("failed to load ship (an internal error occurred)");
 							return;
 						}
@@ -257,7 +257,7 @@ namespace tsom
 					ServerEnvironment* currentEnvironment = player->GetControlledEntityEnvironment();
 					if (currentEnvironment != player->GetRootEnvironment())
 					{
-						fmt::print(stderr, "player {} tried to spawn ship but their entity is not part of their root environment (after database request)", player->GetNickname());
+						spdlog::error("player {} tried to spawn ship but their entity is not part of their root environment (after database request)", player->GetNickname());
 						return;
 					}
 
@@ -268,7 +268,7 @@ namespace tsom
 				}
 				else
 				{
-					fmt::print(fg(fmt::color::red), "failed to parse ship data json: (code {}) {}\n", resultCode, body);
+					spdlog::error("failed to parse ship data json: (code {}) {}", resultCode, body);
 					player->SendChatMessage("failed to load ship (an internal error occurred)");
 				}
 			});
@@ -298,7 +298,7 @@ namespace tsom
 			if (Chunk* chunk = planet.GetChunk(chunkIndices))
 			{
 				planet.GenerateChunk(blockLibrary, *chunk, 42, Nz::Vector3ui(5));
-				fmt::print("regenerated chunk {};{};{}\n", chunkIndices.x, chunkIndices.y, chunkIndices.z);
+				spdlog::info("regenerated chunk {};{};{}", chunkIndices.x, chunkIndices.y, chunkIndices.z);
 			}
 			return;
 		}
@@ -573,7 +573,7 @@ namespace tsom
 							BlockIndices blockIndices = playerPlanet->GetBlockIndices(chunkIndices, *coords);
 							playerPlanet->GeneratePlatform(blockLibrary, dir, blockIndices);
 
-							fmt::print("generated platform at {};{};{}\n", blockIndices.x, blockIndices.y, blockIndices.z);
+							spdlog::info("generated platform at {};{};{}", blockIndices.x, blockIndices.y, blockIndices.z);
 						}
 					}
 				}
@@ -633,19 +633,19 @@ namespace tsom
 
 	void PlayerSessionHandler::OnDeserializationError(std::size_t packetIndex)
 	{
-		fmt::print("failed to deserialize unexpected packet {1} from peer {0}\n", GetSession()->GetPeerId(), PacketNames[packetIndex]);
+		spdlog::warn("failed to deserialize unexpected packet {1} from peer {0}", GetSession()->GetPeerId(), PacketNames[packetIndex]);
 		GetSession()->Disconnect(DisconnectionType::Kick);
 	}
 
 	void PlayerSessionHandler::OnUnexpectedPacket(std::size_t packetIndex)
 	{
-		fmt::print("received unexpected packet {1} from peer {0}\n", GetSession()->GetPeerId(), PacketNames[packetIndex]);
+		spdlog::warn("received unexpected packet {1} from peer {0}", GetSession()->GetPeerId(), PacketNames[packetIndex]);
 		GetSession()->Disconnect(DisconnectionType::Kick);
 	}
 
 	void PlayerSessionHandler::OnUnknownOpcode(Nz::UInt8 opcode)
 	{
-		fmt::print("received unknown packet (opcode: {1}) from peer {0}\n", GetSession()->GetPeerId(), +opcode);
+		spdlog::warn("received unknown packet (opcode: {1}) from peer {0}", GetSession()->GetPeerId(), +opcode);
 		GetSession()->Disconnect(DisconnectionType::Kick);
 	}
 

@@ -14,8 +14,8 @@
 #include <Nazara/Graphics/PredefinedMaterials.hpp>
 #include <Nazara/Graphics/TextureAsset.hpp>
 #include <NazaraUtils/FunctionTraits.hpp>
-#include <fmt/format.h>
 #include <sol/state.hpp>
+#include <spdlog/spdlog.h>
 
 SOL_BASE_CLASSES(Nz::Model, Nz::InstancedRenderable);
 SOL_DERIVED_CLASSES(Nz::InstancedRenderable, Nz::Model);

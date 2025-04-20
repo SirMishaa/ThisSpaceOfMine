@@ -15,9 +15,8 @@
 #include <Nazara/Core/FilesystemAppComponent.hpp>
 #include <Nazara/Physics3D/Systems/Physics3DSystem.hpp>
 #include <NazaraUtils/FunctionTraits.hpp>
-#include <fmt/color.h>
-#include <fmt/format.h>
 #include <sol/state.hpp>
+#include <spdlog/spdlog.h>
 
 SOL_BASE_CLASSES(tsom::ServerPlanetEnvironment, tsom::ServerEnvironment);
 SOL_BASE_CLASSES(tsom::ServerShipEnvironment, tsom::ServerEnvironment);
@@ -219,7 +218,7 @@ namespace tsom
 					if (!result.valid())
 					{
 						sol::error err = result;
-						fmt::print(fg(fmt::color::red), "Function scheduled for tick failed: {0}\n", err.what());
+						spdlog::error("Function scheduled for tick failed: {0}", err.what());
 					}
 				});
 			})

@@ -3,7 +3,7 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <Nazara/Core/ErrorFlags.hpp>
-#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 #include <type_traits>
 
 namespace tsom

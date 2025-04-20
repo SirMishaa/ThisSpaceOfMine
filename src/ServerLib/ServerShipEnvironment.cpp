@@ -23,8 +23,8 @@
 #include <Nazara/Core/Components/NodeComponent.hpp>
 #include <Nazara/Physics3D/Systems/Physics3DSystem.hpp>
 #include <cppcodec/base64_rfc4648.hpp>
-#include <fmt/color.h>
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 
 namespace tsom
 {
@@ -373,7 +373,7 @@ namespace tsom
 		{
 			if (code != 200)
 			{
-				fmt::print(fg(fmt::color::red), "failed to save player {} ship ({}): {}\n", uuid.ToString(), code, body);
+				spdlog::error("failed to save player {} ship ({}): {}", uuid.ToString(), code, body);
 				return;
 			}
 

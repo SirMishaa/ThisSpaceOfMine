@@ -6,8 +6,7 @@
 #include <CommonLib/Version.hpp>
 #include <Nazara/Core/SystemDirectory.hpp>
 #include <NazaraUtils/PathUtils.hpp>
-#include <fmt/color.h>
-#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 namespace tsom
 {
@@ -45,7 +44,7 @@ namespace tsom
 		Nz::Result appDir = Nz::GetApplicationDirectory(Nz::ApplicationDirectory::Config, "ThisSpaceOfMine");
 		if (!appDir)
 		{
-			fmt::print(fg(fmt::color::red), "failed to get application directory: {}\n", appDir.GetError());
+			spdlog::error("failed to get application directory: {}", appDir.GetError());
 			return {};
 		}
 
@@ -87,7 +86,7 @@ namespace tsom
 		}
 
 		if (!m_configFile.LoadFromFile(configPath))
-			fmt::print(fg(fmt::color::red), "failed to load game config\n");
+			spdlog::error("failed to load game config");
 	}
 
 	void GameConfigAppComponent::Save()
@@ -100,6 +99,6 @@ namespace tsom
 			configPath = Nz::Utf8Path(GameConfigFile::FileName);
 
 		if (!m_configFile.SaveToFile(configPath))
-			fmt::print(fg(fmt::color::red), "failed to save game config\n");
+			spdlog::error("failed to save game config");
 	}
 }

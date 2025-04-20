@@ -11,7 +11,7 @@
 #include <Nazara/Core/StateMachine.hpp>
 #include <Nazara/TextRenderer/SimpleTextDrawer.hpp>
 #include <Nazara/Widgets/LabelWidget.hpp>
-#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 namespace tsom
 {
@@ -153,7 +153,7 @@ namespace tsom
 			stateData.networkSession = nullptr;
 			stateData.sessionHandler = nullptr;
 
-			fmt::print("Disconnected from server\n");
+			spdlog::info("Disconnected from server");
 			m_serverSession.reset();
 		};
 

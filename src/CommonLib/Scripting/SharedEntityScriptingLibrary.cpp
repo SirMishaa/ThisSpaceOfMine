@@ -17,10 +17,9 @@
 #include <Nazara/Core/Components/NodeComponent.hpp>
 #include <Nazara/Physics3D/Collider3D.hpp>
 #include <Nazara/Physics3D/Components/RigidBody3DComponent.hpp>
-#include <fmt/color.h>
-#include <fmt/format.h>
 #include <frozen/string.h>
 #include <frozen/unordered_map.h>
+#include <spdlog/spdlog.h>
 
 SOL_BASE_CLASSES(Nz::BoxCollider3D, Nz::Collider3D);
 SOL_BASE_CLASSES(Nz::NodeComponent, Nz::Node);
@@ -347,7 +346,7 @@ namespace tsom
 					if (!res.valid())
 					{
 						sol::error err = res;
-						fmt::print(fg(fmt::color::red), "entity client rpc {} failed: {}\n", en, err.what());
+						spdlog::error("entity client rpc {} failed: {}", en, err.what());
 					}
 				};
 			}),
@@ -414,7 +413,7 @@ namespace tsom
 					if (!res.valid())
 					{
 						sol::error err = res;
-						fmt::print(fg(fmt::color::red), "entity activate event failed: {}\n", err.what());
+						spdlog::error("entity activate event failed: {}", err.what());
 					}
 				};
 			}
@@ -438,7 +437,7 @@ namespace tsom
 						const auto& propertyData = classInstance->GetClass()->GetProperty(propertyIndex);
 
 						sol::error err = res;
-						fmt::print(fg(fmt::color::red), "entity {} property callback failed: {}\n", propertyData.name, err.what());
+						spdlog::error("entity {} property callback failed: {}", propertyData.name, err.what());
 					}
 				});
 
@@ -460,7 +459,7 @@ namespace tsom
 						if (!res.valid())
 						{
 							sol::error err = res;
-							fmt::print(fg(fmt::color::red), "entity tick callback failed: {}\n", err.what());
+							spdlog::error("entity tick callback failed: {}", err.what());
 						}
 					};
 				}
@@ -472,7 +471,7 @@ namespace tsom
 					if (!res.valid())
 					{
 						sol::error err = res;
-						fmt::print(fg(fmt::color::red), "entity init event failed: {}\n", err.what());
+						spdlog::error("entity init event failed: {}", err.what());
 					}
 				}
 			};

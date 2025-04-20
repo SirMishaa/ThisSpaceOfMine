@@ -6,8 +6,8 @@
 #include <CommonLib/Utils.hpp>
 #include <ServerLib/ServerInstanceAppComponent.hpp>
 #include <Nazara/Core/ApplicationBase.hpp>
-#include <fmt/color.h>
 #include <fmt/std.h>
+#include <spdlog/spdlog.h>
 
 namespace tsom
 {
@@ -30,7 +30,7 @@ namespace tsom
 			{
 				if (!result)
 				{
-					fmt::print(fg(fmt::color::dark_green), "failed to get last server version: {}\n", result.GetError());
+					spdlog::warn("failed to get last server version: {}", result.GetError());
 					m_currentState = State::WaitingForFetching;
 					m_waitingTime = m_checkInterval;
 					return;
@@ -56,7 +56,7 @@ namespace tsom
 				m_onDownloadProgress.Connect(appUpdater.OnDownloadProgress, [lastPrint = Nz::MillisecondClock()](std::size_t activeDownloadCount, Nz::UInt64 downloaded, Nz::UInt64 total) mutable
 				{
 					if (lastPrint.RestartIfOver(Nz::Time::Second()))
-						fmt::print("downloading {} file(s) ({}/{}) - {}%\n", activeDownloadCount, ByteToString(downloaded), ByteToString(total), 100 * downloaded / total);
+						spdlog::info("downloading {} file(s) ({}/{}) - {}%", activeDownloadCount, ByteToString(downloaded), ByteToString(total), 100 * downloaded / total);
 				});
 
 				m_onUpdateReady.Connect(appUpdater.OnUpdateReady, [this]
@@ -70,7 +70,7 @@ namespace tsom
 					else
 						message = fmt::format("A new server version has been downloaded ({}), restarting...", m_updateInfo.binaryVersion.str());
 
-					fmt::print(fg(fmt::color::dark_green), "{}\n", message);
+					spdlog::info("{}", message);
 
 					auto& serverInstance = GetApp().GetComponent<ServerInstanceAppComponent>();
 					serverInstance.ForEachInstance([&](ServerInstance& serverInstance)
@@ -79,7 +79,7 @@ namespace tsom
 					});
 				});
 
-				fmt::print(fg(fmt::color::dark_green), "A new server version has been found ({}), downloading...\n", m_updateInfo.binaryVersion.str());
+				spdlog::info("A new server version has been found ({}), downloading...", m_updateInfo.binaryVersion.str());
 
 				appUpdater.DownloadAndUpdate(m_updateInfo, m_updateInfo.assetVersion > currentGameVersion, m_updateInfo.binaryVersion > currentGameVersion, m_updateBehavior == UpdateBehavior::DownloadAndUpdate, false);
 			});
@@ -98,7 +98,7 @@ namespace tsom
 				serverInstance.BroadcastChatMessage("Restarting for server update...");
 			});
 
-			fmt::print(fg(fmt::color::dark_green), "Restarting for server update...\n");
+			spdlog::info("Restarting for server update...");
 
 			// Call DownloadAndUpdate again, which should validate already downloaded files and exit the application
 			appUpdater.DownloadAndUpdate(m_updateInfo, m_updateInfo.assetVersion > currentGameVersion, m_updateInfo.binaryVersion > currentGameVersion, m_updateBehavior == UpdateBehavior::DownloadAndUpdate, true);

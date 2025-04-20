@@ -15,8 +15,8 @@
 #include <Nazara/Widgets/ProgressBarWidget.hpp>
 #include <Nazara/Widgets/SimpleLabelWidget.hpp>
 #include <NazaraUtils/PathUtils.hpp>
-#include <fmt/color.h>
 #include <fmt/core.h>
+#include <spdlog/spdlog.h>
 #include <numeric>
 
 namespace tsom

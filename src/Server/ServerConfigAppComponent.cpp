@@ -6,8 +6,7 @@
 #include <Nazara/Core/StringExt.hpp>
 #include <NazaraUtils/PathUtils.hpp>
 #include <cppcodec/base64_rfc4648.hpp>
-#include <fmt/color.h>
-#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 namespace tsom
 {
@@ -64,7 +63,7 @@ namespace tsom
 
 		if (!m_configFile.LoadFromFile(configPath))
 		{
-			fmt::print(fg(fmt::color::red), "failed to load server config\n");
+			spdlog::error("failed to load server config");
 			return;
 		}
 
@@ -74,7 +73,7 @@ namespace tsom
 		}
 		catch (const std::exception& e)
 		{
-			fmt::print(fg(fmt::color::red), "failed to load server config: {0}\n", e.what());
+			spdlog::error("failed to load server config: {0}", e.what());
 			return;
 		}
 	}
@@ -82,6 +81,6 @@ namespace tsom
 	void ServerConfigAppComponent::Save()
 	{
 		if (!m_configFile.SaveToFile(Nz::Utf8Path("serverconfig.lua")))
-			fmt::print(fg(fmt::color::red), "failed to save server config\n");
+			spdlog::error("failed to save server config");
 	}
 }

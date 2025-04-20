@@ -4,7 +4,7 @@
 
 #include <CommonLib/EntityProperties.hpp>
 #include <CommonLib/Protocol/CompressedInteger.hpp>
-#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 namespace tsom
 {

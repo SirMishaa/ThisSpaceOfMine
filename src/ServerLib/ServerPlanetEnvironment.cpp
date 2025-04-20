@@ -164,7 +164,7 @@ namespace tsom
 
 		if (!m_dirtyChunks.empty())
 		{
-			fmt::print("saving {} dirty chunks...\n", m_dirtyChunks.size());
+			spdlog::info("saving {} dirty chunks...", m_dirtyChunks.size());
 
 			BinaryCompressor& binaryCompressor = BinaryCompressor::GetThreadCompressor();
 			ServerDatabase& serverDatabase = m_serverInstance.GetServerDatabase();

@@ -3,7 +3,7 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <CommonLib/Utility/CrashHandlerFallback.hpp>
-#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 #include <ctime>
 #include <fstream>
 #include <stdexcept>

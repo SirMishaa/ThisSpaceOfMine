@@ -22,7 +22,7 @@
 #include <Nazara/Core/Components/NodeComponent.hpp>
 #include <Nazara/Physics3D/Components/PhysCharacter3DComponent.hpp>
 #include <Nazara/Physics3D/Components/RigidBody3DComponent.hpp>
-#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 namespace tsom
 {

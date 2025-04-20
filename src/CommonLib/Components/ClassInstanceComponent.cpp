@@ -4,7 +4,7 @@
 
 #include <CommonLib/Components/ClassInstanceComponent.hpp>
 #include <CommonLib/EntityClass.hpp>
-#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 namespace tsom
 {

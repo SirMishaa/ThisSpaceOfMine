@@ -5,7 +5,7 @@
 #include <ServerLib/ServerConfig.hpp>
 #include <CommonLib/Utility/JsonSerialization.hpp>
 #include <ServerLib/Database/ServerDatabase.hpp>
-#include <fmt/color.h>
+#include <spdlog/spdlog.h>
 
 namespace tsom
 {
@@ -22,7 +22,7 @@ namespace tsom
 				serverConfig.defaultSpawnpoint.rotation = config.value.value("rotation", Nz::Quaternionf::Identity());
 			}
 			else
-				fmt::print(fg(fmt::color::yellow), "unknown database config \"{}\"\n", config.name);
+				spdlog::warn("unknown database config \"{}\"", config.name);
 
 			return true;
 		});

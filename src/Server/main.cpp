@@ -20,7 +20,7 @@
 #include <Nazara/Physics3D/Physics3D.hpp>
 #include <NazaraUtils/PathUtils.hpp>
 #include <Main/Main.hpp>
-#include <fmt/color.h>
+#include <spdlog/spdlog.h>
 
 void MigrateFileToSqlite(tsom::ServerInstance& instance, const std::filesystem::path& saveDirectory);
 void MigratePlanetChunksToSqlite(const std::filesystem::path& saveDirectory, tsom::ServerDatabase& serverDatabase, Nz::UInt32 planetId, std::string_view planetName);
@@ -42,7 +42,7 @@ int ServerMain(int argc, char* argv[])
 		std::filesystem::path dirPath = Nz::Utf8Path(directory);
 		if (!std::filesystem::is_directory(dirPath))
 		{
-			fmt::print(fg(fmt::color::red), "{0} directory is missing!\n", directory);
+			spdlog::error("{0} directory is missing!", directory);
 			return EXIT_FAILURE;
 		}
 
@@ -90,7 +90,7 @@ int ServerMain(int argc, char* argv[])
 
 	if (isMigratingToDatabase && std::filesystem::is_directory(saveDirectory))
 	{
-		fmt::print(fg(fmt::color::yellow), "first time launching after sqlite switch.\n");
+		spdlog::warn("first time launching after sqlite switch.");
 
 		MigrateFileToSqlite(instance, saveDirectory);
 		std::filesystem::path migratedSaveDir = saveDirectory;
@@ -98,12 +98,12 @@ int ServerMain(int argc, char* argv[])
 
 		std::filesystem::rename(saveDirectory, migratedSaveDir);
 
-		fmt::print(fg(fmt::color::green), "save migrated.\n");
+		spdlog::info("save migrated.");
 	}
 
 	instance.LoadFromDatabase();
 
-	fmt::print(fg(fmt::color::lime_green), "server ready.\n");
+	spdlog::info("server ready.");
 
 	if (Nz::UInt32 maxStuckTime = config.GetIntegerValue<Nz::UInt32>("Server.MaxStuckSeconds"))
 		app.AddComponent<tsom::HealthCheckerAppComponent>(maxStuckTime);
@@ -162,14 +162,14 @@ void MigratePlanetChunksToSqlite(const std::filesystem::path& saveDirectory, tso
 		unsigned int x, y, z;
 		if (std::sscanf(fileName.c_str(), "%u_%u_%u.chunk", &x, &y, &z) != 3)
 		{
-			fmt::print(stderr, fg(fmt::color::red), "failed to load planet {0} chunk: failed to parse chunk name {1}\n", planetName, fileName);
+			spdlog::error("failed to load planet {0} chunk: failed to parse chunk name {1}", planetName, fileName);
 			continue;
 		}
 
 		std::optional chunkBuffer = Nz::File::ReadWhole(chunkFile);
 		if (!chunkBuffer)
 		{
-			fmt::print(stderr, fg(fmt::color::red), "failed to load planet {0} chunk: failed to load chunk file {1}\n", planetName, fileName);
+			spdlog::error("failed to load planet {0} chunk: failed to load chunk file {1}", planetName, fileName);
 			continue;
 		}
 

@@ -5,8 +5,7 @@
 #include <CommonLib/NetworkSessionManager.hpp>
 #include <CommonLib/SessionHandler.hpp>
 #include <NazaraUtils/Hash.hpp>
-#include <fmt/format.h>
-#include <fmt/ostream.h>
+#include <spdlog/spdlog.h>
 #include <cassert>
 
 namespace tsom
@@ -21,7 +20,7 @@ namespace tsom
 
 			std::string addressStr = remoteAddress.ToString(false);
 
-			fmt::print("Peer connected (peerIndex: {}, hashed address: {:x})\n", peerIndex, Nz::FNV1a64(addressStr));
+			spdlog::info("Peer connected (peerIndex: {}, hashed address: {:x})", peerIndex, Nz::FNV1a64(addressStr));
 			m_sessions[peerIndex].emplace(m_reactor, peerIndex, remoteAddress);
 			m_sessions[peerIndex]->SetHandler(m_handlerFactory(&m_sessions[peerIndex].value()));
 		};
@@ -31,7 +30,7 @@ namespace tsom
 			assert(m_sessions[peerIndex].has_value());
 			assert(data == 0);
 
-			fmt::print("Peer {} (peerIndex: {})\n", (timeout) ? "timeout" : "disconnected", peerIndex);
+			spdlog::info("Peer {} (peerIndex: {})", (timeout) ? "timeout" : "disconnected", peerIndex);
 			m_sessions[peerIndex].reset();
 		};
 

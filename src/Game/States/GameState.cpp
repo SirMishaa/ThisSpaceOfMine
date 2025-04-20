@@ -54,9 +54,8 @@
 #include <Nazara/TextRenderer/RichTextBuilder.hpp>
 #include <Nazara/Widgets/LabelWidget.hpp>
 #include <Nazara/Widgets/SimpleLabelWidget.hpp>
-#include <fmt/color.h>
-#include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <spdlog/spdlog.h>
 
 #define DEBUG_ROTATION 0
 
@@ -225,19 +224,19 @@ namespace tsom
 			float errAcc = std::abs(err.pitch.value) + std::abs(err.yaw.value) + std::abs(err.roll.value);
 			if (errAcc > 0.00001f)
 			{
-				fmt::print("RECONCILIATION ERROR\n");
+				spdlog::debug("RECONCILIATION ERROR");
 				m_predictedCameraRotation = Nz::EulerAnglesf(characterStates.cameraPitch, characterStates.cameraYaw, 0.f);
-				fmt::print("Starting rotation: {0}\n", fmt::streamed(m_predictedCameraRotation));
+				spdlog::debug("Starting rotation: {0}", fmt::streamed(m_predictedCameraRotation));
 				for (const InputRotation& predictedRotation : m_predictedInputRotations)
 				{
 					m_predictedCameraRotation.pitch = Nz::Clamp(m_predictedCameraRotation.pitch + predictedRotation.inputRotation.pitch, -89.f, 89.f);
 					m_predictedCameraRotation.yaw += predictedRotation.inputRotation.yaw;
 					m_predictedCameraRotation.Normalize();
-					fmt::print("Adding {0} from input {1} which gives {2}\n", fmt::streamed(predictedRotation.inputRotation), predictedRotation.inputIndex, fmt::streamed(m_predictedCameraRotation));
+					spdlog::debug("Adding {0} from input {1} which gives {2}", fmt::streamed(predictedRotation.inputRotation), predictedRotation.inputIndex, fmt::streamed(m_predictedCameraRotation));
 				}
-				fmt::print("Giving final rotation {0}\n", fmt::streamed(m_predictedCameraRotation));
+				spdlog::debug("Giving final rotation {0}", fmt::streamed(m_predictedCameraRotation));
 
-				fmt::print("Error: {0}\n------\n", fmt::streamed(err));
+				spdlog::debug("Error: {0}\n------", fmt::streamed(err));
 			}
 #endif
 		});
@@ -504,7 +503,7 @@ namespace tsom
 				}
 			});
 
-			fmt::print("{0}\n", message);
+			spdlog::info("{0}", message);
 		});
 
 		m_onConsoleOutput.Connect(stateData.sessionHandler->OnConsoleOutput, [this](const Nz::Color& color, std::string_view message)
@@ -542,7 +541,7 @@ namespace tsom
 				}
 			});
 
-			fmt::print("{0}: {1}\n", playerInfo.nickname, message);
+			spdlog::info("{0}: {1}", playerInfo.nickname, message);
 		});
 
 		m_onPlayerJoined.Connect(stateData.sessionHandler->OnPlayerJoined, [this](const ClientSessionHandler::PlayerInfo& playerInfo)
@@ -556,7 +555,7 @@ namespace tsom
 				}
 				});
 
-			fmt::print("{0} joined the server\n", playerInfo.nickname);
+			spdlog::info("{0} joined the server", playerInfo.nickname);
 		});
 
 		m_onPlayerLeave.Connect(stateData.sessionHandler->OnPlayerLeave, [this](const ClientSessionHandler::PlayerInfo& playerInfo)
@@ -570,7 +569,7 @@ namespace tsom
 				}
 			});
 
-			fmt::print("{0} left the server\n", playerInfo.nickname);
+			spdlog::info("{0} left the server", playerInfo.nickname);
 		});
 
 		m_onPlayerNameUpdate.Connect(stateData.sessionHandler->OnPlayerNameUpdate, [this](const ClientSessionHandler::PlayerInfo& playerInfo, const std::string& newNickname)
@@ -586,7 +585,7 @@ namespace tsom
 				}
 			});
 
-			fmt::print("{0} renamed to {1}\n", playerInfo.nickname, newNickname);
+			spdlog::info("{0} renamed to {1}", playerInfo.nickname, newNickname);
 		});
 
 		m_onControlledShip.Connect(stateData.sessionHandler->OnControlledShip, [this](entt::handle shipEntity, entt::handle shipExteriorEntity, const Nz::Quaternionf& referenceRotation)
@@ -858,7 +857,7 @@ namespace tsom
 					const Nz::Node* environmentNode = characterNode.GetParent();
 					if NAZARA_UNLIKELY(!environmentNode)
 					{
-						fmt::print(fg(fmt::color::red), "character has no environment node\n");
+						spdlog::error("character has no environment node");
 						break;
 					}
 

@@ -12,10 +12,9 @@
 #include <ServerLib/Components/AtmosphereMonitor.hpp>
 #include <ServerLib/Components/ServerEnvironmentSwitchComponent.hpp>
 #include <ServerLib/Components/ServerInteractibleComponent.hpp>
-#include <fmt/color.h>
-#include <fmt/format.h>
 #include <frozen/string.h>
 #include <frozen/unordered_map.h>
+#include <spdlog/spdlog.h>
 
 namespace tsom
 {
@@ -101,7 +100,7 @@ namespace tsom
 				if (!res.valid())
 				{
 					sol::error err = res;
-					fmt::print(fg(fmt::color::red), "entity interact event failed: {}\n", err.what());
+					spdlog::error("entity interact event failed: {}", err.what());
 				}
 			};
 		}
@@ -119,7 +118,7 @@ namespace tsom
 				if (!res.valid())
 				{
 					sol::error err = res;
-					fmt::print(fg(fmt::color::red), "entity environment switch event failed: {}\n", err.what());
+					spdlog::error("entity environment switch event failed: {}", err.what());
 				}
 			};
 		}

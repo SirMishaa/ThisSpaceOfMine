@@ -56,7 +56,7 @@ namespace tsom
 		if (m_allowInputRotation && (!characterInputs.pitch.ApproxEqual(Nz::RadianAnglef::Zero()) || !characterInputs.yaw.ApproxEqual(Nz::RadianAnglef::Zero()))) //< Don't apply the same rotation twice
 		{
 #if DEBUG_ROTATION
-			fmt::print("Applying pitch:{0},yaw:{1} from input {2} to {3}", characterInputs.pitch.ToDegrees(), characterInputs.yaw.ToDegrees(), characterInputs.index, fmt::streamed(m_cameraAngles));
+			spdlog::debug("Applying pitch:{0},yaw:{1} from input {2} to {3}", characterInputs.pitch.ToDegrees(), characterInputs.yaw.ToDegrees(), characterInputs.index, fmt::streamed(m_cameraAngles));
 #endif
 
 			m_cameraAngles.pitch = Nz::Clamp(m_cameraAngles.pitch + characterInputs.pitch, -89.f, 89.f);
@@ -64,7 +64,7 @@ namespace tsom
 			m_cameraAngles.Normalize();
 
 #if DEBUG_ROTATION
-			fmt::print(" => {0}\n", fmt::streamed(m_cameraAngles));
+			spdlog::debug(" => {0}", fmt::streamed(m_cameraAngles));
 #endif
 
 			m_allowInputRotation = false;

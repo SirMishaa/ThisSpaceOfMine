@@ -6,8 +6,7 @@
 #include <CommonLib/Scripting/ScriptingLibrary.hpp>
 #include <Nazara/Core/ApplicationBase.hpp>
 #include <Nazara/Core/FilesystemAppComponent.hpp>
-#include <fmt/color.h>
-#include <fmt/core.h>
+#include <spdlog/spdlog.h>
 #include <sstream>
 
 namespace tsom
@@ -205,7 +204,7 @@ namespace tsom
 			if (m_printCallback)
 				m_printCallback(std::move(oss).str());
 			else
-				fmt::print("[Lua] {}\n", oss.str());
+				spdlog::info("[Lua] {}", oss.str());
 		};
 
 		m_state["pprint"] = [=](sol::this_state L, sol::variadic_args args)
@@ -260,7 +259,7 @@ namespace tsom
 			result = Nz::Err(fmt::format("file {} not found", filePath));
 
 		if (!result)
-			fmt::print(fg(fmt::color::red), "failed to load {}: {}\n", filePath, result.GetError());
+			spdlog::error("failed to load {}: {}", filePath, result.GetError());
 
 		return result;
 	}

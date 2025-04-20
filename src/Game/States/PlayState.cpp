@@ -17,9 +17,8 @@
 #include <Nazara/TextRenderer/SimpleTextDrawer.hpp>
 #include <Nazara/Widgets/BoxLayout.hpp>
 #include <Nazara/Widgets/ButtonWidget.hpp>
-#include <fmt/color.h>
-#include <fmt/format.h>
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 #include <optional>
 
 namespace tsom
@@ -114,7 +113,7 @@ namespace tsom
 	{
 		if (!GetStateData().app->HasComponent<Nz::WebServiceAppComponent>())
 		{
-			fmt::print(fg(fmt::color::red), "failed to retrieve player info: web services are unavailable\n");
+			spdlog::error("failed to retrieve player info: web services are unavailable");
 			m_createOrConnectButton->UpdateText(Nz::SimpleTextDrawer::Draw("Web services are unavailable", 30, Nz::TextStyle_Regular, Nz::Color::Red()));
 			m_createOrConnectButton->Disable();
 			return;
@@ -144,7 +143,7 @@ namespace tsom
 
 				if (!result.HasSucceeded())
 				{
-					fmt::print(fg(fmt::color::red), "failed to retrieve player info: {}\n", result.GetErrorMessage());
+					spdlog::error("failed to retrieve player info: {}", result.GetErrorMessage());
 					playState->m_createOrConnectButton->UpdateText(Nz::SimpleTextDrawer::Draw("Failed to connect to server", 30, Nz::TextStyle_Regular, Nz::Color::Red()));
 					playState->m_createOrConnectButton->Disable();
 					return;
@@ -152,7 +151,7 @@ namespace tsom
 
 				if (result.GetStatusCode() != 200)
 				{
-					fmt::print(fg(fmt::color::red), "failed to retrieve player info (error {}): {}\n", result.GetStatusCode(), result.GetBody());
+					spdlog::error("failed to retrieve player info (error {}): {}", result.GetStatusCode(), result.GetBody());
 					playState->m_createOrConnectButton->UpdateText(Nz::SimpleTextDrawer::Draw("Failed to retrieve player", 30, Nz::TextStyle_Regular, Nz::Color::Red()));
 					playState->m_createOrConnectButton->Disable();
 					return;
@@ -170,7 +169,7 @@ namespace tsom
 				}
 				catch (const std::exception& e)
 				{
-					fmt::print(fg(fmt::color::red), "failed to retrieve player info (failed to decode response: {})\n", e.what());
+					spdlog::error("failed to retrieve player info (failed to decode response: {})", e.what());
 					playState->m_createOrConnectButton->UpdateText(Nz::SimpleTextDrawer::Draw("Failed to retrieve player", 30, Nz::TextStyle_Regular, Nz::Color::Red()));
 					playState->m_createOrConnectButton->Disable();
 					return;
@@ -218,14 +217,14 @@ namespace tsom
 
 					if (!result.HasSucceeded())
 					{
-						fmt::print(fg(fmt::color::red), "failed to retrieve player info: {}\n", result.GetErrorMessage());
+						spdlog::error("failed to retrieve player info: {}", result.GetErrorMessage());
 						playState->m_createOrConnectButton->UpdateText(Nz::SimpleTextDrawer::Draw("Failed to connect to server", 30, Nz::TextStyle_Regular, Nz::Color::Red()));
 						return;
 					}
 
 					if (result.GetStatusCode() != 200)
 					{
-						fmt::print(fg(fmt::color::red), "failed to retrieve player info (error {}): {}\n", result.GetStatusCode(), result.GetBody());
+						spdlog::error("failed to retrieve player info (error {}): {}", result.GetStatusCode(), result.GetBody());
 						playState->m_createOrConnectButton->UpdateText(Nz::SimpleTextDrawer::Draw("Failed to retrieve connection token", 30, Nz::TextStyle_Regular, Nz::Color::Red()));
 						return;
 					}
@@ -244,7 +243,7 @@ namespace tsom
 						auto hostVec = Nz::IpAddress::ResolveHostname(Nz::NetProtocol::Any, token.gameServer.address, std::to_string(token.gameServer.port), &resolveError);
 						if (hostVec.empty())
 						{
-							fmt::print(fg(fmt::color::red), "failed to resolve {}:{}: {}\n", token.gameServer.address, token.gameServer.port, Nz::ErrorToString(resolveError));
+							spdlog::error("failed to resolve {}:{}: {}", token.gameServer.address, token.gameServer.port, Nz::ErrorToString(resolveError));
 							playState->m_createOrConnectButton->UpdateText(Nz::SimpleTextDrawer::Draw("Failed to resolve server address", 30, Nz::TextStyle_Regular, Nz::Color::Red()));
 							return;
 						}
@@ -262,7 +261,7 @@ namespace tsom
 					}
 					catch (const std::exception& e)
 					{
-						fmt::print(fg(fmt::color::red), "failed to retrieve player token (failed to decode response: {})\n", e.what());
+						spdlog::error("failed to retrieve player token (failed to decode response: {})", e.what());
 						playState->m_createOrConnectButton->UpdateText(Nz::SimpleTextDrawer::Draw("Failed to retrieve connection token", 30, Nz::TextStyle_Regular, Nz::Color::Red()));
 						return;
 					}

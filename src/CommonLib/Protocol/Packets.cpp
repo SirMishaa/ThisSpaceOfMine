@@ -6,7 +6,7 @@
 #include <CommonLib/Version.hpp>
 #include <CommonLib/Utility/BinaryCompressor.hpp>
 #include <NazaraUtils/TypeTraits.hpp>
-#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 namespace tsom
 {

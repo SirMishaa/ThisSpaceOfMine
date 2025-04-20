@@ -6,8 +6,8 @@
 #include <CommonLib/Components/ClassInstanceComponent.hpp>
 #include <CommonLib/Utility/JsonSerialization.hpp>
 #include <entt/entt.hpp>
-#include <fmt/format.h>
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 #include <stdexcept>
 
 namespace tsom
@@ -71,7 +71,7 @@ namespace tsom
 			auto it = m_propertyIndices.find(propertyName);
 			if (it == m_propertyIndices.end())
 			{
-				NazaraWarning("property {} from json doesn't exist in class property list", propertyName);
+				spdlog::warn("property {} from json doesn't exist in class property list", propertyName);
 				continue;
 			}
 

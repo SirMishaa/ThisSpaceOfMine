@@ -18,8 +18,7 @@
 #include <Nazara/Core/ApplicationBase.hpp>
 #include <Nazara/Core/Components/NodeComponent.hpp>
 #include <Nazara/Physics3D/Systems/Physics3DSystem.hpp>
-#include <fmt/color.h>
-#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 #include <memory>
 
 namespace tsom
@@ -70,7 +69,7 @@ namespace tsom
 	{
 		if (!m_defaultSpawnpoint.env)
 		{
-			fmt::print(fg(fmt::color::red), "cannot create player: no spawnpoint set\n");
+			spdlog::error("cannot create player: no spawnpoint set");
 			return nullptr;
 		}
 
@@ -106,7 +105,7 @@ namespace tsom
 	{
 		if (!m_defaultSpawnpoint.env)
 		{
-			fmt::print(fg(fmt::color::red), "cannot create player: no spawnpoint set\n");
+			spdlog::error("cannot create player: no spawnpoint set");
 			return nullptr;
 		}
 
@@ -171,14 +170,14 @@ namespace tsom
 			auto sourceIt = m_databaseEnvironments.find(planetLink.sourcePlanet);
 			if (sourceIt == m_databaseEnvironments.end())
 			{
-				fmt::print(fg(fmt::color::red), "Loading database: planet_link entry references unknown planet {}\n", planetLink.sourcePlanet);
+				spdlog::error("Loading database: planet_link entry references unknown planet {}", planetLink.sourcePlanet);
 				return true;
 			}
 
 			auto destinationIt = m_databaseEnvironments.find(planetLink.destinationPlanet);
 			if (destinationIt == m_databaseEnvironments.end())
 			{
-				fmt::print(fg(fmt::color::red), "Loading database: planet_link entry references unknown planet {}\n", planetLink.destinationPlanet);
+				spdlog::error("Loading database: planet_link entry references unknown planet {}", planetLink.destinationPlanet);
 				return true;
 			}
 

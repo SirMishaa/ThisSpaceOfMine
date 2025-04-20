@@ -8,7 +8,7 @@
 
 #include <CommonLib/Utility/CrashHandlerWin32.hpp>
 #include <Nazara/Core/Error.hpp>
-#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 #include <array>
 #include <cstring>
 #include <cstdio>

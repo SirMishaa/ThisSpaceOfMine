@@ -12,6 +12,7 @@
 #include <Nazara/Physics3D/Collider3D.hpp>
 #include <NazaraUtils/FunctionTraits.hpp>
 #include <fmt/core.h>
+#include <spdlog/spdlog.h>
 #include <sol/state.hpp>
 #include <numeric>
 
@@ -102,7 +103,7 @@ namespace tsom
 				unsigned int blockCount = chunk.GetBlockCount();
 				std::size_t contentSize = contentTable.size();
 				if (contentSize != blockCount)
-					fmt::print("Chunk:Reset called with a table containing {} entries, {} expected\n", contentSize, blockCount);
+					spdlog::error("Chunk:Reset called with a table containing {} entries, {} expected", contentSize, blockCount);
 
 				auto& blockLibrary = chunk.GetBlockLibrary();
 
@@ -114,7 +115,7 @@ namespace tsom
 						BlockIndex blockIndex = contentTable[i + 1].get<BlockIndex>();
 						if (!blockLibrary.IsValidBlock(blockIndex))
 						{
-							fmt::print("Chunk:Reset content table #{} contained invalid block index \"{}\"", i, blockIndex);
+							spdlog::error("Chunk:Reset content table #{} contained invalid block index \"{}\"", i, blockIndex);
 							blockIndex = EmptyBlockIndex;
 						}
 

@@ -9,9 +9,8 @@
 #include <Nazara/Core/Process.hpp>
 #include <Nazara/Network/WebServiceAppComponent.hpp>
 #include <NazaraUtils/PathUtils.hpp>
-#include <fmt/color.h>
-#include <fmt/format.h>
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 
 namespace nlohmann
 {
@@ -198,7 +197,7 @@ namespace tsom
 			Nz::Result updater = Nz::Process::SpawnDetached(m_updaterDownload->filepath, args);
 			if (!updater)
 			{
-				fmt::print(fg(fmt::color::red), "failed to start autoupdater process: {0}\n", updater.GetError());
+				spdlog::error("failed to start autoupdater process: {0}", updater.GetError());
 				return;
 			}
 		}

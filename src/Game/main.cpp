@@ -20,9 +20,8 @@
 #include <Nazara/Renderer/GpuSwitch.hpp>
 #include <Nazara/Widgets/Widgets.hpp>
 #include <Main/Main.hpp>
-#include <fmt/color.h>
-#include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <spdlog/spdlog.h>
 
 NAZARA_REQUEST_DEDICATED_GPU()
 
@@ -53,7 +52,7 @@ int GameMain(int argc, char* argv[])
 	}
 	catch (const std::exception& e)
 	{
-		fmt::print(fg(fmt::color::red), "failed to enable web services (login and update will be disabled): {0}!\n", e.what());
+		spdlog::error("failed to enable web services (login and update will be disabled): {0}!", e.what());
 	}
 
 	game.Start();

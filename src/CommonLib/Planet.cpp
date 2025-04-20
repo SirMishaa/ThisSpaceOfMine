@@ -13,7 +13,7 @@
 #include <Nazara/Math/Box.hpp>
 #include <NazaraUtils/CallOnExit.hpp>
 #include <PerlinNoise.hpp>
-#include <fmt/core.h>
+#include <spdlog/spdlog.h>
 #include <thread>
 
 namespace tsom
@@ -575,7 +575,7 @@ namespace tsom
 				if (!result.valid())
 				{
 					sol::error err = result;
-					fmt::print("chunk {};{};{} failed to generate: {}", chunkIndices.x, chunkIndices.y, chunkIndices.z, err.what());
+					spdlog::error("chunk {};{};{} failed to generate: {}", chunkIndices.x, chunkIndices.y, chunkIndices.z, err.what());
 					return;
 				}
 			});

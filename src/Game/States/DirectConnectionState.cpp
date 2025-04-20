@@ -19,9 +19,8 @@
 #include <Nazara/Network/IpAddress.hpp>
 #include <Nazara/Network/Network.hpp>
 #include <Nazara/TextRenderer/SimpleTextDrawer.hpp>
-#include <fmt/color.h>
-#include <fmt/format.h>
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 #include <optional>
 
 namespace tsom
@@ -111,14 +110,14 @@ namespace tsom
 	{
 		if (m_serverAddressArea->GetText().empty())
 		{
-			fmt::print(fg(fmt::color::red), "missing server address\n");
+			spdlog::error("missing server address");
 			return;
 		}
 
 		std::string login = std::string(Nz::Trim(m_loginArea->GetText(), Nz::UnicodeAware{}));
 		if (login.empty())
 		{
-			fmt::print(fg(fmt::color::red), "login cannot be blank\n");
+			spdlog::error("login cannot be blank");
 			return;
 		}
 
@@ -130,7 +129,7 @@ namespace tsom
 
 		if (hostVec.empty())
 		{
-			fmt::print(fg(fmt::color::red), "failed to resolve {}: {}\n", m_serverAddressArea->GetText(), Nz::ErrorToString(resolveError));
+			spdlog::error("failed to resolve {}: {}", m_serverAddressArea->GetText(), Nz::ErrorToString(resolveError));
 			return;
 		}
 
@@ -141,7 +140,7 @@ namespace tsom
 
 		Nz::IpAddress serverAddress = hostVec[0].address;
 
-		fmt::print("connecting to {}...\n", serverAddress.ToString());
+		spdlog::info("connecting to {}...", serverAddress.ToString());
 
 		auto& stateData = GetStateData();
 		if (stateData.connectionState)

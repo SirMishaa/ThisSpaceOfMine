@@ -17,7 +17,7 @@ rule("inherit_version", function ()
 end)
 
 add_repositories("nazara-repo https://github.com/NazaraEngine/xmake-repo.git")
-add_requires("fmt[header_only:n]")
+add_requires("fmt[header_only=n]")
 add_requires("libcurl[shared]", { system = false, configs = { openssl = is_plat("linux", "android", "cross") } })
 add_requires("nazaraengine >=2025.02.25", { debug = is_mode("debug"), configs = { symbols = true, plugin_imgui = true }})
 add_requires(
@@ -33,8 +33,11 @@ add_requires(
 	"nlohmann_json",
 	"perlinnoise",
 	"sol2",
-	"sqlitecpp[sqlite3_external:y]"
+	"spdlog[fmt_external=y,header_only=n]",
+	"sqlitecpp[sqlite3_external]"
 )
+
+add_requireconfs("spdlog")
 
 if has_config("serveronly") then
 	add_requireconfs("nazaraengine", {
@@ -114,7 +117,7 @@ target("CommonLib", function ()
 	add_options("commonlib_static")
 
 	add_packages("nazaraengine", { components = { "physics3d", "network" }, public = true })
-	add_packages("concurrentqueue", "cppcodec", "cpp-semver", "fast_float", "fmt", "hopscotch-map", "nlohmann_json", "sol2", { public = true })
+	add_packages("concurrentqueue", "cppcodec", "cpp-semver", "fast_float", "fmt", "hopscotch-map", "nlohmann_json", "sol2", "spdlog", { public = true })
 	add_packages("frozen", "libsodium", "lz4", "perlinnoise")
 
 	if is_plat("windows") then

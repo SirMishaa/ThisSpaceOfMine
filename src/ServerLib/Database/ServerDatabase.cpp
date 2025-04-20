@@ -7,7 +7,7 @@
 #include <Nazara/Core/FilesystemAppComponent.hpp>
 #include <NazaraUtils/CallOnExit.hpp>
 #include <SQLiteCpp/Transaction.h>
-#include <fmt/color.h>
+#include <spdlog/spdlog.h>
 #include <tsl/hopscotch_set.h>
 
 namespace tsom
@@ -221,7 +221,7 @@ namespace tsom
 			}
 			catch (const std::exception& e)
 			{
-				fmt::print(fg(fmt::color::red), "[Database Migration] failed to execute migration script {0}: {1}", migrationScript, e.what());
+				spdlog::error("[Database Migration] failed to execute migration script {0}: {1}", migrationScript, e.what());
 				transaction.rollback();
 
 				throw std::runtime_error("failed to migrate database");
@@ -234,7 +234,7 @@ namespace tsom
 		}
 		catch (const std::exception& e)
 		{
-			fmt::print(fg(fmt::color::red), "[Database Migration] failed to commit migration: {0}", e.what());
+			spdlog::error("[Database Migration] failed to commit migration: {0}", e.what());
 			throw std::runtime_error("failed to migrate database");
 		}
 	}

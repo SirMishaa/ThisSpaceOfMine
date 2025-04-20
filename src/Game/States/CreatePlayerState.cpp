@@ -12,9 +12,8 @@
 #include <Nazara/Network/IpAddress.hpp>
 #include <Nazara/Network/WebServiceAppComponent.hpp>
 #include <Nazara/TextRenderer/SimpleTextDrawer.hpp>
-#include <fmt/color.h>
-#include <fmt/format.h>
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 #include <optional>
 
 namespace tsom
@@ -100,13 +99,13 @@ namespace tsom
 			{
 				if (!result.HasSucceeded())
 				{
-					fmt::print(fg(fmt::color::red), "failed to create player: {}\n", result.GetErrorMessage());
+					spdlog::error("failed to create player: {}", result.GetErrorMessage());
 					return;
 				}
 
 				if (result.GetStatusCode() != 200)
 				{
-					fmt::print(fg(fmt::color::red), "failed to create player (error {})\n", result.GetStatusCode());
+					spdlog::error("failed to create player (error {})", result.GetStatusCode());
 
 					try
 					{
@@ -117,7 +116,7 @@ namespace tsom
 					}
 					catch (const std::exception& e)
 					{
-						fmt::print(fg(fmt::color::red), "failed to decode error from API: {}\n", e.what());
+						spdlog::error("failed to decode error from API: {}", e.what());
 						UpdateStatus(Nz::SimpleTextDrawer::Draw("Failed to create player", 36, Nz::TextStyle_Regular, Nz::Color::Red()));
 					}
 
@@ -133,7 +132,7 @@ namespace tsom
 
 				gameConfigComponent.Save();
 
-				fmt::print(fg(fmt::color::green), "created player {}\n", nickname);
+				spdlog::info("created player {}", nickname);
 
 				UpdateStatus(Nz::SimpleTextDrawer::Draw(fmt::format("Player {} has been created!", nickname), 48, Nz::TextStyle_Regular, Nz::Color::Green()));
 				m_nextState = m_previousState;

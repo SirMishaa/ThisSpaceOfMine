@@ -37,8 +37,7 @@
 #include <Nazara/Physics3D/Systems/Physics3DSystem.hpp>
 #include <Nazara/Platform/MessageBox.hpp>
 #include <Nazara/Platform/WindowingAppComponent.hpp>
-#include <fmt/color.h>
-#include <fmt/core.h>
+#include <spdlog/spdlog.h>
 #include <charconv>
 
 namespace tsom
@@ -134,7 +133,7 @@ namespace tsom
 		std::filesystem::path assetPath = Nz::Utf8Path("assets");
 		if (!std::filesystem::is_directory(assetPath))
 		{
-			fmt::print(fg(fmt::color::red), "assets are missing!\n");
+			spdlog::error("assets are missing!");
 
 			if (auto* updater = app.TryGetComponent<UpdaterAppComponent>())
 			{
@@ -143,7 +142,7 @@ namespace tsom
 				requestBox.AddButton(1, Nz::MessageBoxStandardButton::Yes);
 				if (auto result = requestBox.Show(); !result)
 				{
-					fmt::print(fg(fmt::color::red), "failed to open the prompt message box: {0}!\n", result.GetError());
+					spdlog::error("failed to open the prompt message box: {0}!", result.GetError());
 					app.Quit();
 					return false;
 				}
@@ -161,7 +160,7 @@ namespace tsom
 						errorBox.AddButton(0, Nz::MessageBoxStandardButton::Close);
 
 						if (auto result = errorBox.Show(); !result)
-							fmt::print(fg(fmt::color::red), "failed to open the error message box: {0}!\n", result.GetError());
+							spdlog::error("failed to open the error message box: {0}!", result.GetError());
 
 						Nz::ApplicationBase::Instance()->Quit();
 						return;
@@ -173,7 +172,7 @@ namespace tsom
 						errorBox.AddButton(0, Nz::MessageBoxStandardButton::Close);
 
 						if (auto result = errorBox.Show(); !result)
-							fmt::print(fg(fmt::color::red), "failed to open the error message box: {0}!\n", result.GetError());
+							spdlog::error("failed to open the error message box: {0}!", result.GetError());
 
 						Nz::ApplicationBase::Instance()->Quit();
 					});
@@ -181,12 +180,12 @@ namespace tsom
 					updater->OnDownloadProgress.Connect([lastPrint = Nz::MillisecondClock()](std::size_t activeDownloadCount, Nz::UInt64 downloaded, Nz::UInt64 total) mutable
 					{
 						if (lastPrint.RestartIfOver(Nz::Time::Second()))
-							fmt::print("downloading {} file(s) ({}/{}) - {}%\n", activeDownloadCount, ByteToString(downloaded), ByteToString(total), 100 * downloaded / total);
+							spdlog::info("downloading {} file(s) ({}/{}) - {}%", activeDownloadCount, ByteToString(downloaded), ByteToString(total), 100 * downloaded / total);
 					});
 
 					updater->OnUpdateStarting.Connect([]
 					{
-						fmt::print("update is starting...\n");
+						spdlog::info("update is starting...");
 					});
 
 					updater->DownloadAndUpdate(result.GetValue(), true, false, true, true);
@@ -198,7 +197,7 @@ namespace tsom
 				errorBox.AddButton(0, Nz::MessageBoxStandardButton::Close);
 
 				if (auto result = errorBox.Show(); !result)
-					fmt::print(fg(fmt::color::red), "failed to open the error message box: {0}!\n", result.GetError());
+					spdlog::error("failed to open the error message box: {0}!", result.GetError());
 
 				app.Quit();
 			}
@@ -209,7 +208,7 @@ namespace tsom
 		std::filesystem::path scriptPath = Nz::Utf8Path("scripts");
 		if (!std::filesystem::is_directory(scriptPath))
 		{
-			fmt::print(fg(fmt::color::red), "scripts are missing!\n");
+			spdlog::critical("scripts are missing!");
 			app.Quit();
 			return false;
 		}
@@ -280,7 +279,7 @@ namespace tsom
 			{
 				if (auto err = std::from_chars(param.data(), param.data() + param.size(), size); err.ec != std::errc{} || size == 0)
 				{
-					fmt::print(fg(fmt::color::red), "failed to parse {0} commandline parameter ({1}) as a strictly positive number\n", parameterName, param);
+					spdlog::error("failed to parse {0} commandline parameter ({1}) as a strictly positive number", parameterName, param);
 					return defaultValue;
 				}
 			}

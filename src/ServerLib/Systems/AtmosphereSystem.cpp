@@ -10,7 +10,6 @@
 #include <ServerLib/Components/AtmosphereMonitor.hpp>
 #include <Nazara/Core/Components/DisabledComponent.hpp>
 #include <Nazara/Core/Components/NodeComponent.hpp>
-#include <fmt/format.h>
 
 namespace tsom
 {
@@ -63,12 +62,7 @@ namespace tsom
 		for (auto&& [monitorEntity, monitorNode, monitor] : monitorView.each())
 		{
 			Nz::Vector3f monitorPosition = monitorNode.GetPosition();
-
-			ServerAtmosphere* previousAtmosphere = monitor.atmosphere;
 			monitor.atmosphere = m_ownerEnvironment->GetAtmosphereAtPosition(monitorPosition);
-
-			if (monitor.atmosphere != previousAtmosphere)
-				fmt::print("atmosphere update: {}!\n", (void*) monitor.atmosphere);
 		}
 	}
 }

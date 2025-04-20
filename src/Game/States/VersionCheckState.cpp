@@ -17,9 +17,8 @@
 #include <Nazara/Widgets/BoxLayout.hpp>
 #include <Nazara/Widgets/ButtonWidget.hpp>
 #include <Nazara/Widgets/LabelWidget.hpp>
-#include <fmt/color.h>
-#include <fmt/format.h>
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 
 namespace tsom
 {
@@ -72,7 +71,7 @@ namespace tsom
 		{
 			if (!result)
 			{
-				fmt::print(fg(fmt::color::red), "failed to get version update: {}\n", result.GetError());
+				spdlog::error("failed to get version update: {}", result.GetError());
 				return;
 			}
 
@@ -93,7 +92,7 @@ namespace tsom
 		if (updateInfo.assetVersion > currentGameVersion || updateInfo.binaryVersion > currentGameVersion)
 		{
 			m_newVersionInfo = std::move(updateInfo);
-			fmt::print(fg(fmt::color::yellow), "new version available: {}\n", m_newVersionInfo->binaryVersion.str());
+			spdlog::warn("new version available: {}", m_newVersionInfo->binaryVersion.str());
 
 			// We're not supposed to be able to have asset-only version but let's prepare for this
 			semver::version biggestVer = std::max(m_newVersionInfo->assetVersion, m_newVersionInfo->binaryVersion);
@@ -104,7 +103,7 @@ namespace tsom
 			m_updateLayout->Show();
 		}
 		else
-			fmt::print("no new version available\n");
+			spdlog::info("no new version available");
 	}
 
 	void VersionCheckState::OnUpdatePressed()

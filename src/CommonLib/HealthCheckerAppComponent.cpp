@@ -3,7 +3,7 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <CommonLib/HealthCheckerAppComponent.hpp>
-#include <fmt/color.h>
+#include <spdlog/spdlog.h>
 #include <chrono>
 #include <csignal>
 
@@ -32,7 +32,7 @@ namespace tsom
 				{
 					if (++hangCounter >= m_maxHangSeconds)
 					{
-						fmt::print(fg(fmt::color::red), "main loop has been unresponsive for {} seconds, exiting...", hangCounter);
+						spdlog::error("main loop has been unresponsive for {} seconds, exiting...", hangCounter);
 						std::abort();
 						break; //< just in case
 					}

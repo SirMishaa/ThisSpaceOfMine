@@ -49,8 +49,7 @@
 #include <Nazara/Physics3D/Components/PhysCharacter3DComponent.hpp>
 #include <Nazara/Physics3D/Components/RigidBody3DComponent.hpp>
 #include <Nazara/TextRenderer/SimpleTextDrawer.hpp>
-#include <fmt/color.h>
-#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 
 namespace tsom
 {
@@ -121,7 +120,7 @@ namespace tsom
 		{
 			if (chatMessage.playerIndex >= m_players.size())
 			{
-				fmt::print(fg(fmt::color::red), "ChatMessage with unknown player index {}\n", *chatMessage.playerIndex);
+				spdlog::error("ChatMessage with unknown player index {}", *chatMessage.playerIndex);
 				return;
 			}
 
@@ -173,7 +172,7 @@ namespace tsom
 		Chunk* chunk = Nz::Retrieve(chunkNetworkMap.chunkByNetworkIndex, chunkReset.chunkId);
 		if (!chunk)
 		{
-			fmt::print(fg(fmt::color::red), "ChunkReset handler: unknown chunk {}\n", chunkReset.chunkId);
+			spdlog::error("ChunkReset handler: unknown chunk {}", chunkReset.chunkId);
 			return;
 		}
 
@@ -233,7 +232,7 @@ namespace tsom
 
 			entityData.entity.destroy();
 			m_entities[entityId].reset();
-			fmt::print("Deleted entity {} from environment {}\n", entityId, environmentIndex);
+			spdlog::info("Deleted entity {} from environment {}", entityId, environmentIndex);
 		}
 	}
 
@@ -271,7 +270,7 @@ namespace tsom
 	{
 		assert(m_entities[environmentUpdate.entity]);
 		EntityData& entityData = *m_entities[environmentUpdate.entity];
-		fmt::print("Entity {} moved to environment #{} to environment #{}\n", environmentUpdate.entity, entityData.environmentIndex, environmentUpdate.newEnvironmentId);
+		spdlog::info("Entity {} moved to environment #{} to environment #{}", environmentUpdate.entity, entityData.environmentIndex, environmentUpdate.newEnvironmentId);
 
 		assert(m_environments[entityData.environmentIndex]);
 		auto& oldEnvironment = *m_environments[entityData.environmentIndex];
@@ -306,7 +305,7 @@ namespace tsom
 		if (clientRpc.onCalled)
 			clientRpc.onCalled(entityData.entity);
 		else
-			fmt::print(fg(fmt::color::yellow), "client rpc {} has been triggered but has no callback\n", clientRpc.name);
+			spdlog::warn("client rpc {} has been triggered but has no callback", clientRpc.name);
 	}
 
 	void ClientSessionHandler::HandlePacket(Packets::S_EntityPropertiesUpdate&& propertyUpdate)
@@ -321,7 +320,7 @@ namespace tsom
 
 	void ClientSessionHandler::HandlePacket(Packets::S_EnvironmentCreate&& envCreate)
 	{
-		fmt::print("Created environment #{} (owned by {})\n", envCreate.id, envCreate.ownerEntity);
+		spdlog::info("Created environment #{} (owned by {})", envCreate.id, envCreate.ownerEntity);
 		if (envCreate.id >= m_environments.size())
 			m_environments.resize(envCreate.id + 1);
 
@@ -350,7 +349,7 @@ namespace tsom
 
 	void ClientSessionHandler::HandlePacket(Packets::S_EnvironmentDestroy&& envDestroy)
 	{
-		fmt::print("Destroyed environment #{}\n", envDestroy.id);
+		spdlog::info("Destroyed environment #{}", envDestroy.id);
 		for (std::size_t entityIndex : m_environments[envDestroy.id]->entities.IterBits())
 		{
 			assert(m_entities[entityIndex]);
@@ -367,7 +366,7 @@ namespace tsom
 	{
 		for (const auto& ownerUpdate : envOwnerUpdate.ownerUpdates)
 		{
-			fmt::print("Environment #{} changed owned to {}\n", ownerUpdate.environment, ownerUpdate.newOwner);
+			spdlog::info("Environment #{} changed owned to {}", ownerUpdate.environment, ownerUpdate.newOwner);
 
 			Nz::Node* ownerNode = nullptr;
 			if (ownerUpdate.newOwner != Nz::MaxValue<Packets::Helper::EntityId>())
@@ -433,7 +432,7 @@ namespace tsom
 	{
 		if (playerLeave.index >= m_players.size() || !m_players[playerLeave.index])
 		{
-			fmt::print(fg(fmt::color::red), "PlayerLeave with unknown player index {}\n", playerLeave.index);
+			spdlog::error("PlayerLeave with unknown player index {}", playerLeave.index);
 			return;
 		}
 
@@ -446,7 +445,7 @@ namespace tsom
 	{
 		if (playerNameUpdate.index >= m_players.size() || !m_players[playerNameUpdate.index])
 		{
-			fmt::print(fg(fmt::color::red), "PlayerNameUpdate with unknown player index {}\n", playerNameUpdate.index);
+			spdlog::error("PlayerNameUpdate with unknown player index {}", playerNameUpdate.index);
 			return;
 		}
 
@@ -529,7 +528,7 @@ namespace tsom
 			entityClass->InitAndActivateEntity(entity);
 		}
 		else
-			fmt::print(fg(fmt::color::red), "unknown entity class {}\n", entityClassName);
+			spdlog::error("unknown entity class {}", entityClassName);
 
 		if (entityData.playerControlled)
 			SetupEntity(entity, std::move(entityData.playerControlled.value()));
@@ -540,7 +539,7 @@ namespace tsom
 		else if (ShipComponent* shipComponent = entity.try_get<ShipComponent>())
 			environment.gravityController = shipComponent->ship.get();
 
-		fmt::print("Created entity {} in environment {} ({})\n", entityData.entityId, entityData.environmentId, entityClassName);
+		spdlog::info("Created entity {} in environment {} ({})", entityData.entityId, entityData.environmentId, entityClassName);
 
 		// Since we make use of parenting for environments, we need to make replication happen in global space
 		if (Nz::RigidBody3DComponent* rigidBody = entity.try_get<Nz::RigidBody3DComponent>())

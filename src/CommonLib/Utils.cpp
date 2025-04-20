@@ -3,7 +3,7 @@
 // For conditions of distribution and use, see copyright notice in LICENSE
 
 #include <CommonLib/Utils.hpp>
-#include <fmt/format.h>
+#include <spdlog/spdlog.h>
 #include <array>
 #include <cassert>
 
