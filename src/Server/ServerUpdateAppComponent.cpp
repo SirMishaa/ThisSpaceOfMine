@@ -66,9 +66,9 @@ namespace tsom
 
 					std::string message;
 					if (m_quitDelay > Nz::Time::Zero())
-						message = fmt::format("A new server version has been downloaded ({}), restarting in {}...", m_updateInfo.binaryVersion.to_string(), fmt::streamed(m_quitDelay));
+						message = fmt::format("A new server version has been downloaded ({}), restarting in {}...", m_updateInfo.binaryVersion.str(), fmt::streamed(m_quitDelay));
 					else
-						message = fmt::format("A new server version has been downloaded ({}), restarting...", m_updateInfo.binaryVersion.to_string());
+						message = fmt::format("A new server version has been downloaded ({}), restarting...", m_updateInfo.binaryVersion.str());
 
 					fmt::print(fg(fmt::color::dark_green), "{}\n", message);
 
@@ -79,7 +79,7 @@ namespace tsom
 					});
 				});
 
-				fmt::print(fg(fmt::color::dark_green), "A new server version has been found ({}), downloading...\n", m_updateInfo.binaryVersion.to_string());
+				fmt::print(fg(fmt::color::dark_green), "A new server version has been found ({}), downloading...\n", m_updateInfo.binaryVersion.str());
 
 				appUpdater.DownloadAndUpdate(m_updateInfo, m_updateInfo.assetVersion > currentGameVersion, m_updateInfo.binaryVersion > currentGameVersion, m_updateBehavior == UpdateBehavior::DownloadAndUpdate, false);
 			});

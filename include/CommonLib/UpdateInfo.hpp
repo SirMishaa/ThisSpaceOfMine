@@ -8,8 +8,7 @@
 #define TSOM_COMMONLIB_UPDATEINFO_HPP
 
 #include <NazaraUtils/Prerequisites.hpp>
-#include <semver.hpp>
-#include <optional>
+#include <semver/semver.hpp>
 #include <string>
 
 namespace tsom

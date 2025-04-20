@@ -23,6 +23,7 @@ add_requires("nazaraengine >=2025.02.25", { debug = is_mode("debug"), configs = 
 add_requires(
 	"concurrentqueue",
 	"cppcodec",
+	"cpp-semver",
 	"fast_float",
 	"frozen",
 	"libsodium",
@@ -31,7 +32,6 @@ add_requires(
 	"nazarautils",
 	"nlohmann_json",
 	"perlinnoise",
-	"semver",
 	"sol2",
 	"sqlitecpp[sqlite3_external:y]"
 )
@@ -114,7 +114,7 @@ target("CommonLib", function ()
 	add_options("commonlib_static")
 
 	add_packages("nazaraengine", { components = { "physics3d", "network" }, public = true })
-	add_packages("concurrentqueue", "cppcodec", "fast_float", "fmt", "hopscotch-map", "nlohmann_json", "semver", "sol2", { public = true })
+	add_packages("concurrentqueue", "cppcodec", "cpp-semver", "fast_float", "fmt", "hopscotch-map", "nlohmann_json", "sol2", { public = true })
 	add_packages("frozen", "libsodium", "lz4", "perlinnoise")
 
 	if is_plat("windows") then

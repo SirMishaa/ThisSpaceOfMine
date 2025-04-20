@@ -93,12 +93,12 @@ namespace tsom
 		if (updateInfo.assetVersion > currentGameVersion || updateInfo.binaryVersion > currentGameVersion)
 		{
 			m_newVersionInfo = std::move(updateInfo);
-			fmt::print(fg(fmt::color::yellow), "new version available: {}\n", m_newVersionInfo->binaryVersion.to_string());
+			fmt::print(fg(fmt::color::yellow), "new version available: {}\n", m_newVersionInfo->binaryVersion.str());
 
 			// We're not supposed to be able to have asset-only version but let's prepare for this
 			semver::version biggestVer = std::max(m_newVersionInfo->assetVersion, m_newVersionInfo->binaryVersion);
 
-			m_updateButton->UpdateText(Nz::SimpleTextDrawer::Draw("Update game to " + biggestVer.to_string(), 18, Nz::TextStyle_Regular, Nz::Color::sRGBToLinear(Nz::Color(0.13f))));
+			m_updateButton->UpdateText(Nz::SimpleTextDrawer::Draw("Update game to " + biggestVer.str(), 18, Nz::TextStyle_Regular, Nz::Color::sRGBToLinear(Nz::Color(0.13f))));
 			m_updateButton->SetMaximumWidth(m_updateButton->GetPreferredWidth());
 
 			m_updateLayout->Show();
