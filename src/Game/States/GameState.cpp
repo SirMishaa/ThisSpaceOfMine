@@ -267,7 +267,7 @@ namespace tsom
 			{
 				m_targetCameraDistance = Nz::Clamp(m_targetCameraDistance - event.delta, m_defaultCameraDistance * 0.5f, m_defaultCameraDistance * 2.f);
 			}
-			else if (!m_blockSelectionBar->IsVisible())
+			else if (m_blockSelectionBar->IsVisible())
 			{
 				if (event.delta < 0.f)
 					m_blockSelectionBar->SelectNext();
