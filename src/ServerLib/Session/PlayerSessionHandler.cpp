@@ -156,6 +156,52 @@ namespace tsom
 			m_player->Respawn(spawnpoint.env, spawnpoint.position, spawnpoint.rotation);
 			return;
 		}
+		else if (message.starts_with("/tpplanet "))
+		{
+			constexpr std::size_t commandLength = sizeof("/tpplanet ") - 1;
+
+			Nz::UInt32 planetId;
+			const char* last = message.data() + message.size();
+			std::from_chars_result res = std::from_chars(&message[commandLength], last, planetId);
+			if (res.ptr != last || res.ec != std::errc{})
+			{
+				m_player->SendChatMessage("failed to parse planet id");
+				return;
+			}
+
+			auto& serverInstance = m_player->GetServerInstance();
+			ServerEnvironment* env = serverInstance.FindEnvironmentFromDatabaseId(planetId);
+			if (!env)
+			{
+				m_player->SendChatMessage("invalid planet id");
+				return;
+			}
+
+			Nz::Boxf planetAABB = env->ComputeBoundingBox();
+
+			Nz::Vector3f planetCenter = planetAABB.GetCenter();
+			Nz::Vector3f spawnPos = planetCenter + planetAABB.GetRadius() * Nz::Vector3f::Up();
+
+			auto callback = [&](const Nz::Physics3DSystem::RaycastHit& hitInfo)
+			{
+				spawnPos = hitInfo.hitPosition + hitInfo.hitNormal * Constants::PlayerColliderHeight;
+			};
+
+			struct IgnorePlayer : Nz::PhysObjectLayerFilter3D
+			{
+				bool ShouldCollide(Nz::PhysObjectLayer3D layer) const override
+				{
+					return layer != Constants::ObjectLayerPlayer;
+				}
+			};
+			IgnorePlayer objectFilter;
+
+			auto& physSystem = env->GetWorld().GetSystem<Nz::Physics3DSystem>();
+			physSystem.RaycastQueryFirst(spawnPos, planetCenter, callback, nullptr, &objectFilter);
+
+			m_player->UpdateRootEnvironment(env);
+			m_player->Respawn(env, spawnPos, Nz::Quaternionf::Identity());
+		}
 		else if (message == "/fly")
 		{
 			entt::handle playerEntity = m_player->GetControlledEntityReference();
