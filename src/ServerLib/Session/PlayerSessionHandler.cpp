@@ -611,6 +611,61 @@ namespace tsom
 
 			return;
 		}
+		else if (message == "/removetree" && m_player->HasPermission(PlayerPermission::Admin))
+		{
+			entt::handle playerEntity = m_player->GetControlledEntityReference();
+			if (!playerEntity)
+				return;
+
+			ServerInstance& serverInstance = m_player->GetServerInstance();
+
+			ServerEnvironment* currentEnvironment = ServerEnvironment::GetEnvironment(playerEntity);
+
+			std::shared_ptr<const EntityClass> treeClass = serverInstance.GetEntityRegistry().FindClass("tree");
+			if (!treeClass)
+				return;
+
+			const auto& characterController = m_player->GetCharacterController();
+			Nz::Quaternionf cameraRot = characterController->GetCameraRotation();
+
+			Nz::Vector3f hitPos;
+			auto callback = [&](const Nz::Physics3DSystem::RaycastHit& hitInfo)
+			{
+				hitPos = hitInfo.hitPosition;
+			};
+
+			struct IgnorePlayer : Nz::PhysObjectLayerFilter3D
+			{
+				bool ShouldCollide(Nz::PhysObjectLayer3D layer) const override
+				{
+					return layer != Constants::ObjectLayerPlayer;
+				}
+			};
+			IgnorePlayer objectFilter;
+
+			auto& playerNode = playerEntity.get<Nz::NodeComponent>();
+
+			Nz::Vector3f cameraPos = characterController->GetEyePosition();
+
+			auto& physSystem = currentEnvironment->GetWorld().GetSystem<Nz::Physics3DSystem>();
+			if (physSystem.RaycastQueryFirst(cameraPos, cameraPos + cameraRot * Nz::Vector3f::Forward() * 10.f, callback, nullptr, &objectFilter))
+			{
+				entt::registry& environmentRegistry = currentEnvironment->GetWorld().GetRegistry();
+				auto classInstanceView = environmentRegistry.view<Nz::NodeComponent, ClassInstanceComponent>();
+				for (auto&& [entity, entityNode, classInstance] : classInstanceView.each())
+				{
+					if (classInstance.GetClass() == treeClass && entityNode.GetPosition().SquaredDistance(hitPos) < Nz::IntegralPow(0.5f, 2))
+					{
+						environmentRegistry.destroy(entity);
+						m_player->SendChatMessage("Tree removed");
+						return;
+					}
+				}
+			}
+
+			m_player->SendChatMessage("No tree found");
+			return;
+		}
 		else if (message == "/spawnplatform" && m_player->HasPermission(PlayerPermission::Admin))
 		{
 /*
